@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/navbar";
+import { OrganizationSchema } from "@/components/schema/organization-schema";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +26,28 @@ export const metadata: Metadata = {
     "agency reporting",
     "freelance marketing",
     "white label reporting",
+    "client reporting software india",
+    "marketing agency tools india",
+    "agencyanalytics alternative india",
   ],
-  authors: [{ name: "OneReport" }],
+  authors: [{ name: "OneReport", url: "https://onereport.in" }],
   creator: "OneReport",
   publisher: "OneReport",
+
+  // Geographic targeting for India
+  other: {
+    "geo.region": "IN-MH",
+    "geo.placename": "Pune",
+    "geo.position": "18.5204;73.8567",
+    "ICBM": "18.5204, 73.8567",
+  },
+
+  // Verification tags (add your verification codes after setting up accounts)
+  verification: {
+    google: "", // Add your Google Search Console verification code here
+    // yandex: "", // Add if needed
+    // bing: "", // Add if needed
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -88,6 +107,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark bg-[#1a1a1a] ">
+      <head>
+        <OrganizationSchema />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

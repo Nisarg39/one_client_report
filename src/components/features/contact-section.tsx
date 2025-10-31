@@ -25,13 +25,13 @@ export function ContactSection() {
     {
       icon: Phone,
       label: "Phone",
-      value: "+1 (555) 123-4567",
-      href: "tel:+15551234567",
+      value: "+91 8888215802",
+      href: "tel:+918888215802",
     },
     {
       icon: MapPin,
       label: "Location",
-      value: "San Francisco, CA",
+      value: "Pune, India",
       href: null,
     },
   ];
@@ -252,28 +252,40 @@ export function ContactSection() {
               );
             })}
 
-            {/* Additional Info */}
+            {/* Response Time & Support */}
             <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)]">
               <h4
-                className="text-lg font-bold text-[#f5f5f5] mb-3"
+                className="text-lg font-bold text-[#f5f5f5] mb-4"
                 style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
               >
-                Office Hours
+                Quick Response Guarantee
               </h4>
-              <div className="space-y-2 text-sm text-[#c0c0c0]">
-                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                  Monday - Friday: 9:00 AM - 6:00 PM PST
-                </p>
-                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                  Saturday - Sunday: Closed
-                </p>
+              <div className="space-y-3 text-sm text-[#c0c0c0]">
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
+                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                    <span className="text-[#f5f5f5] font-semibold">24-hour response</span> to all inquiries
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
+                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                    <span className="text-[#f5f5f5] font-semibold">Free consultation</span> call available
+                  </p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
+                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                    <span className="text-[#f5f5f5] font-semibold">WhatsApp support</span> for instant updates
+                  </p>
+                </div>
               </div>
               <div className="mt-4 pt-4 border-t border-[#2a2a2a]">
                 <p
                   className="text-xs text-[#999]"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
                 >
-                  We typically respond within 24 hours during business days.
+                  Available 7 days a week. We're here to help you succeed!
                 </p>
               </div>
             </div>
