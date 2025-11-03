@@ -55,13 +55,30 @@
 - [ ] ✅ Keywords array
 - [ ] ✅ OpenGraph tags
 - [ ] ✅ Twitter Card tags
-- [ ] ❌ Add verification tags (Google, Bing)
-- [ ] ❌ Add geographic metadata (geo.region, geo.position)
-- [ ] ❌ Update to Indian pricing in description (₹ instead of $)
+- [ ] ✅ Add verification tags (Google, Bing)
+- [ ] ✅ Add geographic metadata (geo.region, geo.position)
 - [ ] ❌ Add alternate language tags if multilingual
 - [ ] ❌ Configure template for page titles
 
 **File Location:** `/src/app/layout.tsx`
+
+**⚠️ Important: Title & Description Length Guidelines**
+
+| Element | Max Characters | Max Pixels | Current Recommendation |
+|---------|---------------|------------|----------------------|
+| **Title** | 50-60 chars | ~580 pixels | "OneReport - AI Client Reporting for Agencies" (50 chars) ✅ |
+| **Description** | 150-160 chars | ~920 pixels | "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!" (154 chars) ✅ |
+
+**Why This Matters:**
+- Titles/descriptions longer than limits get truncated in Google search results
+- Truncated text shows "..." which looks unprofessional
+- Important keywords at the end get cut off
+- Lower click-through rates (CTR)
+
+**Testing Your Length:**
+- Character count: Use a text editor or online counter
+- Pixel width: Test with https://www.browserlondon.com/blog/2016/07/13/how-long-can-an-seo-title-be/
+- Google preview: Use Yoast SEO or similar tools
 
 ### Page-Specific Metadata
 - [ ] ❌ Create `/src/app/pricing/page.tsx` with custom metadata

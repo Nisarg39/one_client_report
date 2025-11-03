@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { useState } from "react";
+import { FAQSchema } from "@/components/schema/faq-schema";
 
 interface FAQItem {
   question: string;
@@ -73,6 +74,9 @@ export function FAQSection() {
 
   return (
     <section className="relative bg-[#1a1a1a] pt-16 sm:pt-20 md:pt-24 pb-0">
+      {/* FAQ Schema for SEO */}
+      <FAQSchema faqs={faqs} />
+
       {/* Gradient transition to next section */}
       <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-64 bg-gradient-to-b from-[#1a1a1a] via-[#1e1e1e] to-[#242424] pointer-events-none z-0" />
 

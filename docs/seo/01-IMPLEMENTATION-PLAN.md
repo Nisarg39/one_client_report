@@ -259,10 +259,10 @@ Enhance with:
 ```typescript
 export const metadata: Metadata = {
   title: {
-    default: "OneReport - AI-Powered Client Reporting Software | India",
+    default: "OneReport - AI Client Reporting for Agencies",
     template: "%s | OneReport"
   },
-  description: "Generate professional marketing reports in 5 minutes with AI. Affordable reporting software for Indian freelancers & agencies at ₹4,000/mo. 50-80% cheaper than AgencyAnalytics. Free trial - no credit card required.",
+  description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!",
   keywords: [
     "client reporting software india",
     "marketing reporting tool",
@@ -307,11 +307,11 @@ For each page route, create custom metadata:
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Pricing Plans - Affordable Reporting from ₹4,000/mo",
-  description: "Transparent pricing for Indian agencies and freelancers. Plans from ₹4,000-16,000/mo with generous limits. No hidden fees. 14-day free trial.",
+  title: "Pricing - Affordable Client Reporting Plans",
+  description: "Transparent pricing for agencies. Plans from $49-199/mo. No hidden fees. Free 14-day trial, no credit card required.",
   openGraph: {
-    title: "OneReport Pricing - Plans from ₹4,000/mo",
-    description: "Affordable client reporting for Indian freelancers and agencies",
+    title: "OneReport Pricing - Plans from $49/mo",
+    description: "Affordable client reporting for agencies and freelancers",
   },
 };
 ```

@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OneReport - AI-Powered Client Reporting Software for Freelancers & Agencies",
-  description: "Generate professional marketing reports in 5 minutes with AI-powered insights. Affordable reporting software for freelancers and agencies starting at $49/mo. 50-80% cheaper than AgencyAnalytics. Start free trial - no credit card required.",
+  title: "OneReport - AI-Powered Client Reporting Software",
+  description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!",
   keywords: [
     "client reporting software",
     "marketing reporting tool",
@@ -77,7 +77,7 @@ export const metadata: Metadata = {
     url: "https://onereport.in/",
     siteName: "OneReport",
     title: "OneReport - AI-Powered Client Reporting Software",
-    description: "Generate professional marketing reports in 5 minutes. Plans from $49-199/mo with generous report limits.",
+    description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!",
     images: [
       {
         url: "/og-image.jpg",
@@ -90,7 +90,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "OneReport - AI-Powered Client Reporting Software",
-    description: "Generate professional marketing reports in 5 minutes. Plans from $49-199/mo with generous report limits.",
+    description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!",
     images: ["/twitter-image.jpg"],
     creator: "@onereport",
   },
