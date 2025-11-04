@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/layout/navbar";
+import { ConditionalNavbar } from "@/components/layout/conditional-navbar";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
 
 const geistSans = Geist({
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 
   // Verification tags (add your verification codes after setting up accounts)
   verification: {
-    google: "", // Add your Google Search Console verification code here
+    google: "eQ3KWk9WiqtTxeT7XORRa_7OoRIAkUpIOSlv6iDzdbE", // Google Search Console verification
     // yandex: "", // Add if needed
     // bing: "", // Add if needed
   },
@@ -113,7 +113,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
+        <ConditionalNavbar />
         {children}
       </body>
     </html>

@@ -12,13 +12,15 @@ This folder contains specialized agent configurations for developing the Client 
 - Ensure accessibility compliance
 - Maintain visual consistency
 
-### 2. [Backend Agent](./BACKEND-AGENT.md) *(Coming Soon)*
-**Purpose**: Develop API routes and server-side logic
+### 2. [Senior Fullstack Developer Agent](./FULLSTACK-AGENT.md) ⭐ **NEW**
+**Purpose**: Implement scalable full-stack features using Next.js best practices
 **Responsibilities**:
-- Create Next.js API routes
-- Integrate with third-party APIs
-- Handle data processing
-- Implement authentication
+- Build backend with Server Actions and MongoDB
+- Create and integrate database models
+- Implement frontend-backend integration
+- Follow TypeScript and Next.js best practices
+- Maintain scalable folder structure
+- Ensure security and performance
 
 ### 3. [Integration Agent](./INTEGRATION-AGENT.md) *(Coming Soon)*
 **Purpose**: Connect with marketing platforms
@@ -145,7 +147,9 @@ When adding new agent configurations:
 | Task Type | Agent | Key Docs |
 |-----------|-------|----------|
 | UI Component | UI/UX | Design System, Components |
-| API Route | Backend | PRD, API Docs |
+| Backend/Database | Senior Fullstack Developer | FULLSTACK-AGENT.md |
+| Server Actions | Senior Fullstack Developer | FULLSTACK-AGENT.md |
+| Frontend-Backend Integration | Senior Fullstack Developer | FULLSTACK-AGENT.md |
 | Third-party Integration | Integration | PRD, Integration Specs |
 | AI Features | AI | PRD, AI Guidelines |
 | Testing | Testing | Testing Standards |

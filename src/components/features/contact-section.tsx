@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Mail, MessageSquare, Send, MapPin, Phone } from "lucide-react";
+import { Mail, MessageSquare, Send, MapPin, Phone, CheckCircle, XCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { submitContactForm } from "@/backend/server_actions/guestActions";
 
 export function ContactSection() {
   const shouldReduceMotion = useReducedMotion();
@@ -14,6 +15,13 @@ export function ContactSection() {
     email: "",
     message: "",
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: "success" | "error" | null;
+    message: string;
+  }>({ type: null, message: "" });
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const contactInfo = [
     {
@@ -36,10 +44,55 @@ export function ContactSection() {
     },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // TODO: Implement form submission logic
-    console.log("Form submitted:", formData);
+
+    // Reset previous errors and status
+    setFieldErrors({});
+    setSubmitStatus({ type: null, message: "" });
+    setIsSubmitting(true);
+
+    try {
+      // Create FormData from the form
+      const form = e.currentTarget;
+      const formDataToSubmit = new FormData(form);
+
+      // Call server action
+      const result = await submitContactForm(formDataToSubmit);
+
+      if (result.success) {
+        // Success - show success message and reset form
+        setSubmitStatus({
+          type: "success",
+          message: result.message,
+        });
+        setFormData({ name: "", email: "", message: "" });
+
+        // Auto-hide success message after 5 seconds
+        setTimeout(() => {
+          setSubmitStatus({ type: null, message: "" });
+        }, 5000);
+      } else {
+        // Error - show error message and field-specific errors
+        setSubmitStatus({
+          type: "error",
+          message: result.message,
+        });
+
+        if (result.errors) {
+          setFieldErrors(result.errors);
+        }
+      }
+    } catch (error) {
+      // Unexpected error
+      console.error("Form submission error:", error);
+      setSubmitStatus({
+        type: "error",
+        message: "An unexpected error occurred. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (
@@ -115,6 +168,34 @@ export function ContactSection() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Success/Error Alert */}
+                {submitStatus.type && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-xl flex items-start gap-3 ${
+                      submitStatus.type === "success"
+                        ? "bg-green-900/20 border border-green-800/30"
+                        : "bg-red-900/20 border border-red-800/30"
+                    }`}
+                  >
+                    {submitStatus.type === "success" ? (
+                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    )}
+                    <p
+                      className={`text-sm ${
+                        submitStatus.type === "success"
+                          ? "text-green-400"
+                          : "text-red-400"
+                      }`}
+                    >
+                      {submitStatus.message}
+                    </p>
+                  </motion.div>
+                )}
+
                 {/* Name Field */}
                 <div className="space-y-2">
                   <Label
@@ -132,8 +213,16 @@ export function ContactSection() {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className="h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all"
+                    className={`h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
+                      fieldErrors.name ? "border-red-500/50" : ""
+                    }`}
                   />
+                  {fieldErrors.name && (
+                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
+                      <XCircle className="w-4 h-4" />
+                      {fieldErrors.name}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email Field */}
@@ -153,8 +242,16 @@ export function ContactSection() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className="h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all"
+                    className={`h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
+                      fieldErrors.email ? "border-red-500/50" : ""
+                    }`}
                   />
+                  {fieldErrors.email && (
+                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
+                      <XCircle className="w-4 h-4" />
+                      {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 {/* Message Field */}
@@ -174,23 +271,60 @@ export function ContactSection() {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className="rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all"
+                    className={`rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
+                      fieldErrors.message ? "border-red-500/50" : ""
+                    }`}
                   />
+                  {fieldErrors.message && (
+                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
+                      <XCircle className="w-4 h-4" />
+                      {fieldErrors.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full sm:w-auto relative overflow-hidden text-base px-8 md:px-10 h-12 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] transition-all duration-300 focus:ring-2 focus:ring-[#FF8C42] focus:ring-offset-2 focus:ring-offset-[#151515] focus:outline-none"
-                  aria-label="Send message"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto relative overflow-hidden text-base px-8 md:px-10 h-12 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 focus:ring-2 focus:ring-[#FF8C42] focus:ring-offset-2 focus:ring-offset-[#151515] focus:outline-none"
+                  aria-label={isSubmitting ? "Sending message..." : "Send message"}
                   style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
                 >
                   <span className="relative flex items-center justify-center">
-                    Send Message
-                    <Send
-                      className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        Send Message
+                        <Send
+                          className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                          aria-hidden="true"
+                        />
+                      </>
+                    )}
                   </span>
                 </button>
               </form>
