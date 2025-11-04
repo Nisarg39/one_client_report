@@ -3,6 +3,8 @@
 > **Complete guide for building and maintaining the OneReport Admin Panel**
 >
 > This document outlines the architecture, features, and implementation roadmap for the admin dashboard.
+>
+> **Last Updated**: November 4, 2025 - Added middleware route protection implementation ✅
 
 ---
 
@@ -289,41 +291,65 @@ ADMIN_PASSWORD=your_secure_password_here
 - Session token is httpOnly cookie
 - CSRF protection
 
-#### Middleware Protection
+#### Middleware Protection ✅ IMPLEMENTED (Nov 4, 2025)
 
-**File**: `src/middleware.ts`
+**Status**: ✅ Complete and deployed
 
+**File**: [src/middleware.ts](../src/middleware.ts)
+
+**What it does**:
+- Server-side route protection for all `/admin/*` routes
+- Verifies JWT token from `admin-session` cookie
+- Redirects unauthenticated users to login page
+- Allows public access to `/admin` (login page)
+
+**Implementation**:
 ```typescript
-// Protect all /admin routes except /admin/login
-export const config = {
-  matcher: ['/admin/:path*'],
-};
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { verifyToken } from './backend/utils/session';
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const path = request.nextUrl.pathname;
 
-  // Allow login page
-  if (pathname === '/admin/login') {
+  // Allow access to the login page (/admin) without authentication
+  if (path === '/admin' || path === '/admin/') {
     return NextResponse.next();
   }
 
-  // Check for admin session
-  const session = request.cookies.get('admin-session');
+  // For all other /admin/* routes, verify authentication
+  if (path.startsWith('/admin')) {
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('admin-session')?.value;
 
-  if (!session) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
-  }
+      if (!token || !verifyToken(token)) {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
 
-  // Validate session (check expiry, etc.)
-  const isValid = await validateSession(session.value);
-
-  if (!isValid) {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+      return NextResponse.next();
+    } catch (error) {
+      console.error('[Middleware] Error:', error);
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: '/admin/:path*',
+};
 ```
+
+**Security Features**:
+- Server-side token verification using JWT
+- httpOnly cookies prevent XSS attacks
+- Automatic redirect to login on invalid/expired tokens
+- No client-side bypass possible
+- Cookie name: `admin-session`
+- JWT secret: `JWT_SECRET` environment variable
 
 ---
 

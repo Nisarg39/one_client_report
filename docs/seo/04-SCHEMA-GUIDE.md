@@ -377,8 +377,8 @@ const faqs = [
     answer: "OneReport can be set up in just 5 minutes. Simply connect your marketing platforms, customize your branding, and you're ready to send your first report."
   },
   {
-    question: "What is the difference between OneReport and AgencyAnalytics?",
-    answer: "OneReport offers similar features to AgencyAnalytics but at 50-80% lower cost. We're built specifically for Indian agencies with local pricing, payment options, and support."
+    question: "What makes OneReport more affordable than traditional reporting platforms?",
+    answer: "OneReport offers professional reporting features at 50-80% lower cost than traditional reporting platforms. We're built specifically for Indian agencies with local pricing, payment options, and support."
   },
   {
     question: "Can I try OneReport for free?",

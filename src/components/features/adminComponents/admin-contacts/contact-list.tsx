@@ -108,7 +108,7 @@ export default function ContactList() {
       case "read":
         return "bg-[#6CA3A2] text-black shadow-[-4px_-4px_8px_rgba(108,163,162,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
       case "responded":
-        return "bg-[#5a9493] text-black shadow-[-4px_-4px_8px_rgba(90,148,147,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
+        return "bg-[#10B981] text-black shadow-[-4px_-4px_8px_rgba(16,185,129,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
       default:
         return "bg-[#999999] text-black";
     }
@@ -201,7 +201,7 @@ export default function ContactList() {
                 onClick={() => handleBulkUpdateStatus("responded")}
                 className="
                   px-4 py-2 rounded-xl text-xs font-semibold
-                  bg-[#1a1a1a] text-[#5a9493] border border-[#252525]
+                  bg-[#1a1a1a] text-[#10B981] border border-[#252525]
                   shadow-[-6px_-6px_12px_rgba(90,90,90,0.4),6px_6px_12px_rgba(0,0,0,0.9)]
                   hover:shadow-[-8px_-8px_16px_rgba(90,90,90,0.5),8px_8px_16px_rgba(0,0,0,1)]
                   transition-all duration-200

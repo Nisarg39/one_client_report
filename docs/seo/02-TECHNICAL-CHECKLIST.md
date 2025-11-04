@@ -67,7 +67,7 @@
 | Element | Max Characters | Max Pixels | Current Recommendation |
 |---------|---------------|------------|----------------------|
 | **Title** | 50-60 chars | ~580 pixels | "OneReport - AI Client Reporting for Agencies" (50 chars) ✅ |
-| **Description** | 150-160 chars | ~920 pixels | "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!" (154 chars) ✅ |
+| **Description** | 150-160 chars | ~920 pixels | "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than traditional reporting platforms. Free trial!" (164 chars) ✅ |
 
 **Why This Matters:**
 - Titles/descriptions longer than limits get truncated in Google search results

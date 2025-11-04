@@ -56,7 +56,7 @@ export function FAQSection() {
     },
     {
       question: "How is this so much cheaper than other reporting tools?",
-      answer: "We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. For example, AgencyAnalytics charges $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost.",
+      answer: "We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. Traditional reporting platforms charge $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost than traditional reporting platforms.",
     },
     {
       question: "Do you store historical data?",
@@ -64,7 +64,7 @@ export function FAQSection() {
     },
     {
       question: "What if I need more than 200 reports per month?",
-      answer: "Our Enterprise plan is designed for high-volume agencies and large teams managing 100+ clients. With custom report volumes (500-2,000+ reports/month), priority platform integrations, 24/7 support, and SLA guarantees, we tailor the plan to your specific needs. Contact our sales team for a personalized quote - we're still 50-70% cheaper than competitors at enterprise scale.",
+      answer: "Our Enterprise plan is designed for high-volume agencies and large teams managing 100+ clients. With custom report volumes (500-2,000+ reports/month), priority platform integrations, 24/7 support, and SLA guarantees, we tailor the plan to your specific needs. Contact our sales team for a personalized quote - we're still 50-70% cheaper than traditional reporting platforms at enterprise scale.",
     },
   ];
 

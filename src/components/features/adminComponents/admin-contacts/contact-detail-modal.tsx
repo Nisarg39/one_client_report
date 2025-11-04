@@ -85,7 +85,7 @@ export default function ContactDetailModal({
       case "read":
         return "bg-[#6CA3A2] text-black shadow-[-4px_-4px_8px_rgba(108,163,162,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
       case "responded":
-        return "bg-[#5a9493] text-black shadow-[-4px_-4px_8px_rgba(90,148,147,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
+        return "bg-[#10B981] text-black shadow-[-4px_-4px_8px_rgba(16,185,129,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
       default:
         return "bg-[#999999] text-black";
     }

@@ -262,7 +262,7 @@ export const metadata: Metadata = {
     default: "OneReport - AI Client Reporting for Agencies",
     template: "%s | OneReport"
   },
-  description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than AgencyAnalytics. Free trial!",
+  description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than traditional reporting platforms. Free trial!",
   keywords: [
     "client reporting software india",
     "marketing reporting tool",

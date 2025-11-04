@@ -270,7 +270,7 @@ This document outlines the comprehensive strategy for OneReport's homepage, desi
 #### Meta Tags
 ```html
 <title>OneReport - AI-Powered Client Reporting Software for Freelancers & Agencies</title>
-<meta name="description" content="Generate professional marketing reports in 5 minutes with AI-powered insights. Affordable reporting software for freelancers and agencies starting at $49/mo. 50-80% cheaper than AgencyAnalytics. Start free trial - no credit card required.">
+<meta name="description" content="Generate professional marketing reports in 5 minutes with AI-powered insights. Affordable reporting software for freelancers and agencies starting at $49/mo. 50-80% cheaper than traditional reporting platforms. Start free trial - no credit card required.">
 <meta name="keywords" content="client reporting software, marketing reporting tool, AI marketing reports, automated client reports, affordable reporting software, agency reporting, freelance marketing">
 ```
 
@@ -367,7 +367,7 @@ This document outlines the comprehensive strategy for OneReport's homepage, desi
 #### Column 2: Expensive Tools
 - **Icon:** Money/Dollar sign with slash through
 - **Headline:** "Enterprise Tools Kill Your Margins"
-- **Body:** "AgencyAnalytics costs $12-179 per client. DashThis charges $289/month. For freelancers managing 10 clients, that's $2,000-3,000 per year just for reporting."
+- **Body:** "Traditional reporting platforms cost $12-179 per client or $100-500 per month. For freelancers managing 10 clients, that's $2,000-3,000 per year just for reporting."
 - **Stat:** "$200-500/month for reporting tools"
 
 #### Column 3: Complex Platforms
@@ -721,8 +721,8 @@ Row 1 (Primary Integrations):
 **CTA:** "Contact Sales" button (instead of "Start Free Trial")
 
 #### Comparison Callout (Below Cards)
-- **Badge:** "50-80% cheaper than AgencyAnalytics"
-- **Text:** "Other tools charge $12-20 per client. That's $120-400/month for 20 clients. Our Professional plan is just $99/month with 75 reports."
+- **Badge:** "50-80% cheaper than traditional reporting platforms"
+- **Text:** "Traditional reporting platforms charge $12-20 per client. That's $120-400/month for 20 clients. Our Professional plan is just $99/month with 75 reports."
 
 #### Trust Signals
 - 🔒 "Secure payment via Stripe"
@@ -838,10 +838,10 @@ Row 1 (Primary Integrations):
 
 ---
 
-#### Q11: How is this so much cheaper than AgencyAnalytics or DashThis?
-**A:** We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. For example, AgencyAnalytics charges $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost.
+#### Q11: How is this so much cheaper than traditional reporting platforms?
+**A:** We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. Traditional reporting platforms charge $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost than traditional reporting platforms.
 
-**SEO Target:** "AgencyAnalytics alternative cheap", "affordable alternative to DashThis"
+**SEO Target:** "affordable reporting software", "cheap reporting platform alternative"
 
 ---
 
@@ -1117,7 +1117,7 @@ The homepage tells a complete story in 11 sections:
 <!-- Primary Meta Tags -->
 <title>OneReport - AI-Powered Client Reporting Software for Freelancers & Agencies</title>
 <meta name="title" content="OneReport - AI-Powered Client Reporting Software for Freelancers & Agencies">
-<meta name="description" content="Generate professional marketing reports in 5 minutes with AI-powered insights. Affordable reporting software for freelancers and small agencies at $39/mo. 70% cheaper than AgencyAnalytics. Start free trial - no credit card required.">
+<meta name="description" content="Generate professional marketing reports in 5 minutes with AI-powered insights. Affordable reporting software for freelancers and small agencies at $39/mo. 70% cheaper than traditional reporting platforms. Start free trial - no credit card required.">
 <meta name="keywords" content="client reporting software, marketing reporting tool, AI marketing reports, automated client reports, affordable reporting software, agency reporting, freelance marketing">
 
 <!-- Open Graph / Facebook -->
