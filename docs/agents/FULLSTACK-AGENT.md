@@ -15,6 +15,129 @@ Your expertise includes:
 
 ---
 
+## 🎯 Development Philosophy: Frontend-First Approach
+
+> **CRITICAL**: Always follow frontend-first development for new features.
+
+### The Frontend-First Workflow
+
+When implementing any new feature, follow this proven workflow:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 1: PLANNING (No Code)                                │
+│  ─────────────────────────────────────────────────────────  │
+│  1. Define routes and user flow                             │
+│  2. Document page purposes                                  │
+│  3. Plan component hierarchy                                │
+│  4. Define data requirements (will use mocks)               │
+│                                                              │
+│  Deliverable: Clear plan, no code written                   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 2: FRONTEND UI (Mock Data)                           │
+│  ─────────────────────────────────────────────────────────  │
+│  1. Build all pages and components                          │
+│  2. Use mock/hardcoded data                                 │
+│  3. Wire up navigation                                      │
+│  4. Apply design system                                     │
+│  5. Test responsive design                                  │
+│  6. Get stakeholder approval on UX                          │
+│                                                              │
+│  Deliverable: Complete, beautiful UI with mock data         │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 3: BACKEND INTEGRATION                                │
+│  ─────────────────────────────────────────────────────────  │
+│  1. Create database models                                  │
+│  2. Build server actions                                    │
+│  3. Connect forms to backend                                │
+│  4. Add authentication/authorization                        │
+│  5. Replace mock data with real data                        │
+│  6. Test complete flow                                      │
+│                                                              │
+│  Deliverable: Fully functional feature                      │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│  PHASE 4: ADVANCED FEATURES                                  │
+│  ─────────────────────────────────────────────────────────  │
+│  1. Add external API integrations                           │
+│  2. Implement advanced functionality                        │
+│  3. Add AI features if needed                               │
+│  4. Optimize performance                                    │
+│  5. Polish and test                                         │
+│                                                              │
+│  Deliverable: Production-ready feature                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Why Frontend-First?
+
+**Benefits**:
+✅ **Visual Feedback**: See user experience immediately
+✅ **Rapid Iteration**: Change designs without backend complexity
+✅ **Clear Requirements**: Backend needs emerge from frontend implementation
+✅ **Early Validation**: Stakeholders see and approve flow before heavy development
+✅ **Reduced Waste**: Don't build backend features that UI doesn't actually need
+✅ **Parallel Work**: Backend can be built while frontend is being refined
+
+**Anti-Pattern (Backend-First)** ❌:
+```
+Build database → Build API → Build frontend → Realize UX needs changes →
+Refactor backend → Refactor frontend → Waste time
+```
+
+**Correct Pattern (Frontend-First)** ✅:
+```
+Plan flow → Build UI with mocks → Validate UX → Build exactly the backend
+needed → Integrate → Ship fast
+```
+
+### Example: User Onboarding Feature
+
+**❌ Wrong Approach (Backend-First)**:
+1. Setup NextAuth.js configuration
+2. Create User model
+3. Build authentication API routes
+4. Then start building signup form
+5. Realize form needs different fields
+6. Go back and modify backend
+7. Time wasted!
+
+**✅ Correct Approach (Frontend-First)**:
+1. Plan: What pages? What flow? What data?
+2. Build beautiful signup/login/onboarding UI
+3. Use mock data: `const user = { name: "John Doe", email: "john@example.com" }`
+4. Test complete user journey visually
+5. Get approval on UX flow
+6. NOW setup NextAuth.js with exact requirements
+7. Connect forms (backend already matches frontend needs)
+8. Ship!
+
+### When to Use This Approach
+
+- ✅ **New Features**: Always start with frontend
+- ✅ **Complex UI**: Build UI first to understand requirements
+- ✅ **User-Facing Pages**: Dashboard, onboarding, settings, etc.
+- ⚠️ **API-First Features**: Sometimes external API integration drives architecture (rare)
+- ⚠️ **Backend-Heavy Features**: Background jobs, webhooks (but still plan UI first)
+
+### Key Principles
+
+1. **Always Plan First**: Don't code until you know the user flow
+2. **Mock Data is Your Friend**: Hardcode realistic data during UI phase
+3. **Design System Compliance**: Every component must match design system
+4. **Responsive from Day 1**: Test mobile/tablet/desktop during UI phase
+5. **Backend Matches Frontend**: Backend should serve exactly what frontend needs
+
+---
+
 ## Project Architecture
 
 ### Technology Stack
@@ -773,6 +896,675 @@ For complete implementation details, see:
 - [ADMIN-PANEL.md](../ADMIN-PANEL.md) - Complete admin panel documentation
 - [Environment Variables](#environment-variables) - Required configuration
 - [Security Considerations](#security) - Security best practices
+
+---
+
+## User Authentication with NextAuth.js
+
+> **📘 Complete Documentation**: See [USER-ONBOARDING.md](../USER-ONBOARDING.md) for comprehensive user authentication and onboarding documentation.
+
+### Overview
+
+User authentication is handled by **NextAuth.js v5 (beta)** - a complete authentication solution designed for Next.js App Router. This is separate from the admin panel's simple JWT authentication.
+
+**Key Differences**:
+- **Admin Authentication**: Simple password + JWT (for internal admin panel)
+- **User Authentication**: NextAuth.js with OAuth + Credentials (for end users)
+
+### Why NextAuth.js?
+
+✅ **Industry Standard**: Used by thousands of production applications
+✅ **App Router Native**: Built specifically for Next.js 13+ App Router
+✅ **OAuth Integration**: Google, GitHub, and 50+ providers out of the box
+✅ **Session Management**: Automatic JWT/database session handling
+✅ **Type-Safe**: Full TypeScript support
+✅ **Security**: Built-in CSRF protection, secure cookies, token rotation
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AUTHENTICATION FLOW                      │
+└─────────────────────────────────────────────────────────────┘
+
+User lands on /signup
+       │
+       ├─→ [Option 1] Email/Password signup
+       │   ├─→ CredentialsProvider validates
+       │   ├─→ User created in MongoDB
+       │   └─→ Session created
+       │
+       ├─→ [Option 2] "Continue with Google"
+       │   ├─→ GoogleProvider OAuth flow
+       │   ├─→ User auto-created/linked in MongoDB
+       │   └─→ Session created
+       │
+       └─→ [Option 3] "Continue with GitHub"
+           ├─→ GitHubProvider OAuth flow
+           ├─→ User auto-created/linked in MongoDB
+           └─→ Session created
+
+Session created → Cookie set → Redirect to /onboarding
+```
+
+### NextAuth.js Configuration
+
+**File**: `/src/app/api/auth/[...nextauth]/route.ts`
+
+```typescript
+import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
+import { MongoDBAdapter } from "@auth/mongodb-adapter";
+import clientPromise from "@/backend/config/mongodb-adapter";
+import connectDB from "@/backend/config/database";
+import User from "@/backend/models/user";
+import bcrypt from "bcryptjs";
+
+export const authOptions = {
+  adapter: MongoDBAdapter(clientPromise),
+
+  providers: [
+    // Email/Password authentication
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
+        }
+
+        await connectDB();
+        const user = await User.findOne({ email: credentials.email });
+
+        if (!user || !user.password) {
+          throw new Error("Invalid credentials");
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) {
+          throw new Error("Invalid credentials");
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      }
+    }),
+
+    // Google OAuth
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope: "openid email profile https://www.googleapis.com/auth/analytics.readonly"
+        }
+      }
+    }),
+
+    // GitHub OAuth
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    }),
+  ],
+
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60, // 7 days
+  },
+
+  pages: {
+    signIn: "/login",
+    signUp: "/signup",
+    error: "/login",
+  },
+
+  callbacks: {
+    async jwt({ token, user, account }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+      }
+      if (account?.provider === "google") {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+      }
+      return session;
+    },
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
+```
+
+### MongoDB Adapter Setup
+
+NextAuth.js needs a MongoDB client for session/user storage.
+
+**File**: `/src/backend/config/mongodb-adapter.ts`
+
+```typescript
+import { MongoClient } from "mongodb";
+
+if (!process.env.MONGODB_URI) {
+  throw new Error("Please add your MONGODB_URI to .env.local");
+}
+
+const uri = process.env.MONGODB_URI;
+const options = {};
+
+let client: MongoClient;
+let clientPromise: Promise<MongoClient>;
+
+if (process.env.NODE_ENV === "development") {
+  // In development, use a global variable to preserve the client across hot reloads
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>;
+  };
+
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(uri, options);
+    globalWithMongo._mongoClientPromise = client.connect();
+  }
+  clientPromise = globalWithMongo._mongoClientPromise;
+} else {
+  // In production, create a new client
+  client = new MongoClient(uri, options);
+  clientPromise = client.connect();
+}
+
+export default clientPromise;
+```
+
+### User Model with NextAuth
+
+**File**: `/src/backend/models/user.ts`
+
+```typescript
+import mongoose from "mongoose";
+
+const userSchema = new mongoose.Schema({
+  // NextAuth.js required fields
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  emailVerified: { type: Date, default: null },
+  image: { type: String, default: null },
+
+  // Credentials provider (optional - only for email/password signup)
+  password: { type: String },
+
+  // OAuth data
+  accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Account" }],
+  sessions: [{ type: mongoose.Schema.Types.ObjectId, ref: "Session" }],
+
+  // OneReport-specific fields
+  onboardingCompleted: { type: Boolean, default: false },
+  subscription: {
+    plan: { type: String, enum: ["free", "starter", "professional", "agency", "enterprise"], default: "free" },
+    status: { type: String, enum: ["active", "inactive", "cancelled", "trialing"], default: "trialing" },
+    trialEndsAt: { type: Date, default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) }, // 14 days
+    currentPeriodEnd: { type: Date },
+    stripeCustomerId: { type: String },
+    stripeSubscriptionId: { type: String },
+  },
+
+  // Branding customization
+  branding: {
+    logo: { type: String, default: null },
+    primaryColor: { type: String, default: "#6CA3A2" },
+    secondaryColor: { type: String, default: "#FF8C42" },
+    customDomain: { type: String, default: null },
+  },
+
+  // Usage metrics
+  reportsGenerated: { type: Number, default: 0 },
+  reportsLimit: { type: Number, default: 25 },
+
+}, { timestamps: true });
+
+// Indexes
+userSchema.index({ email: 1 });
+userSchema.index({ createdAt: -1 });
+
+export default mongoose.models.User || mongoose.model("User", userSchema);
+```
+
+### Authentication Server Actions
+
+**File**: `/src/backend/server_actions/authActions.ts`
+
+```typescript
+'use server';
+
+import connectDB from "../config/database";
+import User from "../models/user";
+import { ServerActionResponse } from "../types";
+import bcrypt from "bcryptjs";
+
+// Signup with email/password
+export async function signupUser(formData: FormData): Promise<ServerActionResponse> {
+  try {
+    const name = formData.get("name")?.toString().trim();
+    const email = formData.get("email")?.toString().trim();
+    const password = formData.get("password")?.toString();
+
+    // Validation
+    const errors: Record<string, string> = {};
+    if (!name || name.length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Invalid email address";
+    }
+    if (!password || password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      return { success: false, message: "Validation failed", errors };
+    }
+
+    await connectDB();
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return { success: false, message: "Email already registered", errors: { email: "Email already in use" } };
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password!, 12);
+
+    // Create user
+    await User.create({
+      name,
+      email,
+      password: hashedPassword,
+      emailVerified: null,
+    });
+
+    return { success: true, message: "Account created successfully!" };
+  } catch (error) {
+    console.error("Signup error:", error);
+    return { success: false, message: "An error occurred during signup" };
+  }
+}
+
+// Password reset request
+export async function requestPasswordReset(email: string): Promise<ServerActionResponse> {
+  try {
+    await connectDB();
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      // Return success even if user doesn't exist (security best practice)
+      return { success: true, message: "If an account exists, a reset link will be sent" };
+    }
+
+    // TODO: Generate reset token, send email
+    // Implementation depends on email service setup
+
+    return { success: true, message: "Password reset link sent to your email" };
+  } catch (error) {
+    console.error("Password reset error:", error);
+    return { success: false, message: "An error occurred" };
+  }
+}
+```
+
+### Session Hooks & Utilities
+
+**Client-side hook**: `/src/hooks/useAuth.ts`
+
+```typescript
+'use client';
+
+import { useSession as useNextAuthSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export function useAuth(requireAuth = false) {
+  const { data: session, status } = useNextAuthSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (requireAuth && status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [requireAuth, status, router]);
+
+  return {
+    user: session?.user,
+    isLoading: status === "loading",
+    isAuthenticated: status === "authenticated",
+  };
+}
+```
+
+**Server-side helper**: `/src/backend/utils/auth.ts`
+
+```typescript
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
+export async function getSession() {
+  return await getServerSession(authOptions);
+}
+
+export async function requireAuth() {
+  const session = await getSession();
+
+  if (!session || !session.user) {
+    throw new Error("Unauthorized");
+  }
+
+  return session;
+}
+
+export async function getUserId(): Promise<string | null> {
+  const session = await getSession();
+  return session?.user?.id || null;
+}
+```
+
+### Middleware for User Routes
+
+Update `/src/middleware.ts` to protect user routes:
+
+```typescript
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
+import { cookies } from 'next/headers';
+import { verifyToken } from './backend/utils/session';
+
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+
+  // ===== ADMIN ROUTES PROTECTION =====
+  if (path === '/admin' || path === '/admin/') {
+    return NextResponse.next();
+  }
+
+  if (path.startsWith('/admin')) {
+    try {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('admin-session')?.value;
+
+      if (!token || !verifyToken(token)) {
+        return NextResponse.redirect(new URL('/admin', request.url));
+      }
+      return NextResponse.next();
+    } catch (error) {
+      console.error('[Middleware] Admin auth error:', error);
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
+
+  // ===== USER ROUTES PROTECTION =====
+  const protectedUserRoutes = ['/dashboard', '/onboarding', '/reports', '/clients', '/settings', '/billing'];
+  const authRoutes = ['/login', '/signup'];
+
+  const isProtectedRoute = protectedUserRoutes.some(route => path.startsWith(route));
+  const isAuthRoute = authRoutes.some(route => path.startsWith(route));
+
+  // Check NextAuth session
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+
+  // Redirect authenticated users away from auth pages
+  if (isAuthRoute && token) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  // Redirect unauthenticated users to login
+  if (isProtectedRoute && !token) {
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('callbackUrl', path);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    '/admin/:path*',
+    '/dashboard/:path*',
+    '/onboarding/:path*',
+    '/reports/:path*',
+    '/clients/:path*',
+    '/settings/:path*',
+    '/billing/:path*',
+    '/login',
+    '/signup',
+  ],
+};
+```
+
+### TypeScript Types
+
+**File**: `/src/types/next-auth.d.ts`
+
+```typescript
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
+import { JWT as DefaultJWT } from "next-auth/jwt";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      image?: string | null;
+    } & DefaultSession["user"];
+  }
+
+  interface User extends DefaultUser {
+    id: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    id: string;
+    email: string;
+    accessToken?: string;
+    refreshToken?: string;
+  }
+}
+```
+
+### Frontend Integration Examples
+
+**Signup Form**: `/src/components/auth/SignupForm.tsx`
+
+```typescript
+'use client';
+
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { signupUser } from "@/backend/server_actions/authActions";
+
+export function SignupForm() {
+  const router = useRouter();
+  const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setErrors({});
+    setIsLoading(true);
+
+    const form = new FormData(e.currentTarget);
+    const result = await signupUser(form);
+
+    if (result.success) {
+      // Auto-login after signup
+      await signIn("credentials", {
+        email: formData.email,
+        password: formData.password,
+        redirect: false,
+      });
+      router.push("/onboarding");
+    } else {
+      if (result.errors) setErrors(result.errors);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleOAuthSignup = async (provider: "google" | "github") => {
+    await signIn(provider, { callbackUrl: "/onboarding" });
+  };
+
+  return (
+    <div>
+      {/* OAuth Buttons */}
+      <button onClick={() => handleOAuthSignup("google")}>
+        Continue with Google
+      </button>
+      <button onClick={() => handleOAuthSignup("github")}>
+        Continue with GitHub
+      </button>
+
+      {/* Email/Password Form */}
+      <form onSubmit={handleSubmit}>
+        <input name="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+        {errors.name && <p className="error">{errors.name}</p>}
+
+        <input name="email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
+        {errors.email && <p className="error">{errors.email}</p>}
+
+        <input name="password" type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} />
+        {errors.password && <p className="error">{errors.password}</p>}
+
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? "Creating account..." : "Sign Up"}
+        </button>
+      </form>
+    </div>
+  );
+}
+```
+
+**Protected Dashboard Page**: `/src/app/dashboard/page.tsx`
+
+```typescript
+import { requireAuth } from "@/backend/utils/auth";
+import { redirect } from "next/navigation";
+import User from "@/backend/models/user";
+import connectDB from "@/backend/config/database";
+
+export default async function DashboardPage() {
+  const session = await requireAuth();
+
+  // Check if onboarding is complete
+  await connectDB();
+  const user = await User.findOne({ email: session.user.email });
+
+  if (!user?.onboardingCompleted) {
+    redirect("/onboarding");
+  }
+
+  return (
+    <div>
+      <h1>Welcome, {user.name}!</h1>
+      <p>Reports generated: {user.reportsGenerated} / {user.reportsLimit}</p>
+    </div>
+  );
+}
+```
+
+### Environment Variables for NextAuth
+
+Add to `.env.local`:
+
+```bash
+# NextAuth.js Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-super-secret-key-generate-with-openssl
+
+# OAuth Providers
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+```
+
+Generate `NEXTAUTH_SECRET`:
+```bash
+openssl rand -base64 32
+```
+
+### Key Patterns Summary
+
+| Pattern | Admin Auth | User Auth (NextAuth) |
+|---------|-----------|---------------------|
+| **Method** | Simple password + JWT | Credentials + OAuth |
+| **Session** | Custom JWT cookie | NextAuth JWT/database |
+| **Protection** | Custom middleware | NextAuth middleware |
+| **Use Case** | Internal admin panel | End users (customers) |
+| **Providers** | Password only | Email/Password, Google, GitHub |
+| **Setup Complexity** | Low | Medium |
+| **Security** | Basic | Enterprise-grade |
+
+### Migration Path
+
+When implementing NextAuth.js:
+
+1. ✅ Keep existing admin authentication (simple JWT)
+2. ✅ Add NextAuth for users only
+3. ✅ Update middleware to handle both auth systems
+4. ✅ Separate concerns: `/admin/*` vs `/dashboard/*`
+5. ✅ No conflicts between admin and user sessions
+
+### Testing NextAuth
+
+```typescript
+// Test signup
+await signupUser(formData) // Should create user
+await signIn("credentials", { email, password }) // Should login
+
+// Test OAuth
+await signIn("google") // Should redirect to Google
+// After OAuth: User auto-created, session established
+
+// Test protection
+await fetch("/dashboard") // Should redirect to /login if not authenticated
+await fetch("/dashboard") // Should work if authenticated
+```
+
+### Reference
+
+For complete implementation details, see:
+- [USER-ONBOARDING.md](../USER-ONBOARDING.md) - Complete user authentication guide with NextAuth.js
+- [IMPLEMENTATION-STATUS.md](../IMPLEMENTATION-STATUS.md) - Task tracking for authentication implementation
+- [NextAuth.js Docs](https://next-auth.js.org/) - Official documentation
 
 ---
 

@@ -5,8 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { FloatingIcons } from "@/components/aceternity/floating-icons";
+import { useRouter } from "next/navigation";
 
 export function HeroSectionSkeuomorphic() {
+  const router = useRouter();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 sm:pt-24 md:pt-28 pb-12 sm:pb-16 md:pb-24 bg-[#1a1a1a] overflow-hidden">
       {/* Floating Service Provider Icons */}
@@ -88,6 +91,7 @@ export function HeroSectionSkeuomorphic() {
           >
             {/* Primary Button - Soft raised */}
             <button
+              onClick={() => router.push('/signup')}
               className="relative overflow-hidden text-sm sm:text-base px-4 sm:px-8 h-11 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] transition-all duration-300 focus:outline-none"
               aria-label="Start free trial"
               style={{
@@ -105,6 +109,7 @@ export function HeroSectionSkeuomorphic() {
 
             {/* Secondary Button - Soft flat */}
             <button
+              onClick={() => router.push('/demo')}
               className="relative overflow-hidden text-sm sm:text-base px-4 sm:px-8 h-11 sm:h-14 rounded-3xl font-semibold group bg-[#1a1a1a] text-[#6CA3A2] shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9)] active:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.6),inset_-8px_-8px_16px_rgba(60,60,60,0.4)] transition-all duration-300 focus:outline-none"
               aria-label="View live demo"
               style={{
