@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import Image from "next/image";
 import { Twitter, Linkedin, Youtube, Github, Mail } from "lucide-react";
 
@@ -61,7 +62,7 @@ export function Footer() {
               transition={{ duration: 0.5 }}
             >
               {/* Logo */}
-              <a
+              <Link
                 href="/"
                 className="flex items-center space-x-3 group mb-4"
                 aria-label="OneReport Home"
@@ -84,7 +85,7 @@ export function Footer() {
                   <span className="text-[#FF8C42]">R</span>
                   <span className="text-[#f5f5f5]">eport</span>
                 </span>
-              </a>
+              </Link>
 
               <p
                 className="text-sm text-[#c0c0c0] mb-6 leading-relaxed max-w-xs"

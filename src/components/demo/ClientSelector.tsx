@@ -27,10 +27,14 @@ export function ClientSelector({
       </h2>
 
       <div className="mb-5">
-        <label className="block text-sm font-medium text-[#c0c0c0] mb-2">
+        <label
+          htmlFor="client-selector"
+          className="block text-sm font-medium text-[#c0c0c0] mb-2"
+        >
           Select Client
         </label>
         <select
+          id="client-selector"
           value={selectedClientId}
           onChange={(e) => onClientChange(e.target.value)}
           className="w-full px-4 py-3 rounded-2xl bg-[#1a1a1a] text-[#f5f5f5] border-none shadow-[inset_8px_8px_16px_rgba(0,0,0,0.6),inset_-8px_-8px_16px_rgba(60,60,60,0.4)] focus:shadow-[inset_10px_10px_20px_rgba(0,0,0,0.7),inset_-10px_-10px_20px_rgba(70,70,70,0.5)] transition-all outline-none cursor-pointer"

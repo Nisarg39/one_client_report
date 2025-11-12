@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -155,7 +153,7 @@ export default function LoginPage() {
         {/* Signup Link */}
         <div className="mt-6 text-center">
           <p className="text-sm text-[#999]">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/signup"
               className="text-[#6CA3A2] hover:text-[#5a9493] transition-colors font-medium"

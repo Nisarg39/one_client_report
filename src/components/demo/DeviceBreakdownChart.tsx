@@ -42,7 +42,7 @@ export function DeviceBreakdownChart({ data }: DeviceBreakdownChartProps) {
       {/* Donut Chart */}
       <div className="relative w-64 h-64 mx-auto">
         <svg viewBox="0 0 100 100" className="transform -rotate-90">
-          {data.reduce((acc, item, index) => {
+          {data.reduce((acc, item) => {
             const circumference = 2 * Math.PI * 30;
             const dashOffset = acc.offset;
             const dashArray = `${(item.percentage / 100) * circumference} ${circumference}`;

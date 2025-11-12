@@ -11,6 +11,41 @@ import { ServerActionResponse } from '../types';
 import connectDB from '../config/database';
 import Contactus from '../models/contactus';
 
+type ContactStatus = 'unread' | 'read' | 'responded';
+
+type ContactRecord = {
+  _id: string | { toString(): string };
+  name: string;
+  email: string;
+  message: string;
+  status: ContactStatus;
+  adminNotes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type SerializedContact = {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: ContactStatus;
+  adminNotes: string | null;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+const serializeContact = (contact: ContactRecord): SerializedContact => ({
+  _id: typeof contact._id === 'string' ? contact._id : contact._id.toString(),
+  name: contact.name,
+  email: contact.email,
+  message: contact.message,
+  status: contact.status,
+  createdAt: contact.createdAt.toISOString(),
+  updatedAt: contact.updatedAt?.toISOString(),
+  adminNotes: contact.adminNotes ?? null,
+});
+
 /**
  * Admin login action
  * Validates password and creates JWT session cookie
@@ -189,25 +224,17 @@ export async function getDashboardStats(): Promise<ServerActionResponse<{
  *
  * @returns ServerActionResponse with recent contacts
  */
-export async function getRecentContacts(): Promise<ServerActionResponse<any[]>> {
+export async function getRecentContacts(): Promise<ServerActionResponse<SerializedContact[]>> {
   try {
     await connectDB();
 
     const recentContacts = await Contactus.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .lean();
+      .lean<ContactRecord>();
 
     // Serialize MongoDB documents to plain objects
-    const serializedContacts = recentContacts.map((contact: any) => ({
-      _id: contact._id.toString(),
-      name: contact.name,
-      email: contact.email,
-      message: contact.message,
-      status: contact.status,
-      createdAt: contact.createdAt.toISOString(),
-      adminNotes: contact.adminNotes || null,
-    }));
+    const serializedContacts = recentContacts.map(serializeContact);
 
     return {
       success: true,
@@ -238,7 +265,7 @@ export async function getAllContacts(params?: {
   search?: string;
   status?: string;
 }): Promise<ServerActionResponse<{
-  contacts: any[];
+  contacts: SerializedContact[];
   total: number;
   page: number;
   totalPages: number;
@@ -252,7 +279,7 @@ export async function getAllContacts(params?: {
     const status = params?.status || '';
 
     // Build query
-    const query: any = {};
+    const query: Record<string, unknown> = {};
 
     // Search by name or email
     if (search) {
@@ -276,18 +303,10 @@ export async function getAllContacts(params?: {
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean();
+      .lean<ContactRecord>();
 
     // Serialize contacts
-    const serializedContacts = contacts.map((contact: any) => ({
-      _id: contact._id.toString(),
-      name: contact.name,
-      email: contact.email,
-      message: contact.message,
-      status: contact.status,
-      createdAt: contact.createdAt.toISOString(),
-      adminNotes: contact.adminNotes || null,
-    }));
+    const serializedContacts = contacts.map(serializeContact);
 
     return {
       success: true,
@@ -311,11 +330,11 @@ export async function getAllContacts(params?: {
 /**
  * Get single contact by ID
  */
-export async function getContactById(id: string): Promise<ServerActionResponse<any>> {
+export async function getContactById(id: string): Promise<ServerActionResponse<SerializedContact>> {
   try {
     await connectDB();
 
-    const contact: any = await Contactus.findById(id).lean();
+    const contact = await Contactus.findById(id).lean<ContactRecord>();
 
     if (!contact) {
       return {
@@ -325,16 +344,7 @@ export async function getContactById(id: string): Promise<ServerActionResponse<a
     }
 
     // Serialize contact
-    const serializedContact = {
-      _id: contact._id.toString(),
-      name: contact.name,
-      email: contact.email,
-      message: contact.message,
-      status: contact.status,
-      createdAt: contact.createdAt.toISOString(),
-      updatedAt: contact.updatedAt.toISOString(),
-      adminNotes: contact.adminNotes || null,
-    };
+    const serializedContact = serializeContact(contact);
 
     return {
       success: true,

@@ -13,8 +13,6 @@ interface TrafficSourcesChartProps {
 }
 
 export function TrafficSourcesChart({ sources }: TrafficSourcesChartProps) {
-  const total = sources.reduce((sum, s) => sum + s.sessions, 0);
-
   if (sources.length === 0) {
     return (
       <div className="text-center py-8 text-[#666] text-sm">

@@ -136,7 +136,7 @@ export function decodeToken(token: string): { adminId: string } | null {
     // Verify and decode token
     const decoded = jwt.verify(token, secret) as { adminId: string };
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

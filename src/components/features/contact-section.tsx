@@ -134,8 +134,8 @@ export function ContactSection() {
             className="text-base sm:text-lg md:text-xl text-[#c0c0c0] max-w-2xl mx-auto"
             style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
           >
-            Have questions? We'd love to hear from you. Send us a message and
-            we'll respond as soon as possible.
+            Have questions? We&apos;d love to hear from you. Send us a message and
+            we&apos;ll respond as soon as possible.
           </p>
         </motion.div>
 
@@ -419,7 +419,7 @@ export function ContactSection() {
                   className="text-xs text-[#999]"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
                 >
-                  Available 7 days a week. We're here to help you succeed!
+                  Available 7 days a week. We&apos;re here to help you succeed!
                 </p>
               </div>
             </div>

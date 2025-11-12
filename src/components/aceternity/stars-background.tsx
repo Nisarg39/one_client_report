@@ -40,60 +40,61 @@ export const StarsBackground: React.FC<StarsBackgroundProps> = ({
     // Calculate number of stars
     const numStars = Math.floor(canvas.width * canvas.height * starDensity);
 
-    // Star class
-    class Star {
+    type Star = {
       x: number;
       y: number;
       radius: number;
       opacity: number;
       twinkleSpeed: number | null;
       twinkleDirection: number;
+      draw: () => void;
+      update: (deltaTime: number) => void;
+    };
 
-      constructor() {
-        this.x = Math.random() * (canvas?.width || window.innerWidth);
-        this.y = Math.random() * (canvas?.height || window.innerHeight);
-        this.radius = Math.random() * 1.5;
-        this.opacity = Math.random();
+    const createStar = (): Star => {
+      const initialX = Math.random() * (canvas?.width || window.innerWidth);
+      const initialY = Math.random() * (canvas?.height || window.innerHeight);
+      const initialOpacity = Math.random();
+      const shouldTwinkle = allStarsTwinkle || Math.random() < twinkleProbability;
+      const twinkleSpeedValue = shouldTwinkle
+        ? Math.random() * (maxTwinkleSpeed - minTwinkleSpeed) + minTwinkleSpeed
+        : null;
+      const twinkleDirectionValue = Math.random() < 0.5 ? -1 : 1;
+      const radius = Math.random() * 1.5;
 
-        // Determine if this star should twinkle
-        const shouldTwinkle = allStarsTwinkle || Math.random() < twinkleProbability;
-        this.twinkleSpeed = shouldTwinkle
-          ? Math.random() * (maxTwinkleSpeed - minTwinkleSpeed) + minTwinkleSpeed
-          : null;
-        this.twinkleDirection = Math.random() < 0.5 ? -1 : 1;
-      }
+      const star: Star = {
+        x: initialX,
+        y: initialY,
+        radius,
+        opacity: initialOpacity,
+        twinkleSpeed: twinkleSpeedValue,
+        twinkleDirection: twinkleDirectionValue,
+        draw: () => {
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+          ctx.fill();
+        },
+        update: (deltaTime: number) => {
+          if (star.twinkleSpeed !== null) {
+            star.opacity += star.twinkleDirection * star.twinkleSpeed * deltaTime;
 
-      draw() {
-        if (!ctx) return;
-
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        ctx.fill();
-      }
-
-      update(deltaTime: number) {
-        if (this.twinkleSpeed !== null) {
-          // Update opacity for twinkling effect
-          this.opacity += this.twinkleDirection * this.twinkleSpeed * deltaTime;
-
-          // Reverse direction if limits are reached
-          if (this.opacity <= 0) {
-            this.opacity = 0;
-            this.twinkleDirection = 1;
-          } else if (this.opacity >= 1) {
-            this.opacity = 1;
-            this.twinkleDirection = -1;
+            if (star.opacity <= 0) {
+              star.opacity = 0;
+              star.twinkleDirection = 1;
+            } else if (star.opacity >= 1) {
+              star.opacity = 1;
+              star.twinkleDirection = -1;
+            }
           }
-        }
-      }
-    }
+        },
+      };
+
+      return star;
+    };
 
     // Create stars
-    const stars: Star[] = [];
-    for (let i = 0; i < numStars; i++) {
-      stars.push(new Star());
-    }
+    const stars: Star[] = Array.from({ length: numStars }, createStar);
 
     // Animation loop
     let lastTime = performance.now();

@@ -45,7 +45,7 @@ export default function AdminDashboard() {
       if (contactsResult.success && contactsResult.data) {
         setRecentContacts(contactsResult.data);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to load dashboard data");
     } finally {
       setLoading(false);

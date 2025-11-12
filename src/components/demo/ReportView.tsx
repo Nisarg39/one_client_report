@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Users, Eye, MousePointer, Calendar, TrendingUp, Sparkles, BarChart2, ChevronDown, ChevronUp, Activity } from "lucide-react";
 import { TrafficSourcesChart } from "./TrafficSourcesChart";
@@ -94,7 +95,7 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
           <Sparkles className="w-16 h-16 text-[#6CA3A2] mx-auto mb-4" />
           <p className="text-[#c0c0c0] text-lg mb-2">Ready to Generate Your Report</p>
           <p className="text-[#999] text-sm">
-            Click <span className="font-semibold text-[#6CA3A2]">"Generate Report"</span> to see your aggregated analytics
+            Click <span className="font-semibold text-[#6CA3A2]">&quot;Generate Report&quot;</span> to see your aggregated analytics
           </p>
         </div>
       </div>
@@ -109,10 +110,13 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
           <div className="flex items-start justify-between mb-2">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#6CA3A2] to-[#5a9493] flex items-center justify-center overflow-hidden shadow-[-6px_-6px_12px_rgba(70,70,70,0.3),6px_6px_12px_rgba(0,0,0,0.6)]">
-                <img
+                <Image
                   src={currentClient.logo}
                   alt={`${currentClient.name} logo`}
+                  width={56}
+                  height={56}
                   className="w-full h-full object-cover"
+                  unoptimized
                 />
               </div>
               <h1
@@ -182,6 +186,13 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
               )}
             </div>
             <button
+              type="button"
+              aria-label={
+                expandedCards.visualAnalytics
+                  ? "Collapse visual analytics section"
+                  : "Expand visual analytics section"
+              }
+              aria-expanded={expandedCards.visualAnalytics}
               className="p-1.5 rounded-lg hover:bg-[#2a2a2a] transition-colors"
             >
               {expandedCards.visualAnalytics ? (
@@ -241,7 +252,14 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
               {aggregatedData.platformCount !== 1 ? "s" : ""}
             </h2>
             <button
+              type="button"
               onClick={() => toggleCard('aiInsights')}
+              aria-label={
+                expandedCards.aiInsights
+                  ? "Collapse AI insights section"
+                  : "Expand AI insights section"
+              }
+              aria-expanded={expandedCards.aiInsights}
               className="p-1.5 rounded-lg hover:bg-[#2a2a2a] transition-colors"
             >
               {expandedCards.aiInsights ? (
@@ -259,7 +277,7 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
               <div className="flex flex-col items-center justify-center py-12">
                 <Sparkles className="w-12 h-12 text-[#FF8C42] mb-4" />
                 <p className="text-[#c0c0c0] text-sm text-center max-w-md">
-                  Click the <span className="font-semibold text-[#6CA3A2]">"Generate Report"</span> button in the demo controls section to generate AI-powered insights and recommendations
+                  Click the <span className="font-semibold text-[#6CA3A2]">&quot;Generate Report&quot;</span> button in the demo controls section to generate AI-powered insights and recommendations
                 </p>
               </div>
             ) : aggregatedData ? (

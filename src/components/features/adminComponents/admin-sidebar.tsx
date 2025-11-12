@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { LucideIcon } from "lucide-react";
 import { adminLogout } from "@/backend/server_actions/adminActions";
 import { LayoutDashboard, Users, LogOut, Menu, X } from "lucide-react";
 
@@ -9,34 +10,22 @@ interface AdminSidebarProps {
   onNavigate: (view: string) => void;
 }
 
-export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+interface SidebarNavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  submenu?: { id: string; label: string }[];
+}
 
-  const handleLogout = async () => {
-    await adminLogout();
-    window.location.href = "/admin";
-  };
+interface SidebarContentProps {
+  navigationItems: SidebarNavItem[];
+  activeView: string;
+  onNavigate: (view: string) => void;
+  onLogout: () => void;
+}
 
-  const navigationItems = [
-    {
-      id: "overview",
-      label: "Overview",
-      icon: LayoutDashboard,
-    },
-    {
-      id: "guest-actions",
-      label: "Guest Actions",
-      icon: Users,
-      submenu: [
-        {
-          id: "contacts",
-          label: "Contact Submissions",
-        },
-      ],
-    },
-  ];
-
-  const SidebarContent = () => (
+function SidebarContent({ navigationItems, activeView, onNavigate, onLogout }: SidebarContentProps) {
+  return (
     <>
       {/* Header */}
       <div className="p-6 border-b border-[#2a2a2a]">
@@ -112,7 +101,7 @@ export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarPro
       {/* Logout Button */}
       <div className="p-4 border-t border-[#2a2a2a]">
         <button
-          onClick={handleLogout}
+          onClick={onLogout}
           className="
             w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl
             font-semibold text-sm text-[#c0c0c0]
@@ -130,6 +119,34 @@ export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarPro
       </div>
     </>
   );
+}
+
+export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await adminLogout();
+    window.location.href = "/admin";
+  };
+
+  const navigationItems: SidebarNavItem[] = [
+    {
+      id: "overview",
+      label: "Overview",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "guest-actions",
+      label: "Guest Actions",
+      icon: Users,
+      submenu: [
+        {
+          id: "contacts",
+          label: "Contact Submissions",
+        },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -167,7 +184,12 @@ export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarPro
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
         `}
       >
-        <SidebarContent />
+        <SidebarContent
+          navigationItems={navigationItems}
+          activeView={activeView}
+          onNavigate={onNavigate}
+          onLogout={handleLogout}
+        />
       </aside>
     </>
   );

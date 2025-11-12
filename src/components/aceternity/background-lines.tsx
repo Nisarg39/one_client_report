@@ -36,6 +36,9 @@ const pathVariants = {
   },
 };
 
+const getDelay = (index: number) => (index * 7) % 10;
+const getRepeatDelay = (index: number) => ((index * 11) % 10) + 2;
+
 const SVG = ({
   svgOptions,
 }: {
@@ -114,8 +117,8 @@ const SVG = ({
             ease: "linear",
             repeat: Infinity,
             repeatType: "loop",
-            delay: Math.floor(Math.random() * 10),
-            repeatDelay: Math.floor(Math.random() * 10 + 2),
+            delay: getDelay(idx),
+            repeatDelay: getRepeatDelay(idx),
           }}
           key={`path-first-${idx}`}
         />
@@ -136,8 +139,8 @@ const SVG = ({
             ease: "linear",
             repeat: Infinity,
             repeatType: "loop",
-            delay: Math.floor(Math.random() * 10),
-            repeatDelay: Math.floor(Math.random() * 10 + 2),
+            delay: getDelay(idx + paths.length),
+            repeatDelay: getRepeatDelay(idx + paths.length),
           }}
           key={`path-second-${idx}`}
         />

@@ -166,7 +166,7 @@ export default function DashboardPage() {
                 Welcome back!
               </h1>
               <p className="text-[#c0c0c0]">
-                Here's what's happening with your marketing reports today.
+                Here&apos;s what&apos;s happening with your marketing reports today.
               </p>
             </div>
 
@@ -183,7 +183,7 @@ export default function DashboardPage() {
                   Dashboard Coming Soon
                 </h2>
                 <p className="text-[#c0c0c0] leading-relaxed">
-                  Your dashboard is being built! This is where you'll see an
+                  Your dashboard is being built! This is where you&apos;ll see an
                   overview of all your reports, recent activity, and quick stats.
                   For now, explore other sections using the sidebar.
                 </p>

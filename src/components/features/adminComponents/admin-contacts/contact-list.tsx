@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getAllContacts, bulkDeleteContacts, bulkUpdateStatus } from "@/backend/server_actions/adminActions";
-import { Search, Filter, Trash2, CheckCircle, Mail } from "lucide-react";
+import { Search, Mail } from "lucide-react";
 import ContactDetailModal from "./contact-detail-modal";
 
 interface Contact {
@@ -33,11 +33,7 @@ export default function ContactList() {
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    fetchContacts();
-  }, [currentPage, searchQuery, statusFilter]);
-
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     setLoading(true);
     const result = await getAllContacts({
       page: currentPage,
@@ -52,7 +48,15 @@ export default function ContactList() {
       setTotalPages(result.data.totalPages);
     }
     setLoading(false);
-  };
+  }, [currentPage, searchQuery, statusFilter]);
+
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => {
+      void fetchContacts();
+    });
+
+    return () => cancelAnimationFrame(handle);
+  }, [fetchContacts]);
 
   const handleSelectAll = () => {
     if (selectedIds.length === contacts.length) {

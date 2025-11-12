@@ -11,7 +11,6 @@ interface ShootingStarsProps {
   maxDelay?: number;
   starColor?: string;
   trailColor?: string;
-  starWidth?: number;
   starHeight?: number;
   className?: string;
 }
@@ -33,7 +32,6 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
   maxDelay = 4200,
   starColor = "#9E00FF",
   trailColor = "#2EB9DF",
-  starWidth = 10,
   starHeight = 1,
   className,
 }) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getContactById, updateContact, deleteContact } from "@/backend/server_actions/adminActions";
 import { X, Mail, User, Calendar, Trash2, Save } from "lucide-react";
 
@@ -36,13 +36,9 @@ export default function ContactDetailModal({
   const [status, setStatus] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
 
-  useEffect(() => {
-    if (isOpen && contactId) {
-      fetchContact();
-    }
-  }, [isOpen, contactId]);
+  const fetchContact = useCallback(async () => {
+    if (!contactId) return;
 
-  const fetchContact = async () => {
     setLoading(true);
     const result = await getContactById(contactId);
 
@@ -52,7 +48,19 @@ export default function ContactDetailModal({
       setAdminNotes(result.data.adminNotes || "");
     }
     setLoading(false);
-  };
+  }, [contactId]);
+
+  useEffect(() => {
+    if (!isOpen || !contactId) {
+      return;
+    }
+
+    const handle = requestAnimationFrame(() => {
+      void fetchContact();
+    });
+
+    return () => cancelAnimationFrame(handle);
+  }, [fetchContact, isOpen, contactId]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -75,19 +83,6 @@ export default function ContactDetailModal({
     if (result.success) {
       onUpdate(); // Refresh the list
       onClose();
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "unread":
-        return "bg-[#FF8C42] text-black shadow-[-4px_-4px_8px_rgba(255,140,66,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
-      case "read":
-        return "bg-[#6CA3A2] text-black shadow-[-4px_-4px_8px_rgba(108,163,162,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
-      case "responded":
-        return "bg-[#10B981] text-black shadow-[-4px_-4px_8px_rgba(16,185,129,0.3),4px_4px_8px_rgba(0,0,0,0.8)]";
-      default:
-        return "bg-[#999999] text-black";
     }
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
@@ -23,7 +24,7 @@ export function Navbar() {
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-              <a
+              <Link
                 href="/"
                 className="flex items-center space-x-2 sm:space-x-3 group"
                 aria-label="OneReport Home"
@@ -51,7 +52,7 @@ export function Navbar() {
                   <span className="text-[#FF8C42]">R</span>
                   <span className="text-[#f5f5f5]">eport</span>
                 </span>
-              </a>
+              </Link>
             </div>
 
             {/* Desktop Navigation Links + Sign In */}

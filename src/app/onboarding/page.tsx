@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -199,7 +200,7 @@ export default function OnboardingPage() {
                 Welcome to OneReport!
               </h2>
               <p className="text-lg text-[#c0c0c0] max-w-2xl mx-auto leading-relaxed">
-                Let's get you set up in just a few minutes. We'll help you
+                Let&apos;s get you set up in just a few minutes. We&apos;ll help you
                 connect your marketing platforms, customize your branding, and
                 generate your first report.
               </p>
@@ -313,7 +314,7 @@ export default function OnboardingPage() {
                     {platforms.filter((p) => p.connected).length}
                   </span>{" "}
                   platform{platforms.filter((p) => p.connected).length !== 1 ? "s" : ""}{" "}
-                  connected. Don't worry, this is a mock setup. Real OAuth
+                  connected. Don&apos;t worry, this is a mock setup. Real OAuth
                   integration will be added in Phase 3.
                 </p>
               </div>
@@ -361,10 +362,13 @@ export default function OnboardingPage() {
                       <div className="flex-shrink-0">
                         <div className="w-24 h-24 rounded-2xl bg-[#1a1a1a] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(60,60,60,0.4)] flex items-center justify-center overflow-hidden">
                           {logoPreview ? (
-                            <img
+                            <Image
                               src={logoPreview}
                               alt="Logo preview"
+                              width={96}
+                              height={96}
                               className="w-full h-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <Upload className="w-8 h-8 text-[#666]" />
@@ -425,10 +429,13 @@ export default function OnboardingPage() {
                     <div className="p-6 rounded-2xl bg-[#1a1a1a] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(60,60,60,0.4)] border border-[#2a2a2a]">
                       <div className="flex items-center gap-4">
                         {logoPreview && (
-                          <img
+                          <Image
                             src={logoPreview}
                             alt="Logo"
+                            width={48}
+                            height={48}
                             className="w-12 h-12 rounded-lg object-cover"
+                            unoptimized
                           />
                         )}
                         <div>
@@ -463,10 +470,10 @@ export default function OnboardingPage() {
                   className="text-3xl font-bold text-[#f5f5f5] mb-3"
                   style={{ textShadow: "0 2px 4px rgba(0,0,0,0.6)" }}
                 >
-                  You're All Set!
+                  You&apos;re All Set!
                 </h2>
                 <p className="text-[#c0c0c0]">
-                  Here's a preview of what your reports will look like
+                  Here&apos;s a preview of what your reports will look like
                 </p>
               </div>
 
@@ -475,10 +482,13 @@ export default function OnboardingPage() {
                 <div className="flex items-center justify-between mb-6 pb-6 border-b border-[#2a2a2a]">
                   <div className="flex items-center gap-4">
                     {logoPreview && (
-                      <img
+                      <Image
                         src={logoPreview}
                         alt="Logo"
+                        width={64}
+                        height={64}
                         className="w-16 h-16 rounded-xl object-cover shadow-[-6px_-6px_12px_rgba(70,70,70,0.3),6px_6px_12px_rgba(0,0,0,0.6)]"
+                        unoptimized
                       />
                     )}
                     <div>
