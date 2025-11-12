@@ -32,7 +32,7 @@ type SerializedContact = {
   status: ContactStatus;
   adminNotes: string | null;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
 };
 
 const serializeContact = (contact: ContactRecord): SerializedContact => ({
@@ -42,7 +42,7 @@ const serializeContact = (contact: ContactRecord): SerializedContact => ({
   message: contact.message,
   status: contact.status,
   createdAt: contact.createdAt.toISOString(),
-  updatedAt: contact.updatedAt?.toISOString(),
+  updatedAt: contact.updatedAt?.toISOString() ?? contact.createdAt.toISOString(),
   adminNotes: contact.adminNotes ?? null,
 });
 
@@ -228,10 +228,10 @@ export async function getRecentContacts(): Promise<ServerActionResponse<Serializ
   try {
     await connectDB();
 
-    const recentContacts = await Contactus.find()
+    const recentContacts = (await Contactus.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .lean<ContactRecord>();
+      .lean()) as unknown as ContactRecord[];
 
     // Serialize MongoDB documents to plain objects
     const serializedContacts = recentContacts.map(serializeContact);
@@ -299,11 +299,11 @@ export async function getAllContacts(params?: {
     const totalPages = Math.ceil(total / limit);
 
     // Get paginated results
-    const contacts = await Contactus.find(query)
+    const contacts = (await Contactus.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean<ContactRecord>();
+      .lean()) as unknown as ContactRecord[];
 
     // Serialize contacts
     const serializedContacts = contacts.map(serializeContact);
@@ -334,7 +334,7 @@ export async function getContactById(id: string): Promise<ServerActionResponse<S
   try {
     await connectDB();
 
-    const contact = await Contactus.findById(id).lean<ContactRecord>();
+    const contact = (await Contactus.findById(id).lean()) as unknown as ContactRecord | null;
 
     if (!contact) {
       return {
