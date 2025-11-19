@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ConditionalNavbar } from "@/components/layout/conditional-navbar";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
-import { ChatWidget } from "@/components/chat";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -116,7 +115,6 @@ export default function RootLayout({
       >
         <ConditionalNavbar />
         {children}
-        <ChatWidget />
       </body>
     </html>
   );
