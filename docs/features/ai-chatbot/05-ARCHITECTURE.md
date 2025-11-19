@@ -545,6 +545,46 @@ When should cache be invalidated?
 
 ## 7. Security Architecture
 
+### Authentication Layer (NEW - Added 2025-11-19)
+
+**Strategy:** Mock Auth (Weeks 2-4) → NextAuth.js (Week 5+)
+
+**Auth Abstraction Layer:**
+```
+src/lib/auth/
+├── adapter.ts       ← Main interface (used by all chatbot code)
+├── mockAuth.ts      ← Mock implementation (development)
+└── nextAuth.ts      ← NextAuth.js implementation (production)
+```
+
+**Implementation:**
+```typescript
+// src/lib/auth/adapter.ts
+export interface AuthUser {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  // Weeks 2-4: Mock auth
+  return await getMockUser();
+
+  // Week 5+: NextAuth.js (one line change!)
+  // return await getNextAuthUser();
+}
+```
+
+**Benefits:**
+- ✅ Build chatbot without auth complexity (Weeks 2-4)
+- ✅ Seamlessly switch to NextAuth.js in Week 5 (2-3 hours)
+- ✅ No code changes needed in chatbot components
+- ✅ Easy to test with demo user
+
+**See:** [11-AUTHENTICATION-STRATEGY.md](./11-AUTHENTICATION-STRATEGY.md) for full details
+
+---
+
 ### Question:
 How will you secure the chatbot?
 

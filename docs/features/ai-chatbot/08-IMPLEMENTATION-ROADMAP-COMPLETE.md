@@ -19,16 +19,20 @@
 
 **Tasks:**
 - [x] Complete all 10 planning documents ✅
-- [ ] Set up OpenAI API account & get API key
-- [ ] Install dependencies (openai, react-markdown, zod, etc.)
-- [ ] Create Mongoose schemas (Conversation model)
-- [ ] Set up environment variables
+- [x] Create authentication strategy document ✅
+- [ ] ~~Set up OpenAI API account~~ (Deferred to Week 3 - Phase 2)
+- [x] Install dependencies (openai, react-markdown, zod, zustand) ✅
+- [x] Create Mongoose schemas (Conversation model) ✅
+- [x] Create TypeScript types (chat.ts) ✅
+- [x] Set up environment variables template ✅
+- [ ] **Create auth abstraction layer (adapter.ts, mockAuth.ts)**
 
 **Deliverables:**
-- All documentation complete
-- MongoDB models created
-- Dependencies installed
-- OpenAI API configured
+- [x] All documentation complete ✅
+- [x] MongoDB models created ✅
+- [x] Dependencies installed ✅
+- [ ] Auth abstraction layer ready for mock → NextAuth transition
+- [ ] ~~OpenAI API configured~~ (Week 3)
 
 ---
 
@@ -36,21 +40,28 @@
 
 **Duration:** 5-7 days
 
+**Authentication:** Uses mock auth (`getCurrentUser()` returns demo user)
+
 **Tasks:**
+- [ ] **Create auth abstraction layer** (adapter.ts, mockAuth.ts)
 - [ ] Build ChatWidget component (floating button)
 - [ ] Build ChatModal component (dialog overlay)
 - [ ] Build MessageList + Message components
 - [ ] Build ChatInput component (textarea + send button)
 - [ ] Implement TypingIndicator component
 - [ ] Set up Zustand store for chat state
+- [ ] **Implement mock AI response function** (simulates streaming)
 - [ ] Add Framer Motion animations
 - [ ] Responsive design (mobile, tablet, desktop)
 
 **Deliverables:**
-- Functional chat UI (without AI)
+- Functional chat UI with mock responses
+- Auth abstraction layer working with demo user
 - Open/close chat modal
-- Send messages (stored locally)
+- Send messages (mock AI responses)
 - Smooth animations
+
+**Auth Note:** All components use `getCurrentUser()` which returns `{ id: "demo-user-123", email: "demo@example.com" }` for now
 
 ---
 
@@ -58,7 +69,14 @@
 
 **Duration:** 4-6 days
 
+**Authentication:** Still uses mock auth (demo user)
+
+**⚠️ NOW set up OpenAI account and get API key!**
+
 **Tasks:**
+- [ ] **Set up OpenAI account & get API key** (do this first!)
+- [ ] Add OPENAI_API_KEY to .env.local
+- [ ] Create AI abstraction layer (provider.ts, openai.ts)
 - [ ] Create sendMessage Server Action
 - [ ] Integrate OpenAI API (GPT-4o-mini)
 - [ ] Implement SSE streaming for responses
@@ -67,12 +85,16 @@
 - [ ] Implement createConversation action
 - [ ] Implement getConversationHistory action
 - [ ] Add error handling for AI failures
+- [ ] Save conversations to MongoDB with demo user ID
 
 **Deliverables:**
-- Working AI responses
+- Working AI responses with real OpenAI
 - Streaming chat (like ChatGPT)
-- Conversation persistence
+- Conversation persistence (demo user ID)
 - Error handling
+- Cost tracking (~$0.36/day starts here)
+
+**Auth Note:** Still uses mock user, but conversations are saved to MongoDB with `userId: "demo-user-123"`
 
 ---
 
@@ -80,28 +102,38 @@
 
 **Duration:** 7-10 days
 
+**Authentication:** Still uses mock auth (demo user)
+
 **Tasks:**
 - [ ] Extend User model to include platform data fields
-- [ ] Create demo data collection
+- [ ] **Create mock User document** in MongoDB for demo-user-123
+- [ ] **Add demo platform data** (Google Analytics, Ads metrics)
 - [ ] Build getConnectedPlatforms action
 - [ ] Build getPlatformData helper
 - [ ] Integrate platform data into AI prompts
-- [ ] Test AI responses with real platform metrics
+- [ ] Test AI responses with demo platform metrics
 - [ ] Handle cases where platforms aren't connected
 - [ ] Add "Go to Settings" CTAs in chat
 
 **Deliverables:**
-- Chatbot can query user's platform data
-- Demo data available for users without connections
+- Chatbot can query demo user's platform data
+- Demo data available for testing
 - Graceful handling of unconnected platforms
+- AI answers questions about "your" marketing data
+
+**Auth Note:** Create a User document for demo-user-123 with fake platform data for testing
 
 ---
 
-## Phase 4: Polish & Features (Week 5-6)
+## Phase 4: Polish & Features + Real Authentication (Week 5-6)
 
-**Duration:** 5-7 days
+**Duration:** 5-7 days (+ 2-3 hours for auth)
+
+**Authentication:** Transition from mock → NextAuth.js
 
 **Tasks:**
+
+### Part A: Polish (5-7 days with mock auth)
 - [ ] Add QuickReplyButtons component
 - [ ] Add message feedback (thumbs up/down)
 - [ ] Add CopyButton for code blocks
@@ -114,11 +146,26 @@
 - [ ] Implement rate limiting (50 msg/hour)
 - [ ] Add accessibility (ARIA labels, keyboard nav)
 
+### Part B: Add NextAuth.js (2-3 hours)
+- [ ] **Install next-auth** (`npm install next-auth`)
+- [ ] **Create NextAuth config** (`/api/auth/[...nextauth]/route.ts`)
+- [ ] **Create User model** (if not exists)
+- [ ] **Create nextAuth.ts** adapter implementation
+- [ ] **Update login/signup pages** to use `signIn()` from next-auth
+- [ ] **Update getCurrentUser()** to call `getNextAuthUser()` instead of `getMockUser()`
+- [ ] **Test with real users** (signup, login, OAuth)
+- [ ] **Optional: Migrate demo conversations** to real user
+
 **Deliverables:**
-- Full-featured chatbot
+- Full-featured chatbot with all polish
+- **Real authentication with NextAuth.js** ✅
+- Multiple users supported
+- OAuth (Google) working
 - Markdown + code highlighting
 - Quick replies
 - Accessibility compliance
+
+**Auth Note:** This is where we switch from mock to real auth! See [11-AUTHENTICATION-STRATEGY.md](./11-AUTHENTICATION-STRATEGY.md) for detailed steps.
 
 ---
 

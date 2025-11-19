@@ -92,6 +92,11 @@ Once approved:
 8. ✅ [08-IMPLEMENTATION-ROADMAP-COMPLETE.md](./08-IMPLEMENTATION-ROADMAP-COMPLETE.md) - Timeline & phases
 9. ✅ [09-TESTING-STRATEGY-COMPLETE.md](./09-TESTING-STRATEGY-COMPLETE.md) - Testing approach
 10. ✅ [10-MONITORING-ANALYTICS-COMPLETE.md](./10-MONITORING-ANALYTICS-COMPLETE.md) - Monitoring & analytics
+11. ✅ [11-AUTHENTICATION-STRATEGY.md](./11-AUTHENTICATION-STRATEGY.md) - Mock → NextAuth.js implementation plan (NEW!)
+
+**Plus:**
+- ✅ [CURRENT-STATUS.md](./CURRENT-STATUS.md) - Live implementation progress tracker
+- ✅ [PLANNING-COMPLETE-SUMMARY.md](./PLANNING-COMPLETE-SUMMARY.md) - Executive summary
 
 **Ready to Begin Implementation!**
 
@@ -247,17 +252,20 @@ If you're stuck on any question:
 
 ```
 /docs/features/ai-chatbot/
-├── README.md                       ← You are here
-├── 01-REQUIREMENTS.md              ← Start here!
+├── README.md                                   ← You are here
+├── CURRENT-STATUS.md                           ← Live progress tracker
+├── PLANNING-COMPLETE-SUMMARY.md                ← Executive summary
+├── 01-REQUIREMENTS.md
 ├── 02-TECHNICAL-SPECS.md
 ├── 03-UX-DESIGN.md
 ├── 04-PLATFORM-INTEGRATIONS.md
-├── 05-ARCHITECTURE.md
-├── 06-DATABASE-SCHEMA.md
-├── 07-API-DESIGN.md
-├── 08-IMPLEMENTATION-ROADMAP.md
-├── 09-TESTING-STRATEGY.md
-└── 10-MONITORING-ANALYTICS.md
+├── 05-ARCHITECTURE.md + 05-ARCHITECTURE-SUMMARY.md
+├── 06-DATABASE-SCHEMA-COMPLETE.md
+├── 07-API-DESIGN-COMPLETE.md
+├── 08-IMPLEMENTATION-ROADMAP-COMPLETE.md
+├── 09-TESTING-STRATEGY-COMPLETE.md
+├── 10-MONITORING-ANALYTICS-COMPLETE.md
+└── 11-AUTHENTICATION-STRATEGY.md               ← NEW! Mock → NextAuth.js plan
 ```
 
 ---

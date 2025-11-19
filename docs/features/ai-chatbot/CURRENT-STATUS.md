@@ -85,8 +85,15 @@ Phase 5:      ░░░░░░░░░░░░░░░░░░░░   0% 
 
 **Estimated Duration:** 5-7 days
 **Goal:** Build complete chat UI with mock AI responses (no OpenAI yet!)
+**Authentication:** Mock auth (demo user)
 
 ### Tasks:
+
+0. **Create Auth Abstraction Layer** (NEW - FIRST!)
+   - [ ] `/src/lib/auth/adapter.ts` - Auth interface
+   - [ ] `/src/lib/auth/mockAuth.ts` - Mock implementation
+   - [ ] Export `getCurrentUser()` function
+   - [ ] Returns `{ id: "demo-user-123", email: "demo@example.com" }`
 
 1. **Create Zustand Store** (`/src/stores/useChatStore.ts`)
    - [ ] Define store with isOpen, messages, typing state
@@ -133,10 +140,12 @@ Phase 5:      ░░░░░░░░░░░░░░░░░░░░   0% 
 ## 📋 Upcoming Phases
 
 ### Phase 1: Core Chat UI (Week 2)
+- **Create auth abstraction layer** (adapter.ts, mockAuth.ts) - NEW!
 - Build all chat components (no AI yet, use mock responses)
 - Set up Zustand store
 - Add Framer Motion animations
 - Test responsive design (mobile, tablet, desktop)
+- **Auth:** Uses mock user (`demo-user-123`)
 
 ### Phase 2: AI Integration (Week 3)
 - **⚠️ Set up OpenAI account at this point** (Week 3, not before)
@@ -144,18 +153,25 @@ Phase 5:      ░░░░░░░░░░░░░░░░░░░░   0% 
 - Integrate OpenAI API with streaming
 - Add conversation persistence to MongoDB
 - Test real AI responses
+- **Auth:** Still uses mock user
 
 ### Phase 3: Platform Data Integration (Week 4-5)
 - Extend User model for platform data
-- Create demo data collection
+- Create demo User document for `demo-user-123`
+- Add demo platform data (GA, Ads metrics)
 - Integrate cached data into AI prompts
 - Test with sample platform metrics
+- **Auth:** Still uses mock user
 
-### Phase 4: Polish & Features (Week 5-6)
+### Phase 4: Polish & Features + NextAuth.js (Week 5-6)
 - Add markdown rendering, code highlighting
 - Build `/chat` page with sidebar
 - Implement rate limiting
 - Add accessibility features (ARIA, keyboard nav)
+- **🔐 ADD NEXTAUTH.JS** (2-3 hours) - NEW!
+- Update `getCurrentUser()` to use real auth
+- Test with multiple real users
+- **Auth:** Transition from mock → NextAuth.js
 
 ### Phase 5: Testing & Launch (Week 6)
 - Write unit tests (Vitest)
@@ -163,6 +179,7 @@ Phase 5:      ░░░░░░░░░░░░░░░░░░░░   0% 
 - Security review
 - Deploy to production
 - Set up monitoring (Sentry)
+- **Auth:** Production-ready NextAuth.js
 
 ---
 
@@ -172,9 +189,11 @@ Phase 5:      ░░░░░░░░░░░░░░░░░░░░   0% 
 - **[README.md](./README.md)** - Overview & navigation
 - **[PLANNING-COMPLETE-SUMMARY.md](./PLANNING-COMPLETE-SUMMARY.md)** - Executive summary
 - **[08-IMPLEMENTATION-ROADMAP-COMPLETE.md](./08-IMPLEMENTATION-ROADMAP-COMPLETE.md)** - Detailed timeline
+- **[11-AUTHENTICATION-STRATEGY.md](./11-AUTHENTICATION-STRATEGY.md)** - Auth implementation plan (NEW!)
 
 ### Technical References
 - **Architecture:** [05-ARCHITECTURE-SUMMARY.md](./05-ARCHITECTURE-SUMMARY.md)
+- **Authentication:** [11-AUTHENTICATION-STRATEGY.md](./11-AUTHENTICATION-STRATEGY.md) (NEW!)
 - **Database:** [06-DATABASE-SCHEMA-COMPLETE.md](./06-DATABASE-SCHEMA-COMPLETE.md)
 - **API Design:** [07-API-DESIGN-COMPLETE.md](./07-API-DESIGN-COMPLETE.md)
 - **Platform Integration:** [04-PLATFORM-INTEGRATIONS.md](./04-PLATFORM-INTEGRATIONS.md)
@@ -220,6 +239,9 @@ See docs/features/ai-chatbot/CURRENT-STATUS.md
 
 ### Important Reminders
 - ✅ **Build UI first with mocks** (Week 2) - Don't set up OpenAI until Week 3
+- ✅ **Use mock auth first** (Weeks 2-4) - Add NextAuth.js in Week 5 (2-3 hours)
+- ✅ **Auth abstraction layer** - One function (`getCurrentUser()`) works with both mock and NextAuth
+- ✅ **No code changes needed** - Chatbot components don't change when adding real auth
 - ✅ **Chatbot does NOT handle OAuth** - Settings UI handles all platform connections
 - ✅ **Chatbot queries cached data** - Never calls live APIs (background jobs do that)
 - ✅ **Test incrementally** - Test each phase before moving to next
