@@ -1,0 +1,12 @@
+# AI Provider Directory
+
+This directory contains the AI abstraction layer and provider implementations:
+
+- provider.ts - AIProvider interface (abstraction layer)
+- openai.ts - OpenAI GPT-4o-mini implementation (V1)
+- config.ts - AI configuration and constants
+- prompts.ts - System prompts and templates
+
+Future providers (V2):
+- claude.ts - Anthropic Claude implementation
+- gemini.ts - Google Gemini implementation

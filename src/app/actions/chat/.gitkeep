@@ -1,0 +1,10 @@
+# Chat Server Actions Directory
+
+This directory contains all chatbot Server Actions:
+
+- sendMessage.ts - Main action to send a message and get AI response
+- getConversations.ts - Fetch user's conversation list
+- getConversationHistory.ts - Load messages for a conversation
+- createConversation.ts - Create a new conversation
+- deleteConversation.ts - Soft delete a conversation
+- rateLimit.ts - Rate limiting utilities (50/hour, 200/day)

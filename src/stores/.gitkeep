@@ -1,0 +1,5 @@
+# Zustand Stores Directory
+
+This directory contains Zustand state management stores:
+
+- useChatStore.ts - Chat UI state (open/closed, messages, typing indicator)
