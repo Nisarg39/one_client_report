@@ -43,6 +43,27 @@ Answer questions about all the integrated platforms' data using AI.
 The chatbot should work like typical AI assistants (Claude, ChatGPT) where users can type questions and get AI-generated answers about their marketing data.
 ```
 
+**Multi-Client Support (Agency/Freelancer Workflow):**
+```
+✅ CRITICAL FEATURE: Users (agencies/freelancers) can manage multiple clients
+
+User Workflow:
+1. User creates clients (e.g., "Acme Corp", "TechStart Inc", "Local Shop")
+2. Each client has independent platform configurations
+3. User selects client from dropdown in chat interface
+4. Chat history is isolated per client
+5. AI responses show data for selected client only
+
+Example:
+- Agency user manages 10 clients
+- Client A has Google Analytics + Google Ads connected
+- Client B has Meta Ads + LinkedIn Ads connected
+- When user selects Client A → AI shows Client A's data & history
+- When user switches to Client B → AI shows Client B's data & history
+
+This allows agencies to serve multiple clients from a single account.
+```
+
 **Secondary Use Cases:**
 ```
 None - This is a focused, single-purpose chatbot for data queries only.
@@ -146,7 +167,7 @@ What user data should the chatbot have access to?
 - [x] User profile information (name, email) - for personalization
 - [x] User's connected platforms - to know what data is available
 - [ ] User's historical reports - NOT NEEDED (not generating reports)
-- [ ] User's client data - NOT NEEDED
+- [x] User's client data - CRITICAL (multi-client architecture)
 - [x] Real-time metrics from connected platforms - THIS IS THE CORE DATA
 - [ ] Billing/subscription information - NOT NEEDED
 - [x] Other: Demo/mock data for users who haven't connected platforms yet
@@ -156,8 +177,9 @@ What user data should the chatbot have access to?
 The chatbot needs access to:
 
 ✅ User profile (name) - to personalize greetings
-✅ Connected platforms list - to know which platforms user has integrated
-✅ Marketing metrics from connected platforms:
+✅ Client management data - User's list of clients, selected client
+✅ Connected platforms per client - Each client has independent platform connections
+✅ Marketing metrics from connected platforms (per client):
    - Google Analytics: sessions, users, pageviews, bounce rate, traffic sources, devices, etc.
    - Google Ads: campaign performance, spend, conversions, CTR, CPA, etc.
    - Meta Ads: impressions, clicks, spend, CPM, ROAS, audience data, etc.
@@ -169,6 +191,11 @@ Data Source Strategy:
 - Use cached data from MongoDB (refreshed periodically)
 - Option to refresh data on-demand if user asks for "latest" or "real-time" data
 - Balance between performance (fast responses) and freshness (up-to-date metrics)
+
+Multi-Client Data Isolation:
+- When user selects "Client A" → AI only sees Client A's platforms & data
+- When user switches to "Client B" → AI context switches to Client B's data
+- Conversations are filtered by clientId (each client has separate history)
 ```
 
 ---

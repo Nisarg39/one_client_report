@@ -16,6 +16,11 @@ export type MessageRole = 'user' | 'assistant' | 'system';
 export type ConversationStatus = 'active' | 'archived' | 'deleted';
 
 /**
+ * Client status (multi-client architecture)
+ */
+export type ClientStatus = 'active' | 'inactive' | 'archived';
+
+/**
  * Individual message in a conversation
  */
 export interface Message {
@@ -31,6 +36,7 @@ export interface Conversation {
   _id?: ObjectId;
   conversationId: string; // UUID
   userId: ObjectId;
+  clientId: ObjectId; // Multi-client architecture
   messages: Message[];
   status: ConversationStatus;
   messageCount: number;
@@ -44,6 +50,7 @@ export interface Conversation {
 export interface ClientConversation {
   conversationId: string;
   userId: string;
+  clientId: string; // Multi-client architecture
   messages: Message[];
   status: ConversationStatus;
   messageCount: number;
@@ -86,12 +93,21 @@ export interface ChatStore {
   isOpen: boolean;
   isTyping: boolean;
 
+  // Multi-Client State
+  currentClientId: string | null;
+  clients: ClientClient[];
+
   // Conversation State
   currentConversationId: string | null;
   conversations: ClientConversation[];
   messages: Message[];
 
-  // Actions
+  // Client Actions
+  setCurrentClient: (clientId: string | null) => void;
+  setClients: (clients: ClientClient[]) => void;
+  loadClientConversations: (clientId: string) => Promise<void>;
+
+  // Chat Actions
   openChat: () => void;
   closeChat: () => void;
   setTyping: (isTyping: boolean) => void;
@@ -185,4 +201,51 @@ export interface UserPlatforms {
   googleAds?: PlatformConnection;
   metaAds?: PlatformConnection;
   linkedInAds?: PlatformConnection;
+}
+
+/**
+ * Client platforms (stored per client in multi-client architecture)
+ */
+export interface ClientPlatforms {
+  googleAnalytics?: PlatformConnection;
+  googleAds?: PlatformConnection;
+  metaAds?: PlatformConnection;
+  linkedInAds?: PlatformConnection;
+}
+
+/**
+ * Client (multi-client architecture)
+ */
+export interface Client {
+  _id?: ObjectId;
+  userId: ObjectId;
+  name: string;
+  email?: string;
+  logo?: string;
+  platforms: ClientPlatforms;
+  status: ClientStatus;
+  createdAt: Date;
+  updatedAt: Date;
+
+  // Instance methods (from Mongoose)
+  getConnectedPlatforms?: () => string[];
+  hasConnectedPlatforms?: () => boolean;
+  archive?: () => Promise<Client>;
+  activate?: () => Promise<Client>;
+  deactivate?: () => Promise<Client>;
+}
+
+/**
+ * Client-side Client (without ObjectId)
+ */
+export interface ClientClient {
+  id: string;
+  userId: string;
+  name: string;
+  email?: string;
+  logo?: string;
+  platforms: ClientPlatforms;
+  status: ClientStatus;
+  createdAt: string;
+  updatedAt: string;
 }

@@ -13,16 +13,68 @@ import Link from 'next/link';
 import { useChatStore } from '@/stores/useChatStore';
 import { MessageList } from '@/components/chat/MessageList';
 import { ChatInput } from '@/components/chat/ChatInput';
+import { ClientSelector } from '@/components/chat/ClientSelector';
+import { CreateClientModal } from '@/components/chat/CreateClientModal';
 import { mockAIStream } from '@/lib/chat/mockAI';
-import type { Message } from '@/types/chat';
+import type { Message, ClientClient } from '@/types/chat';
 
 export function ChatPageClient() {
-  const { messages, addMessage, isTyping, setTyping } = useChatStore();
-  const [isMounted, setIsMounted] = useState(false);
+  const {
+    messages,
+    addMessage,
+    isTyping,
+    setTyping,
+    currentClientId,
+    clients,
+    setCurrentClient,
+    setClients,
+  } = useChatStore();
 
-  // Handle hydration
+  const [isMounted, setIsMounted] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Get current client
+  const currentClient = clients.find((c) => c.id === currentClientId) || null;
+
+  // Handle hydration & load mock clients
   useEffect(() => {
     setIsMounted(true);
+
+    // TODO: Replace with real API call to fetch user's clients
+    // For now, use mock data
+    const mockClients: ClientClient[] = [
+      {
+        id: 'client-1',
+        userId: 'demo-user-123',
+        name: 'Demo Client A',
+        email: 'clienta@example.com',
+        platforms: {
+          googleAnalytics: { connected: true, status: 'active' },
+          googleAds: { connected: true, status: 'active' },
+        },
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: 'client-2',
+        userId: 'demo-user-123',
+        name: 'Demo Client B',
+        platforms: {
+          metaAds: { connected: true, status: 'active' },
+        },
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
+    setClients(mockClients);
+
+    // Auto-select first client if none selected
+    if (!currentClientId && mockClients.length > 0) {
+      setCurrentClient(mockClients[0].id);
+    }
   }, []);
 
   // Handle sending a message
@@ -80,6 +132,36 @@ export function ChatPageClient() {
     handleSendMessage(message);
   };
 
+  // Handle client switching
+  const handleClientChange = (clientId: string) => {
+    setCurrentClient(clientId);
+    // Messages will be cleared automatically by the store
+  };
+
+  // Handle creating new client
+  const handleCreateClient = async (data: {
+    name: string;
+    email?: string;
+    logo?: string;
+  }) => {
+    // TODO: Replace with real API call to create client
+    // For now, add to mock clients
+    const newClient: ClientClient = {
+      id: `client-${Date.now()}`,
+      userId: 'demo-user-123',
+      name: data.name,
+      email: data.email,
+      logo: data.logo,
+      platforms: {},
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setClients([...clients, newClient]);
+    setCurrentClient(newClient.id);
+  };
+
   if (!isMounted) {
     return null; // Avoid hydration issues
   }
@@ -89,29 +171,50 @@ export function ChatPageClient() {
       {/* Header */}
       <header className="border-b border-gray-800 bg-gradient-to-r from-[#1a1a1a] to-[#2a2a2a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             {/* Left: Back button */}
             <Link
               href="/"
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors flex-shrink-0"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm">Back to Dashboard</span>
+              <span className="text-sm hidden sm:inline">Back to Dashboard</span>
             </Link>
 
-            {/* Center: Title */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#6CA3A2] rounded-full flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+            {/* Center: Title + Client Selector */}
+            <div className="flex items-center gap-4 flex-1 justify-center">
+              {/* OneAssist Branding */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#6CA3A2] rounded-full flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="hidden sm:block">
+                  <h1 className="text-xl font-bold text-white">OneAssist</h1>
+                  <p className="text-xs text-gray-400">Marketing Analytics AI</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">OneAssist</h1>
-                <p className="text-xs text-gray-400">Marketing Analytics AI</p>
+
+              {/* Client Selector */}
+              <div className="hidden md:block">
+                <ClientSelector
+                  currentClient={currentClient}
+                  clients={clients}
+                  onClientChange={handleClientChange}
+                  onCreateClient={() => setIsCreateModalOpen(true)}
+                />
               </div>
             </div>
 
-            {/* Right: Placeholder */}
-            <div className="w-32" />
+            {/* Right: Mobile Client Selector or Placeholder */}
+            <div className="flex-shrink-0 md:hidden">
+              <ClientSelector
+                currentClient={currentClient}
+                clients={clients}
+                onClientChange={handleClientChange}
+                onCreateClient={() => setIsCreateModalOpen(true)}
+              />
+            </div>
+            <div className="w-32 hidden md:block" />
           </div>
         </div>
       </header>
@@ -142,6 +245,13 @@ export function ChatPageClient() {
           />
         </main>
       </div>
+
+      {/* Create Client Modal */}
+      <CreateClientModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateClient}
+      />
     </div>
   );
 }

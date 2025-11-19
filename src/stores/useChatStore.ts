@@ -3,10 +3,15 @@
  *
  * Global state management for the AI chatbot UI
  * Handles chat open/closed state, messages, typing indicators, etc.
+ *
+ * Multi-Client Architecture:
+ * - Users can manage multiple clients
+ * - Each client has independent conversations
+ * - Client switching clears and reloads conversations
  */
 
 import { create } from 'zustand';
-import type { Message } from '@/types/chat';
+import type { Message, ClientClient } from '@/types/chat';
 
 /**
  * Chat store state and actions
@@ -16,6 +21,10 @@ interface ChatStore {
   isOpen: boolean;              // Is chat modal open?
   isTyping: boolean;            // Is AI typing a response?
 
+  // Multi-Client State
+  currentClientId: string | null;  // Currently selected client
+  clients: ClientClient[];         // List of user's clients
+
   // Message State
   messages: Message[];          // Current conversation messages
   currentConversationId: string | null; // Active conversation ID
@@ -24,6 +33,11 @@ interface ChatStore {
   openChat: () => void;
   closeChat: () => void;
   toggleChat: () => void;
+
+  // Client Actions
+  setCurrentClient: (clientId: string | null) => void;
+  setClients: (clients: ClientClient[]) => void;
+  loadClientConversations: (clientId: string) => Promise<void>;
 
   // Message Actions
   addMessage: (message: Message) => void;
@@ -49,6 +63,8 @@ export const useChatStore = create<ChatStore>((set) => ({
   // Initial State
   isOpen: false,
   isTyping: false,
+  currentClientId: null,
+  clients: [],
   messages: [],
   currentConversationId: null,
 
@@ -58,6 +74,26 @@ export const useChatStore = create<ChatStore>((set) => ({
   closeChat: () => set({ isOpen: false }),
 
   toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
+
+  // Client Actions
+  setCurrentClient: (clientId) =>
+    set({
+      currentClientId: clientId,
+      messages: [], // Clear messages when switching clients
+      currentConversationId: null,
+    }),
+
+  setClients: (clients) => set({ clients }),
+
+  loadClientConversations: async (clientId) => {
+    // TODO: Implement conversation loading for specific client
+    // This will fetch conversations from server action in Phase 3
+    set({
+      currentClientId: clientId,
+      messages: [],
+      currentConversationId: null,
+    });
+  },
 
   // Message Actions
   addMessage: (message) =>

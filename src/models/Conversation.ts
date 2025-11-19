@@ -47,6 +47,12 @@ const ConversationSchema = new Schema<Conversation>(
       required: true,
       index: true, // Index for querying user's conversations
     },
+    clientId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Client',
+      required: true,
+      index: true, // Index for querying client's conversations
+    },
     messages: {
       type: [MessageSchema],
       default: [],
@@ -77,7 +83,13 @@ const ConversationSchema = new Schema<Conversation>(
  * Indexes for performance
  */
 
-// Compound index for querying user's conversations by status
+// Multi-client compound index: Query user's conversations for a specific client
+ConversationSchema.index({ userId: 1, clientId: 1, status: 1 });
+
+// Index for querying client's conversations by last message time (for sorting)
+ConversationSchema.index({ clientId: 1, lastMessageAt: -1 });
+
+// Index for querying user's conversations by status (backwards compatibility)
 ConversationSchema.index({ userId: 1, status: 1 });
 
 // Index for querying by last message time (for sorting)
@@ -132,7 +144,7 @@ ConversationSchema.methods.softDelete = async function (): Promise<Conversation>
  * Get conversation summary (first user message)
  */
 ConversationSchema.methods.getSummary = function (): string {
-  const firstUserMessage = this.messages.find((msg) => msg.role === 'user');
+  const firstUserMessage = this.messages.find((msg: Message) => msg.role === 'user');
   if (!firstUserMessage) return 'New conversation';
 
   // Truncate to 50 characters
@@ -146,12 +158,20 @@ ConversationSchema.methods.getSummary = function (): string {
  */
 
 /**
- * Find active conversations for a user
+ * Find active conversations for a user and client
  */
 ConversationSchema.statics.findActiveByUser = function (
-  userId: string
+  userId: string,
+  clientId?: string
 ): Promise<Conversation[]> {
-  return this.find({ userId, status: 'active' })
+  const query: any = { userId, status: 'active' };
+
+  // If clientId provided, filter by client (multi-client mode)
+  if (clientId) {
+    query.clientId = clientId;
+  }
+
+  return this.find(query)
     .sort({ lastMessageAt: -1 }) // Most recent first
     .limit(50) // Limit to 50 conversations
     .exec();
@@ -172,11 +192,13 @@ ConversationSchema.statics.findByConversationId = function (
  */
 ConversationSchema.statics.createConversation = function (
   conversationId: string,
-  userId: string
+  userId: string,
+  clientId: string
 ): Promise<Conversation> {
   return this.create({
     conversationId,
     userId,
+    clientId,
     messages: [],
     status: 'active',
     messageCount: 0,

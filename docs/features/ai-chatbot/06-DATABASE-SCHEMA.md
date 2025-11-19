@@ -1,7 +1,7 @@
 # AI Chatbot - Database Schema Design
 
-**Document Status**: 🟡 In Progress
-**Last Updated**: 2025-11-16
+**Document Status**: ✅ Complete (Multi-Client Architecture)
+**Last Updated**: 2025-11-19
 **Owner**: Engineering Team
 
 ---
@@ -25,11 +25,12 @@ What collections do you need for the chatbot?
 
 **Recommended Collections:**
 
-1. **conversations** - Chat conversation threads
-2. **messages** (optional) - Individual messages (or embedded in conversations)
-3. **users** (existing) - User accounts
-4. **platformIntegrations** - OAuth tokens and platform connections
-5. **chatAnalytics** - Usage metrics and tracking
+1. **clients** - Client management (multi-client architecture)
+2. **conversations** - Chat conversation threads (per client)
+3. **messages** (optional) - Individual messages (embedded in conversations)
+4. **users** (existing) - User accounts (agency/freelancer owners)
+5. **platformIntegrations** (deprecated) - Moved to Client.platforms (embedded)
+6. **chatAnalytics** - Usage metrics and tracking
 
 **Structure Options:**
 
@@ -72,7 +73,185 @@ conversations               messages
 
 ---
 
-## 2. Conversation Schema
+## 2. Client Schema (Multi-Client Architecture)
+
+### Question:
+What should the Client model look like?
+
+**Mongoose Schema (TypeScript):**
+
+```typescript
+import { Schema, model, Types } from 'mongoose'
+
+export interface IClient {
+  _id: Types.ObjectId
+  userId: Types.ObjectId // Agency/freelancer owner
+
+  // Client Information
+  name: string // "Acme Corp"
+  email?: string // client@acmecorp.com
+  logo?: string // URL to client logo
+
+  // Platform connections (per client)
+  platforms: {
+    googleAnalytics?: {
+      connected: boolean
+      accountId: string
+      propertyId: string
+      accessToken: string // Encrypted
+      refreshToken: string // Encrypted
+      expiresAt: Date
+      lastSync: Date
+      metrics: {
+        sessions: number
+        users: number
+        bounceRate: number
+        pageViews: number
+        avgSessionDuration: number
+        // ... cached GA data
+      }
+    }
+    googleAds?: {
+      connected: boolean
+      customerId: string
+      accessToken: string // Encrypted
+      refreshToken: string // Encrypted
+      expiresAt: Date
+      lastSync: Date
+      metrics: {
+        clicks: number
+        impressions: number
+        spend: number
+        conversions: number
+        ctr: number
+        cpa: number
+        // ... cached Ads data
+      }
+    }
+    metaAds?: {
+      connected: boolean
+      adAccountId: string
+      accessToken: string // Encrypted
+      expiresAt: Date
+      lastSync: Date
+      metrics: {
+        impressions: number
+        clicks: number
+        spend: number
+        cpm: number
+        roas: number
+        // ... cached Meta data
+      }
+    }
+    linkedInAds?: {
+      connected: boolean
+      accountId: string
+      accessToken: string // Encrypted
+      refreshToken: string // Encrypted
+      expiresAt: Date
+      lastSync: Date
+      metrics: {
+        impressions: number
+        clicks: number
+        spend: number
+        leads: number
+        // ... cached LinkedIn data
+      }
+    }
+  }
+
+  status: 'active' | 'inactive' | 'archived'
+  createdAt: Date
+  updatedAt: Date
+}
+
+const ClientSchema = new Schema<IClient>({
+  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+
+  name: { type: String, required: true },
+  email: { type: String },
+  logo: { type: String },
+
+  platforms: {
+    googleAnalytics: {
+      connected: { type: Boolean, default: false },
+      accountId: String,
+      propertyId: String,
+      accessToken: String, // Encrypted
+      refreshToken: String, // Encrypted
+      expiresAt: Date,
+      lastSync: Date,
+      metrics: Schema.Types.Mixed
+    },
+    googleAds: {
+      connected: { type: Boolean, default: false },
+      customerId: String,
+      accessToken: String,
+      refreshToken: String,
+      expiresAt: Date,
+      lastSync: Date,
+      metrics: Schema.Types.Mixed
+    },
+    metaAds: {
+      connected: { type: Boolean, default: false },
+      adAccountId: String,
+      accessToken: String,
+      expiresAt: Date,
+      lastSync: Date,
+      metrics: Schema.Types.Mixed
+    },
+    linkedInAds: {
+      connected: { type: Boolean, default: false },
+      accountId: String,
+      accessToken: String,
+      refreshToken: String,
+      expiresAt: Date,
+      lastSync: Date,
+      metrics: Schema.Types.Mixed
+    }
+  },
+
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'archived'],
+    default: 'active'
+  }
+}, {
+  timestamps: true
+})
+
+// Indexes
+ClientSchema.index({ userId: 1, status: 1 })
+ClientSchema.index({ userId: 1, name: 1 })
+
+export const Client = model<IClient>('Client', ClientSchema)
+```
+
+### Your Answers:
+
+**Chosen Structure:** Embedded platforms within Client document
+
+**Reasoning:**
+```
+- Each client has their own platform connections (isolated data)
+- Embedding platforms simplifies queries (single document read)
+- Platform credentials are encrypted before storage
+- Metrics are cached per-client for fast AI responses
+- Agency users can manage 10-50 clients easily
+```
+
+**Client Lifecycle:**
+```
+Status transitions:
+- Created: 'active' (default)
+- User pauses client work: 'active' → 'inactive'
+- User archives client: 'active' → 'archived' (preserves data, hides from UI)
+- Delete client: Requires archiving first, then hard delete (admin only)
+```
+
+---
+
+## 3. Conversation Schema
 
 ### Question:
 What should the Conversation model look like?
@@ -84,13 +263,15 @@ import { Schema, model, Types } from 'mongoose'
 
 export interface IConversation {
   _id: Types.ObjectId
-  userId: Types.ObjectId // Reference to User
+  conversationId: string // UUID for public reference
+  userId: Types.ObjectId // Reference to User (agency owner)
+  clientId: Types.ObjectId // Reference to Client - CRITICAL for multi-client
 
   // Conversation Metadata
   title?: string // Optional: "Marketing data questions", auto-generated
   status: 'active' | 'archived' | 'deleted'
 
-  // Messages (if embedded)
+  // Messages (embedded)
   messages: IMessage[]
 
   // Context
@@ -112,14 +293,16 @@ export interface IConversation {
 }
 
 const ConversationSchema = new Schema<IConversation>({
+  conversationId: { type: String, required: true, unique: true }, // UUID
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  clientId: { type: Schema.Types.ObjectId, ref: 'Client', required: true }, // NEW
   title: { type: String },
   status: {
     type: String,
     enum: ['active', 'archived', 'deleted'],
     default: 'active'
   },
-  messages: [MessageSchema], // If embedded
+  messages: [MessageSchema], // Embedded messages
   context: {
     currentPage: String,
     connectedPlatforms: [String],
@@ -133,6 +316,11 @@ const ConversationSchema = new Schema<IConversation>({
   timestamps: true // Auto-creates createdAt, updatedAt
 })
 
+// Indexes for multi-client queries
+ConversationSchema.index({ userId: 1, clientId: 1, status: 1 })
+ConversationSchema.index({ clientId: 1, lastMessageAt: -1 })
+ConversationSchema.index({ conversationId: 1 }, { unique: true })
+
 export const Conversation = model<IConversation>('Conversation', ConversationSchema)
 ```
 
@@ -140,33 +328,46 @@ export const Conversation = model<IConversation>('Conversation', ConversationSch
 
 **Conversation Fields:**
 ```
-Which fields do you want? Customize above or add your own:
+Required Fields:
+✅ conversationId: UUID for public reference
+✅ userId: Agency owner reference
+✅ clientId: Client reference (CRITICAL for multi-client)
+✅ status: active/archived/deleted
+✅ createdAt/updatedAt: Auto-generated timestamps
 
-Required:
-- userId: [Yes]
-- status: [Yes]
-- createdAt/updatedAt: [Yes]
+Optional Fields (Included):
+✅ title: Auto-generated conversation title
+✅ context: Chat context (current page, connected platforms)
+✅ lastMessageAt: For sorting recent conversations
+✅ messageCount: Cached count for performance
+✅ totalTokensUsed: Track OpenAI usage
+✅ estimatedCost: Cost tracking in USD
+```
 
-Optional:
-- title: [Yes/No]
-- context: [Yes/No - what context?]
-- lastMessageAt: [Yes/No]
-- messageCount: [Yes/No]
-- totalTokensUsed: [Yes/No]
-- estimatedCost: [Yes/No]
+**Multi-Client Query Pattern:**
+```typescript
+// Get all conversations for a specific client
+const conversations = await Conversation.find({
+  userId: currentUser.id,
+  clientId: selectedClientId,
+  status: 'active'
+}).sort({ lastMessageAt: -1 });
 
-Custom Fields:
-- [Field name]: [Purpose]
+// Critical: Always filter by both userId AND clientId
+// This ensures data isolation between clients
 ```
 
 **Conversation Lifecycle:**
 ```
 Status transitions:
-- Created: 'active'
-- User archives: 'active' → 'archived'
+- Created: 'active' (when user sends first message)
+- User archives: 'active' → 'archived' (preserves history)
 - User deletes: 'active' → 'deleted' (soft delete)
-- Auto-archive after: [X days of inactivity]
-- Hard delete after: [X days in 'deleted' status]
+- Auto-delete after: 90 days (TTL index on deletedAt)
+
+Client Switching:
+- When user switches clients → Load conversations for new clientId
+- Previous client's conversations are not shown (isolated)
 ```
 
 ---
@@ -615,49 +816,81 @@ How are collections related?
 
 **Relationship Diagram:**
 ```
-User (existing)
+User (Agency Owner)
   │
-  ├──► Conversation (one-to-many)
+  ├──► Client (one-to-many)
   │      │
-  │      └──► Message (one-to-many, if separate collection)
+  │      ├──► platforms (embedded: GA, Ads, Meta, LinkedIn)
+  │      │
+  │      └──► Conversation (one-to-many)
+  │             │
+  │             └──► Messages (embedded array)
   │
-  └──► PlatformIntegration (one-to-many)
+  └──► Conversation (one-to-many, filtered by clientId)
+```
+
+**Multi-Client Architecture:**
+```
+User → Clients → Each Client has:
+  ├── Platform Connections (embedded)
+  └── Conversations (linked via clientId)
+
+Key Points:
+- Platforms are stored PER CLIENT (not per user)
+- Conversations are linked to BOTH userId AND clientId
+- When user switches clients → Different platforms & conversations
 ```
 
 **Mongoose Population:**
 ```typescript
-// Example: Fetch conversation with user details
+// Example: Fetch conversation with client details
 const conversation = await Conversation.findById(id)
-  .populate('userId', 'name email') // Populate user fields
+  .populate('userId', 'name email')
+  .populate('clientId', 'name logo')
   .exec()
 
-// Example: Fetch user with all integrations
-const user = await User.findById(id)
-  .populate('platformIntegrations')
-  .exec()
+// Example: Fetch all clients for a user
+const clients = await Client.find({
+  userId: currentUser.id,
+  status: 'active'
+})
+
+// Example: Fetch client with conversations
+const client = await Client.findById(clientId)
+const conversations = await Conversation.find({
+  clientId: client._id,
+  status: 'active'
+}).sort({ lastMessageAt: -1 })
 ```
 
 ### Your Answer:
 
 **Relationships:**
 ```
-User → Conversation: [one-to-many]
-User → PlatformIntegration: [one-to-many]
-Conversation → Message: [one-to-many / embedded]
+User → Client: one-to-many (agency manages multiple clients)
+Client → Platforms: embedded (each client has own platform configs)
+User + Client → Conversation: one-to-many (filtered by both IDs)
+Conversation → Messages: one-to-many embedded
 
 Foreign Keys:
+- Client.userId → User._id
 - Conversation.userId → User._id
-- Message.conversationId → Conversation._id
-- PlatformIntegration.userId → User._id
+- Conversation.clientId → Client._id
 ```
 
 **Cascade Delete:**
 ```
 If user deletes account:
-- [ ] Delete all conversations: [Yes/No]
-- [ ] Delete all messages: [Yes/No]
-- [ ] Revoke platform integrations: [Yes/No]
-- [ ] Anonymize data instead: [Yes/No]
+✅ Delete all clients: Yes (cascade)
+✅ Delete all conversations: Yes (cascade via client deletion)
+✅ Revoke platform integrations: Yes (embedded in clients)
+❌ Anonymize data instead: No (hard delete for GDPR compliance)
+
+If user deletes a client:
+✅ Archive client first (soft delete): status = 'archived'
+✅ Archive all client's conversations: Batch update to 'archived'
+✅ Revoke OAuth tokens: Background job to revoke platform access
+⚠️ Hard delete after 90 days: Optional, requires admin confirmation
 ```
 
 ---
