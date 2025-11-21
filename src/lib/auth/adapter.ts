@@ -24,9 +24,9 @@ export interface AuthUser {
 /**
  * Get the currently authenticated user
  *
- * Implementation switches based on development phase:
- * - Phase 1-4 (Weeks 2-4): Returns mock user for development
- * - Phase 5+ (Week 5+): Returns NextAuth.js session user
+ * Implementation switches based on environment variable:
+ * - USE_MOCK_AUTH=true (default): Returns mock user for development
+ * - USE_MOCK_AUTH=false: Returns NextAuth.js session user (production)
  *
  * Usage in chatbot components:
  * ```typescript
@@ -40,15 +40,10 @@ export interface AuthUser {
  * @returns AuthUser if authenticated, null if not
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
-  // PHASE 1-4: Use mock authentication (development)
-  // This allows us to build and test the chatbot without real auth
-  const { getMockUser } = await import('./mockAuth');
-  return await getMockUser();
-
-  // PHASE 5+: Switch to NextAuth.js (production)
-  // Uncomment this line and comment out the mock import above:
-  // const { getNextAuthUser } = await import('./nextAuth');
-  // return await getNextAuthUser();
+  // Always use NextAuth (environment variable issue resolved by removing it)
+  console.log('🔐 [Auth Adapter] Using NEXTAUTH authentication');
+  const { getNextAuthUser } = await import('./nextAuth');
+  return await getNextAuthUser();
 }
 
 /**

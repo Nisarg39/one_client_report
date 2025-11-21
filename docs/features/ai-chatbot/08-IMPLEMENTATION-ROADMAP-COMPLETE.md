@@ -1,7 +1,7 @@
 # AI Chatbot - Implementation Roadmap (COMPLETE)
 
 **Document Status**: ✅ Complete
-**Last Updated**: 2025-11-19
+**Last Updated**: 2025-11-21 (Updated for Multi-Client Architecture)
 
 ---
 
@@ -20,16 +20,19 @@
 **Tasks:**
 - [x] Complete all 10 planning documents ✅
 - [x] Create authentication strategy document ✅
+- [x] Create multi-client strategy document ✅
 - [ ] ~~Set up OpenAI API account~~ (Deferred to Week 3 - Phase 2)
 - [x] Install dependencies (openai, react-markdown, zod, zustand) ✅
-- [x] Create Mongoose schemas (Conversation model) ✅
-- [x] Create TypeScript types (chat.ts) ✅
+- [x] Create Mongoose schemas (Conversation model with clientId) ✅
+- [ ] **Create Client Mongoose model** (src/models/Client.ts)
+- [x] Create TypeScript types (chat.ts with Client types) ✅
 - [x] Set up environment variables template ✅
 - [ ] **Create auth abstraction layer (adapter.ts, mockAuth.ts)**
 
 **Deliverables:**
 - [x] All documentation complete ✅
-- [x] MongoDB models created ✅
+- [x] Conversation model created with multi-client support (clientId field) ✅
+- [ ] Client model created
 - [x] Dependencies installed ✅
 - [ ] Auth abstraction layer ready for mock → NextAuth transition
 - [ ] ~~OpenAI API configured~~ (Week 3)
@@ -98,30 +101,49 @@
 
 ---
 
-## Phase 3: Platform Data Integration (Week 4-5)
+## Phase 3: Multi-Client & Platform Data Integration (Week 4-5)
 
 **Duration:** 7-10 days
 
 **Authentication:** Still uses mock auth (demo user)
 
+**Multi-Client Note:** This phase implements the full multi-client architecture!
+
 **Tasks:**
-- [ ] Extend User model to include platform data fields
-- [ ] **Create mock User document** in MongoDB for demo-user-123
-- [ ] **Add demo platform data** (Google Analytics, Ads metrics)
-- [ ] Build getConnectedPlatforms action
-- [ ] Build getPlatformData helper
-- [ ] Integrate platform data into AI prompts
-- [ ] Test AI responses with demo platform metrics
-- [ ] Handle cases where platforms aren't connected
-- [ ] Add "Go to Settings" CTAs in chat
+- [ ] **Create Client model implementation** (if not done in Phase 0)
+- [ ] **Create Client management Server Actions**:
+  - [ ] createClient
+  - [ ] getClients
+  - [ ] updateClient
+  - [ ] updateClientPlatforms
+  - [ ] archiveClient
+- [ ] **Create demo Client documents** in MongoDB for demo-user-123
+- [ ] **Add demo platform data to demo clients** (Google Analytics, Ads metrics)
+- [ ] Build getConnectedPlatforms action (per client)
+- [ ] Build getClientPlatformData helper
+- [ ] Integrate client platform data into AI prompts
+- [ ] Test AI responses with demo client platform metrics
+- [ ] Handle cases where client platforms aren't connected
+- [ ] Add "Configure Platforms" CTAs in chat
+- [ ] Test client switching in chat UI
 
 **Deliverables:**
-- Chatbot can query demo user's platform data
-- Demo data available for testing
+- Client model fully functional
+- Client management Server Actions working
+- Chatbot can query specific client's platform data
+- Demo clients with platform data for testing
+- AI context switches based on selected client
 - Graceful handling of unconnected platforms
-- AI answers questions about "your" marketing data
+- AI answers questions about selected client's marketing data
 
-**Auth Note:** Create a User document for demo-user-123 with fake platform data for testing
+**Multi-Client Testing:**
+```javascript
+// Demo Client A: Has Google Analytics + Google Ads
+// Demo Client B: Has Meta Ads only
+// Test: Switch between clients, ask "How many visitors?" → Different answers!
+```
+
+**Auth Note:** Create Client documents for demo-user-123 with fake platform data for testing
 
 ---
 
@@ -196,18 +218,23 @@
 
 ### Pre-Development
 - [x] Planning documents complete
-- [ ] MongoDB models created
-- [ ] TypeScript types defined
+- [x] Multi-client strategy documented
+- [x] Conversation model created (with clientId)
+- [ ] Client model created
+- [x] TypeScript types defined
 - [ ] OpenAI API key obtained
-- [ ] Dependencies installed
+- [x] Dependencies installed
 
 ### Core Features
 - [ ] Chat UI components
+- [ ] Client selector & management UI
 - [ ] AI integration
 - [ ] Streaming responses
-- [ ] Conversation history
-- [ ] Platform data integration
-- [ ] Demo data support
+- [ ] Conversation history (per client)
+- [ ] Multi-client support
+- [ ] Client model & Server Actions
+- [ ] Platform data integration (per client)
+- [ ] Demo client data support
 
 ### Advanced Features
 - [ ] Quick replies
@@ -261,16 +288,142 @@
 
 ---
 
+## Production Phases (Phases 4.5-7) - NEW!
+
+**Total Additional Time:** 7-9 weeks
+**Status:** Documented (Implementation pending)
+**Last Updated:** 2025-11-22
+
+### Phase 4.5: User Onboarding Flow (Week 7)
+
+**Duration:** 1 week
+**Priority:** High
+
+**Key Features:**
+- Smart OAuth redirect logic (new users → /onboarding, existing → /chat)
+- 4-step onboarding wizard (Welcome, Create Client, Connect Platforms, Tour)
+- User model updates for onboarding tracking
+- Progress persistence with localStorage
+- Mobile-responsive onboarding UI
+
+**Detailed Documentation:**
+- [PHASE-4.5-ONBOARDING.md](./PHASE-4.5-ONBOARDING.md) - Complete architecture (600+ lines)
+- [ONBOARDING-UX-SPEC.md](./ONBOARDING-UX-SPEC.md) - Full UX specs (750+ lines)
+
+---
+
+### Phase 5: Platform API Integrations (Weeks 8-11)
+
+**Duration:** 3-4 weeks
+**Priority:** Critical for Production
+
+**Platforms to Integrate:**
+1. Google Analytics 4 (GA4 Data API v1)
+2. Meta Ads (Marketing API v18.0)
+3. Google Ads (Ads API v14)
+4. LinkedIn Ads (Marketing API v2023-11)
+
+**Weekly Breakdown:**
+- **Week 1:** Foundation (unified interface, encryption, caching)
+- **Week 2:** Google Analytics + Meta Ads
+- **Week 3:** Google Ads + LinkedIn Ads
+- **Week 4:** Polish, testing, security audit
+
+**Detailed Documentation:**
+- [PHASE-5-PLATFORM-APIS.md](./PHASE-5-PLATFORM-APIS.md) - Complete architecture (1000+ lines)
+- [PLATFORM-INTEGRATION-EXAMPLES.md](./PLATFORM-INTEGRATION-EXAMPLES.md) - Code examples (800+ lines)
+
+---
+
+### Phase 6: Conversation Persistence (Weeks 12-13)
+
+**Duration:** 1-2 weeks
+**Priority:** Medium-High
+
+**Key Features:**
+- Enhanced Conversation model with metadata (tags, categories, analytics)
+- Full-text search with MongoDB text indexes
+- Advanced filtering (tags, date range, category)
+- Cursor-based pagination
+- Export functionality (JSON, CSV, PDF, Markdown)
+- Archive/pin conversations
+- Conversation analytics dashboard
+
+**Detailed Documentation:**
+- [PHASE-6-CONVERSATIONS.md](./PHASE-6-CONVERSATIONS.md) - Complete design (500+ lines)
+
+---
+
+### Phase 7: Testing & Launch (Weeks 14-16)
+
+**Duration:** 2-3 weeks
+**Priority:** Critical
+
+**Week 1 - Testing:**
+- Unit tests (80%+ coverage with Vitest)
+- Integration tests (70%+ coverage)
+- E2E tests (Playwright - critical flows)
+- Performance testing (Artillery load tests)
+- Security audit (OWASP, Snyk, npm audit)
+- Accessibility testing (WCAG AA compliance)
+
+**Week 2 - Staging:**
+- Deploy to staging environment
+- User acceptance testing (UAT)
+- Load testing on staging
+- Bug fixes and optimization
+
+**Week 3 - Production Launch:**
+- Pre-launch checklist
+- Production deployment (Vercel)
+- Monitoring setup (Sentry, UptimeRobot, Vercel Analytics)
+- Post-launch monitoring (24-48 hours intensive)
+- Gather user feedback and iterate
+
+**Detailed Documentation:**
+- [PHASE-7-LAUNCH.md](./PHASE-7-LAUNCH.md) - Testing & deployment (650+ lines)
+- [PRODUCTION-DEPLOYMENT-GUIDE.md](./PRODUCTION-DEPLOYMENT-GUIDE.md) - Setup guide (750+ lines)
+
+---
+
+## Updated Timeline Summary
+
+**Core Implementation (Phases 0-4):** 4-6 weeks ✅ **COMPLETE**
+**Production Readiness (Phases 4.5-7):** 7-9 weeks ⏳ **Planned**
+
+**Total Time to Production:** 11-15 weeks (3-4 months)
+
+**Current Status:**
+- ✅ Phases 0-4: Demo-ready with OAuth authentication
+- 📚 Phases 4.5-7: Fully documented (5000+ lines of specs)
+- 🚀 Ready to implement production features
+
+**Cost Estimate:**
+- Development (current): ~$11/month (OpenAI)
+- Production (full stack): ~$123-213/month
+  - Vercel Pro: $20/month
+  - MongoDB Atlas M10: $57/month
+  - Upstash Redis: $0-10/month
+  - OpenAI API: $20-100/month
+  - Sentry Team: $26/month
+
+---
+
 ## Document Approval
 
-**Status:** ✅ Complete
+**Status:** ✅ Complete & Extended (Production Roadmap Added)
 
 - [x] Roadmap defined
-- [x] Phases planned
+- [x] Multi-client architecture included
+- [x] Phases planned and updated
+- [x] Client model creation added to Phase 0
+- [x] Phase 3 updated for multi-client implementation
 - [x] Timeline estimated
 - [x] Success criteria set
 
 ---
 
-**Previous Document:** [07-API-DESIGN.md](./07-API-DESIGN.md)
-**Next Document:** [09-TESTING-STRATEGY.md](./09-TESTING-STRATEGY.md)
+**Related Documents:**
+- **Previous:** [07-API-DESIGN-COMPLETE.md](./07-API-DESIGN-COMPLETE.md)
+- **Next:** [09-TESTING-STRATEGY.md](./09-TESTING-STRATEGY.md)
+- **Multi-Client Strategy:** [12-MULTI-CLIENT-STRATEGY.md](./12-MULTI-CLIENT-STRATEGY.md)

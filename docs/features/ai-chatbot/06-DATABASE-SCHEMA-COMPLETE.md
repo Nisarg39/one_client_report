@@ -1,20 +1,129 @@
 # AI Chatbot - Database Schema (COMPLETE)
 
 **Document Status**: ✅ Complete
-**Last Updated**: 2025-11-19
+**Last Updated**: 2025-11-21 (Updated for Multi-Client Architecture)
 
 ---
 
 ## MongoDB Collections & Schemas
 
-### 1. Conversations Collection
+### 1. Clients Collection
+
+**Multi-Client Architecture**: Each user can manage multiple clients, each with independent platform configurations.
+
+```typescript
+interface Client {
+  _id: ObjectId;
+  userId: ObjectId;              // Who owns this client (agency user)
+  name: string;                  // "Acme Corp"
+  email?: string;                // client@acmecorp.com
+  logo?: string;                 // URL to client logo
+
+  // Platform connections (per client)
+  platforms: {
+    googleAnalytics?: {
+      connected: boolean;
+      accountId: string;
+      propertyId: string;
+      accessToken: string;       // Encrypted
+      refreshToken: string;      // Encrypted
+      expiresAt: Date;
+      lastSync: Date;
+      status: 'active' | 'expired' | 'error';
+      metrics?: {
+        sessions: number;
+        users: number;
+        pageviews: number;
+        bounceRate: number;
+        avgSessionDuration: number;
+      };
+      dimensions?: {
+        topSources: { source: string; sessions: number }[];
+        devices: { device: string; percentage: number }[];
+        topPages: { page: string; views: number }[];
+      };
+    };
+
+    googleAds?: {
+      connected: boolean;
+      customerId: string;
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: Date;
+      lastSync: Date;
+      status: 'active' | 'expired' | 'error';
+      campaigns?: {
+        name: string;
+        spend: number;
+        clicks: number;
+        impressions: number;
+        ctr: number;
+        conversions: number;
+      }[];
+    };
+
+    metaAds?: {
+      connected: boolean;
+      adAccountId: string;
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: Date;
+      lastSync: Date;
+      status: 'active' | 'expired' | 'error';
+      campaigns?: {
+        name: string;
+        spend: number;
+        impressions: number;
+        clicks: number;
+        cpm: number;
+        roas?: number;
+      }[];
+    };
+
+    linkedinAds?: {
+      connected: boolean;
+      accountId: string;
+      accessToken: string;
+      refreshToken: string;
+      expiresAt: Date;
+      lastSync: Date;
+      status: 'active' | 'expired' | 'error';
+      campaigns?: {
+        name: string;
+        spend: number;
+        impressions: number;
+        clicks: number;
+        leads: number;
+      }[];
+    };
+  };
+
+  status: 'active' | 'inactive' | 'archived';
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+**Indexes:**
+```javascript
+db.clients.createIndex({ userId: 1, status: 1 });
+db.clients.createIndex({ userId: 1, name: 1 });
+db.clients.createIndex({ _id: 1, userId: 1 }); // Security: verify ownership
+```
+
+---
+
+### 2. Conversations Collection
+
+**Multi-Client**: Conversations are scoped to both user AND client.
 
 ```typescript
 interface Conversation {
   _id: ObjectId;
-  conversationId: string; // UUID
-  userId: ObjectId; // Reference to User
-  title?: string; // Optional conversation title
+  conversationId: string;        // UUID
+  userId: ObjectId;              // Agency owner (Reference to User)
+  clientId: ObjectId;            // Which client this chat is about (Reference to Client)
+  title?: string;                // Optional conversation title
   messages: Message[];
   createdAt: Date;
   updatedAt: Date;
@@ -28,14 +137,13 @@ interface Conversation {
 }
 
 interface Message {
-  messageId: string; // UUID
   role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
   metadata?: {
-    model?: string; // 'gpt-4o-mini'
+    model?: string;              // 'gpt-4o-mini'
     tokensUsed?: number;
-    cost?: number; // In USD
+    cost?: number;               // In USD
     feedbackRating?: 'positive' | 'negative'; // Thumbs up/down
   };
 }
@@ -43,104 +151,82 @@ interface Message {
 
 **Indexes:**
 ```javascript
+// Multi-client compound index: Query user's conversations for a specific client
+db.conversations.createIndex({ userId: 1, clientId: 1, status: 1 });
+
+// Query client's conversations by last message time
+db.conversations.createIndex({ clientId: 1, lastMessageAt: -1 });
+
+// Backwards compatibility: Query all user's conversations
 db.conversations.createIndex({ userId: 1, status: 1 });
+db.conversations.createIndex({ userId: 1, lastMessageAt: -1 });
+
+// Unique conversation ID
 db.conversations.createIndex({ conversationId: 1 }, { unique: true });
-db.conversations.createIndex({ lastMessageAt: -1 }); // For sorting
-db.conversations.createIndex({ createdAt: 1 }, { expireAfterSeconds: 7776000 }); // 90 days TTL
+
+// TTL: Auto-delete after 90 days
+db.conversations.createIndex({ createdAt: 1 }, { expireAfterSeconds: 7776000 });
 ```
 
 ---
 
-### 2. User Schema Extension
+### 3. User Schema Extension
 
 Extend existing User model to include chatbot-related fields:
 
 ```typescript
 interface User {
-  // ... existing fields ...
+  // ... existing fields (email, password, name, etc.) ...
 
   chatbot?: {
     totalConversations: number;
     totalMessages: number;
     lastChatAt?: Date;
     preferences?: {
-      quickReplies: string[]; // Custom quick replies
+      quickReplies: string[];    // Custom quick replies
       notifications: boolean;
-    };
-  };
-
-  platforms?: {
-    googleAnalytics?: {
-      connected: boolean;
-      propertyId?: string;
-      status: 'active' | 'expired' | 'error';
-      lastSync?: Date;
-      metrics?: {
-        sessions: number;
-        users: number;
-        pageviews: number;
-        bounceRate: number;
-        avgSessionDuration: number;
-        // ... more cached metrics
-      };
-      dimensions?: {
-        topSources: { source: string; sessions: number }[];
-        devices: { device: string; percentage: number }[];
-        topPages: { page: string; views: number }[];
-        // ... more dimensions
-      };
-    };
-
-    googleAds?: {
-      connected: boolean;
-      customerId?: string;
-      status: 'active' | 'expired' | 'error';
-      lastSync?: Date;
-      campaigns?: {
-        name: string;
-        spend: number;
-        clicks: number;
-        impressions: number;
-        ctr: number;
-        conversions: number;
-      }[];
-    };
-
-    metaAds?: {
-      connected: boolean;
-      adAccountId?: string;
-      status: 'active' | 'expired' | 'error';
-      lastSync?: Date;
-      campaigns?: {
-        name: string;
-        spend: number;
-        impressions: number;
-        clicks: number;
-        cpm: number;
-        roas?: number;
-      }[];
-    };
-
-    linkedinAds?: {
-      connected: boolean;
-      accountId?: string;
-      status: 'active' | 'expired' | 'error';
-      lastSync?: Date;
-      campaigns?: {
-        name: string;
-        spend: number;
-        impressions: number;
-        clicks: number;
-        leads: number;
-      }[];
     };
   };
 }
 ```
 
+**Note**: Platforms are now stored in the **Client** collection, not User.
+
 ---
 
-### 3. Demo Data Collection (Optional)
+### 4. Data Relationships
+
+```
+User (1) → Clients (Many)
+  └─ Each client has platforms
+
+User (1) + Client (1) → Conversations (Many)
+  └─ Conversations filtered by userId + clientId
+
+Client (1) → Platform Data (Embedded)
+  └─ Each client has their own platform connections
+```
+
+**Query Examples:**
+```typescript
+// Get all clients for a user
+db.clients.find({ userId: user._id, status: 'active' });
+
+// Get conversations for a specific client
+db.conversations.find({
+  userId: user._id,
+  clientId: client._id,
+  status: 'active'
+});
+
+// Get client's platform data
+const client = await Client.findById(clientId);
+const googleAnalyticsData = client.platforms?.googleAnalytics?.metrics;
+```
+
+---
+
+### 5. Demo Data Collection (Optional)
 
 For users without connected platforms:
 
@@ -216,14 +302,19 @@ async function cleanupOldConversations() {
 
 ## Document Approval
 
-**Status:** ✅ Complete
+**Status:** ✅ Complete (Updated for Multi-Client)
 
 - [x] Database schema designed
+- [x] Multi-client architecture implemented
+- [x] Client collection added
+- [x] Conversation model updated with clientId
 - [x] Indexes optimized
 - [x] Data retention strategy defined
 - [x] Security reviewed
 
 ---
 
-**Previous Document:** [05-ARCHITECTURE.md](./05-ARCHITECTURE.md)
-**Next Document:** [07-API-DESIGN.md](./07-API-DESIGN.md)
+**Related Documents:**
+- **Previous:** [05-ARCHITECTURE.md](./05-ARCHITECTURE.md)
+- **Next:** [07-API-DESIGN-COMPLETE.md](./07-API-DESIGN-COMPLETE.md)
+- **Multi-Client Strategy:** [12-MULTI-CLIENT-STRATEGY.md](./12-MULTI-CLIENT-STRATEGY.md)

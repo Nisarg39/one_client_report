@@ -38,7 +38,11 @@ export function MessageList({ messages, isTyping, onQuickReply }: MessageListPro
   return (
     <div
       ref={containerRef}
-      className="flex-1 overflow-y-auto px-4 py-6 space-y-4"
+      role="log"
+      aria-label="Chat messages"
+      aria-live="polite"
+      aria-atomic="false"
+      className="h-full overflow-y-auto px-4 py-6 space-y-4"
       style={{
         scrollbarWidth: 'thin',
         scrollbarColor: '#6CA3A2 #1a1a1a',
@@ -46,7 +50,13 @@ export function MessageList({ messages, isTyping, onQuickReply }: MessageListPro
     >
       {/* Messages */}
       {messages.map((message, index) => (
-        <Message key={`${message.timestamp}-${index}`} message={message} index={index} />
+        <Message
+          key={`${message.timestamp}-${index}`}
+          message={message}
+          index={index}
+          onQuickReply={onQuickReply}
+          isTyping={isTyping}
+        />
       ))}
 
       {/* Typing Indicator */}

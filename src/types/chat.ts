@@ -21,12 +21,29 @@ export type ConversationStatus = 'active' | 'archived' | 'deleted';
 export type ClientStatus = 'active' | 'inactive' | 'archived';
 
 /**
+ * Message feedback type
+ */
+export type MessageFeedback = 'positive' | 'negative' | null;
+
+/**
+ * Quick reply suggestion
+ */
+export interface QuickReplySuggestion {
+  id: string;
+  text: string;
+  category?: 'metrics' | 'campaigns' | 'platforms' | 'insights' | 'general';
+}
+
+/**
  * Individual message in a conversation
  */
 export interface Message {
   role: MessageRole;
   content: string;
   timestamp: Date;
+  feedback?: MessageFeedback; // Optional feedback for AI messages
+  messageId?: string; // Unique ID for tracking feedback
+  suggestions?: QuickReplySuggestion[]; // Optional quick reply suggestions for AI messages
 }
 
 /**

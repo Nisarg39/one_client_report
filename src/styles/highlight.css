@@ -1,0 +1,164 @@
+/**
+ * Custom Syntax Highlighting Theme
+ * Neumorphic Dark Theme for Code Blocks
+ */
+
+/* Base code block styles */
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0;
+  color: #e0e0e0;
+  background: transparent;
+}
+
+/* Comments */
+.hljs-comment,
+.hljs-quote {
+  color: #7a7a7a;
+  font-style: italic;
+}
+
+/* Keywords */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #6CA3A2;
+  font-weight: 500;
+}
+
+/* Built-in types and literals */
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #87CEEB;
+}
+
+/* Strings */
+.hljs-string,
+.hljs-doctag {
+  color: #98C379;
+}
+
+/* Functions and titles */
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #61AFEF;
+  font-weight: 500;
+}
+
+/* Function calls */
+.hljs-title.function_,
+.hljs-title.class_,
+.hljs-title.class_.inherited__,
+.hljs-attribute {
+  color: #E5C07B;
+}
+
+/* Regex and symbols */
+.hljs-regexp,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: #C678DD;
+}
+
+/* Meta and builtins */
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-meta {
+  color: #E06C75;
+}
+
+/* Operators and punctuation */
+.hljs-operator,
+.hljs-params {
+  color: #ABB2BF;
+}
+
+/* Deletion and errors */
+.hljs-deletion {
+  color: #E06C75;
+}
+
+/* Addition */
+.hljs-addition {
+  color: #98C379;
+}
+
+/* Emphasis */
+.hljs-emphasis {
+  font-style: italic;
+}
+
+/* Strong emphasis */
+.hljs-strong {
+  font-weight: bold;
+}
+
+/* Language-specific styles */
+
+/* JavaScript/TypeScript */
+.hljs-keyword.hljs-const,
+.hljs-keyword.hljs-let,
+.hljs-keyword.hljs-var {
+  color: #C678DD;
+}
+
+/* Python */
+.hljs-keyword.hljs-def,
+.hljs-keyword.hljs-class {
+  color: #E06C75;
+}
+
+/* SQL */
+.hljs-keyword.hljs-select,
+.hljs-keyword.hljs-from,
+.hljs-keyword.hljs-where {
+  color: #6CA3A2;
+  text-transform: uppercase;
+}
+
+/* HTML/XML tags */
+.hljs-tag {
+  color: #E06C75;
+}
+
+.hljs-name {
+  color: #61AFEF;
+}
+
+/* CSS */
+.hljs-selector-class {
+  color: #E5C07B;
+}
+
+.hljs-selector-pseudo {
+  color: #C678DD;
+}
+
+.hljs-attribute {
+  color: #E06C75;
+}
+
+/* JSON */
+.hljs-attr {
+  color: #E06C75;
+}
+
+/* Inline code styles */
+code:not(.hljs) {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* Code block container */
+pre code.hljs {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  tab-size: 2;
+}

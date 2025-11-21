@@ -16,9 +16,12 @@ import type { AuthUser } from './adapter';
 /**
  * Mock demo user
  * Used during development to simulate an authenticated user
+ *
+ * IMPORTANT: This ID matches the DEMO_USER_OBJECT_ID in scripts/seedDemoClients.ts
+ * This ensures the demo clients are associated with this mock user
  */
 const MOCK_USER: AuthUser = {
-  id: 'demo-user-123',
+  id: '507f1f77bcf86cd799439011', // Must match seedDemoClients.ts
   email: 'demo@example.com',
   name: 'Demo User',
 };

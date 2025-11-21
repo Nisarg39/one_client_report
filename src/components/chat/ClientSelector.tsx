@@ -10,7 +10,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ChevronDown, Building2, Plus } from 'lucide-react';
+import { Check, ChevronDown, Building2, Plus, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ClientClient } from '@/types/chat';
 
@@ -19,6 +19,7 @@ export interface ClientSelectorProps {
   clients: ClientClient[];
   onClientChange: (clientId: string) => void;
   onCreateClient: () => void;
+  onConfigurePlatforms: (client: ClientClient) => void;
 }
 
 export function ClientSelector({
@@ -26,6 +27,7 @@ export function ClientSelector({
   clients,
   onClientChange,
   onCreateClient,
+  onConfigurePlatforms,
 }: ClientSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -112,42 +114,60 @@ export function ClientSelector({
                   </div>
                 ) : (
                   clients.map((client) => (
-                    <button
+                    <div
                       key={client.id}
-                      onClick={() => handleSelectClient(client.id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#333333] transition-colors"
+                      className="flex items-center gap-2 px-2 py-2 hover:bg-[#333333] transition-colors group"
                     >
-                      {/* Client Icon/Logo */}
-                      <div className="flex-shrink-0">
-                        {client.logo ? (
-                          <img
-                            src={client.logo}
-                            alt={client.name}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-8 h-8 bg-[#6CA3A2] rounded-full flex items-center justify-center">
-                            <Building2 className="w-4 h-4 text-white" />
-                          </div>
+                      {/* Main client selector button */}
+                      <button
+                        onClick={() => handleSelectClient(client.id)}
+                        className="flex-1 flex items-center gap-3 px-2 py-1"
+                      >
+                        {/* Client Icon/Logo */}
+                        <div className="flex-shrink-0">
+                          {client.logo ? (
+                            <img
+                              src={client.logo}
+                              alt={client.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 bg-[#6CA3A2] rounded-full flex items-center justify-center">
+                              <Building2 className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Client Info */}
+                        <div className="flex-1 text-left">
+                          <p className="text-sm font-medium text-white">
+                            {client.name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {getConnectedPlatformsCount(client)} platform
+                            {getConnectedPlatformsCount(client) !== 1 ? 's' : ''}
+                          </p>
+                        </div>
+
+                        {/* Selected Check */}
+                        {currentClient?.id === client.id && (
+                          <Check className="w-4 h-4 text-[#6CA3A2]" />
                         )}
-                      </div>
+                      </button>
 
-                      {/* Client Info */}
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium text-white">
-                          {client.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {getConnectedPlatformsCount(client)} platform
-                          {getConnectedPlatformsCount(client) !== 1 ? 's' : ''}
-                        </p>
-                      </div>
-
-                      {/* Selected Check */}
-                      {currentClient?.id === client.id && (
-                        <Check className="w-4 h-4 text-[#6CA3A2]" />
-                      )}
-                    </button>
+                      {/* Settings Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onConfigurePlatforms(client);
+                          setIsOpen(false);
+                        }}
+                        className="p-2 hover:bg-[#404040] rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                        title="Configure platforms"
+                      >
+                        <Settings className="w-4 h-4 text-gray-400 hover:text-[#6CA3A2]" />
+                      </button>
+                    </div>
                   ))
                 )}
               </div>

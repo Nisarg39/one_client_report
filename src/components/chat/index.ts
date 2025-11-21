@@ -13,3 +13,5 @@ export { TypingIndicator } from './TypingIndicator';
 export { EmptyState } from './EmptyState';
 export { ClientSelector } from './ClientSelector';
 export { CreateClientModal } from './CreateClientModal';
+export { PlatformConfigModal } from './PlatformConfigModal';
+export { ChatSidebar } from './ChatSidebar';

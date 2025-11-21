@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useChatStore } from '@/stores/useChatStore';
 import { MessageList } from './MessageList';
 import { ChatInput } from './ChatInput';
-import { mockAIStream } from '@/lib/chat/mockAI';
+import { useStreamingChat } from '@/lib/ai/useStreamingChat';
 import type { Message } from '@/types/chat';
 
 export function ChatModal() {
@@ -24,7 +24,11 @@ export function ChatModal() {
     addMessage,
     isTyping,
     setTyping,
+    currentClientId,
+    currentConversationId,
   } = useChatStore();
+
+  const { streamMessage } = useStreamingChat();
 
   // Handle sending a message
   const handleSendMessage = async (content: string) => {
@@ -39,41 +43,46 @@ export function ChatModal() {
     // Start typing indicator
     setTyping(true);
 
-    // Simulate AI response with streaming
+    // Get updated messages array including the user message
+    const updatedMessages = [...messages, userMessage];
+
+    // Stream AI response
     let assistantContent = '';
 
-    try {
-      await mockAIStream(
-        content,
-        // onToken callback
-        (token) => {
+    await streamMessage(
+      currentConversationId,
+      updatedMessages,
+      currentClientId,
+      {
+        onToken: (token) => {
           assistantContent += token;
         },
-        // onDone callback
-        () => {
+        onComplete: (fullResponse) => {
           // Add complete assistant message
           const assistantMessage: Message = {
             role: 'assistant',
-            content: assistantContent,
+            content: fullResponse,
             timestamp: new Date(),
           };
           addMessage(assistantMessage);
           setTyping(false);
-        }
-      );
-    } catch (error) {
-      console.error('Failed to get AI response:', error);
-      setTyping(false);
+        },
+        onError: (error) => {
+          console.error('AI Error:', error);
+          setTyping(false);
 
-      // Add error message
-      const errorMessage: Message = {
-        role: 'assistant',
-        content:
-          "I'm sorry, I encountered an error. Please try again in a moment.",
-        timestamp: new Date(),
-      };
-      addMessage(errorMessage);
-    }
+          // Add error message
+          const errorMessage: Message = {
+            role: 'assistant',
+            content: error.includes('OPENAI_API_KEY')
+              ? "⚠️ OpenAI API key is not configured. Please add your API key to `.env.local` to enable AI responses.\n\nGet your key from: https://platform.openai.com/api-keys"
+              : "I'm sorry, I encountered an error. Please try again in a moment.",
+            timestamp: new Date(),
+          };
+          addMessage(errorMessage);
+        },
+      }
+    );
   };
 
   // Handle quick reply
@@ -108,6 +117,9 @@ export function ChatModal() {
 
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chat-modal-title"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -122,7 +134,7 @@ export function ChatModal() {
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold">OneAssist</h3>
+                  <h3 id="chat-modal-title" className="text-white font-semibold">OneAssist</h3>
                   <p className="text-xs text-gray-400">
                     Marketing Analytics AI
                   </p>

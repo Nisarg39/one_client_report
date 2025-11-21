@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
@@ -41,8 +42,15 @@ export default function LoginPage() {
     }, 1000);
   };
 
-  const handleOAuthClick = (provider: "google" | "github") => {
-    alert(`${provider} OAuth clicked (Mock - will integrate in Phase 3)`);
+  const handleOAuthClick = async (provider: "google" | "github") => {
+    try {
+      setIsLoading(true);
+      // NextAuth will redirect to /chat after successful sign-in (configured in authOptions)
+      await signIn(provider, { callbackUrl: "/chat" });
+    } catch (error) {
+      console.error(`${provider} sign-in error:`, error);
+      setIsLoading(false);
+    }
   };
 
   return (

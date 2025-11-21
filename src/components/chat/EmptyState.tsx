@@ -7,7 +7,7 @@
 
 'use client';
 
-import { MessageCircle, TrendingUp, DollarSign, Users } from 'lucide-react';
+import { MessageCircle, TrendingUp, DollarSign, Users, Lightbulb } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface EmptyStateProps {
@@ -76,8 +76,8 @@ export function EmptyState({ onQuickReply }: EmptyStateProps) {
               onClick={() => onQuickReply(reply.prompt)}
               className="flex items-center gap-3 p-4 bg-[#2a2a2a] hover:bg-[#333333] rounded-xl transition-colors text-left group"
             >
-              <div className="w-10 h-10 bg-[#6CA3A2] bg-opacity-10 rounded-lg flex items-center justify-center group-hover:bg-opacity-20 transition-colors">
-                <Icon className="w-5 h-5 text-[#6CA3A2]" />
+              <div className="w-10 h-10 bg-[#6CA3A2] rounded-lg flex items-center justify-center group-hover:bg-[#5a9291] transition-colors">
+                <Icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
                 <div className="text-sm font-medium text-white">
@@ -97,10 +97,13 @@ export function EmptyState({ onQuickReply }: EmptyStateProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        className="text-xs text-gray-500 mt-8 text-center max-w-md"
+        className="text-xs text-gray-500 mt-8 text-center max-w-md flex items-start gap-2 justify-center"
       >
-        💡 Tip: Connect your marketing platforms in Settings → Integrations to
-        get real insights about your data.
+        <Lightbulb className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+        <span>
+          Tip: Connect your marketing platforms in Settings → Integrations to
+          get real insights about your data.
+        </span>
       </motion.p>
     </div>
   );

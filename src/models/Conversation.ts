@@ -26,6 +26,15 @@ const MessageSchema = new Schema<Message>(
       default: Date.now,
       required: true,
     },
+    feedback: {
+      type: String,
+      enum: ['positive', 'negative'],
+      required: false,
+    },
+    messageId: {
+      type: String,
+      required: false,
+    },
   },
   { _id: false } // Don't create separate IDs for embedded messages
 );
@@ -227,11 +236,41 @@ ConversationSchema.pre('save', function (next) {
 });
 
 /**
+ * Conversation Instance Methods Interface
+ */
+interface IConversationMethods {
+  addMessage(
+    role: 'user' | 'assistant' | 'system',
+    content: string
+  ): Promise<any>;
+  archive(): Promise<any>;
+  softDelete(): Promise<any>;
+  getSummary(): string;
+}
+
+/**
+ * Conversation Static Methods Interface
+ */
+interface IConversationModel extends Model<Conversation, {}, IConversationMethods> {
+  findActiveByUser(userId: string, clientId?: string): Promise<any[]>;
+  findByConversationId(
+    conversationId: string,
+    userId: string
+  ): Promise<any | null>;
+  createConversation(
+    conversationId: string,
+    userId: string,
+    clientId: string
+  ): Promise<any>;
+  countByUser(userId: string): Promise<number>;
+}
+
+/**
  * Export Model
  * Use singleton pattern to prevent "model already defined" errors in development
  */
-const ConversationModel: Model<Conversation> =
-  mongoose.models.Conversation ||
-  mongoose.model<Conversation>('Conversation', ConversationSchema);
+const ConversationModel: IConversationModel =
+  (mongoose.models.Conversation as unknown as IConversationModel) ||
+  mongoose.model<Conversation, IConversationModel>('Conversation', ConversationSchema);
 
 export default ConversationModel;

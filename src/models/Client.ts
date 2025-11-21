@@ -1,93 +1,131 @@
 /**
  * Client Model
- * MongoDB schema for multi-client architecture
- *
- * Each user (agency/freelancer) can manage multiple clients
- * Each client has independent platform configurations
+ * MongoDB schema for storing client information and platform connections
+ * Multi-client architecture: Each user can manage multiple clients
  */
 
-import mongoose, { Schema, Model } from 'mongoose';
-import type { Client, ClientStatus, ClientPlatforms } from '@/types/chat';
+import mongoose, { Schema, Model, Types } from 'mongoose';
 
 /**
- * Platform Metrics Schema (embedded in each platform)
+ * Platform Data Interfaces
  */
-const PlatformMetricsSchema = new Schema(
-  {
-    // Dynamic metrics - varies by platform
-    // Stored as flexible object to accommodate different platform data
-  },
-  { _id: false, strict: false } // Allow dynamic fields
-);
+interface PlatformMetrics {
+  sessions?: number;
+  users?: number;
+  pageviews?: number;
+  bounceRate?: number;
+  avgSessionDuration?: number;
+}
+
+interface PlatformDimensions {
+  topSources?: { source: string; sessions: number }[];
+  devices?: { device: string; percentage: number }[];
+  topPages?: { page: string; views: number }[];
+}
+
+interface GoogleAnalyticsPlatform {
+  connected: boolean;
+  accountId?: string;
+  propertyId?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+  lastSync?: Date;
+  status: 'active' | 'expired' | 'error';
+  metrics?: PlatformMetrics;
+  dimensions?: PlatformDimensions;
+}
+
+interface Campaign {
+  name: string;
+  spend: number;
+  clicks: number;
+  impressions: number;
+  ctr?: number;
+  conversions?: number;
+  cpm?: number;
+  roas?: number;
+  leads?: number;
+}
+
+interface GoogleAdsPlatform {
+  connected: boolean;
+  customerId?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+  lastSync?: Date;
+  status: 'active' | 'expired' | 'error';
+  campaigns?: Campaign[];
+}
+
+interface MetaAdsPlatform {
+  connected: boolean;
+  adAccountId?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+  lastSync?: Date;
+  status: 'active' | 'expired' | 'error';
+  campaigns?: Campaign[];
+}
+
+interface LinkedInAdsPlatform {
+  connected: boolean;
+  accountId?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+  lastSync?: Date;
+  status: 'active' | 'expired' | 'error';
+  campaigns?: Campaign[];
+}
 
 /**
- * Google Analytics Platform Schema
+ * Client Document Interface
  */
-const GoogleAnalyticsPlatformSchema = new Schema(
-  {
-    connected: { type: Boolean, default: false },
-    accountId: String,
-    propertyId: String,
-    accessToken: String, // Should be encrypted
-    refreshToken: String, // Should be encrypted
-    expiresAt: Date,
-    lastSync: Date,
-    metrics: { type: Schema.Types.Mixed, default: {} },
-  },
-  { _id: false }
-);
+export interface IClient {
+  userId: Types.ObjectId;
+  name: string;
+  email?: string;
+  logo?: string;
+  platforms: {
+    googleAnalytics?: GoogleAnalyticsPlatform;
+    googleAds?: GoogleAdsPlatform;
+    metaAds?: MetaAdsPlatform;
+    linkedInAds?: LinkedInAdsPlatform;
+  };
+  status: 'active' | 'inactive' | 'archived';
+}
 
 /**
- * Google Ads Platform Schema
+ * Client Instance Methods
  */
-const GoogleAdsPlatformSchema = new Schema(
-  {
-    connected: { type: Boolean, default: false },
-    customerId: String,
-    accessToken: String, // Should be encrypted
-    refreshToken: String, // Should be encrypted
-    expiresAt: Date,
-    lastSync: Date,
-    metrics: { type: Schema.Types.Mixed, default: {} },
-  },
-  { _id: false }
-);
+export interface IClientMethods {
+  updatePlatform(platformName: string, platformData: any): Promise<any>;
+  archive(): Promise<any>;
+  getConnectedPlatforms(): string[];
+  hasPlatformData(): boolean;
+}
 
 /**
- * Meta Ads Platform Schema
+ * Client Static Methods
  */
-const MetaAdsPlatformSchema = new Schema(
-  {
-    connected: { type: Boolean, default: false },
-    adAccountId: String,
-    accessToken: String, // Should be encrypted
-    expiresAt: Date,
-    lastSync: Date,
-    metrics: { type: Schema.Types.Mixed, default: {} },
-  },
-  { _id: false }
-);
-
-/**
- * LinkedIn Ads Platform Schema
- */
-const LinkedInAdsPlatformSchema = new Schema(
-  {
-    connected: { type: Boolean, default: false },
-    accountId: String,
-    accessToken: String, // Should be encrypted
-    refreshToken: String, // Should be encrypted
-    expiresAt: Date,
-    lastSync: Date,
-    metrics: { type: Schema.Types.Mixed, default: {} },
-  },
-  { _id: false }
-);
+export interface IClientModel extends Model<IClient, {}, IClientMethods> {
+  findByUserId(userId: string): Promise<any[]>;
+  findByClientId(clientId: string, userId: string): Promise<any>;
+  createClient(
+    userId: string,
+    name: string,
+    email?: string,
+    logo?: string
+  ): Promise<any>;
+}
 
 /**
  * Client Schema
  */
-const ClientSchema = new Schema<Client>(
+const ClientSchema = new Schema<IClient, IClientModel, IClientMethods>(
   {
     userId: {
       type: Schema.Types.ObjectId,
@@ -98,8 +136,8 @@ const ClientSchema = new Schema<Client>(
     name: {
       type: String,
       required: true,
-      maxlength: 100,
       trim: true,
+      maxlength: 100,
     },
     email: {
       type: String,
@@ -108,23 +146,117 @@ const ClientSchema = new Schema<Client>(
     },
     logo: {
       type: String,
+      trim: true,
     },
     platforms: {
       googleAnalytics: {
-        type: GoogleAnalyticsPlatformSchema,
-        default: undefined,
+        connected: { type: Boolean, default: false },
+        accountId: String,
+        propertyId: String,
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: Date,
+        lastSync: Date,
+        status: {
+          type: String,
+          enum: ['active', 'expired', 'error'],
+          default: 'active',
+        },
+        metrics: {
+          sessions: Number,
+          users: Number,
+          pageviews: Number,
+          bounceRate: Number,
+          avgSessionDuration: Number,
+        },
+        dimensions: {
+          topSources: [
+            {
+              source: String,
+              sessions: Number,
+            },
+          ],
+          devices: [
+            {
+              device: String,
+              percentage: Number,
+            },
+          ],
+          topPages: [
+            {
+              page: String,
+              views: Number,
+            },
+          ],
+        },
       },
       googleAds: {
-        type: GoogleAdsPlatformSchema,
-        default: undefined,
+        connected: { type: Boolean, default: false },
+        customerId: String,
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: Date,
+        lastSync: Date,
+        status: {
+          type: String,
+          enum: ['active', 'expired', 'error'],
+          default: 'active',
+        },
+        campaigns: [
+          {
+            name: String,
+            spend: Number,
+            clicks: Number,
+            impressions: Number,
+            ctr: Number,
+            conversions: Number,
+          },
+        ],
       },
       metaAds: {
-        type: MetaAdsPlatformSchema,
-        default: undefined,
+        connected: { type: Boolean, default: false },
+        adAccountId: String,
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: Date,
+        lastSync: Date,
+        status: {
+          type: String,
+          enum: ['active', 'expired', 'error'],
+          default: 'active',
+        },
+        campaigns: [
+          {
+            name: String,
+            spend: Number,
+            impressions: Number,
+            clicks: Number,
+            cpm: Number,
+            roas: Number,
+          },
+        ],
       },
       linkedInAds: {
-        type: LinkedInAdsPlatformSchema,
-        default: undefined,
+        connected: { type: Boolean, default: false },
+        accountId: String,
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: Date,
+        lastSync: Date,
+        status: {
+          type: String,
+          enum: ['active', 'expired', 'error'],
+          default: 'active',
+        },
+        campaigns: [
+          {
+            name: String,
+            spend: Number,
+            impressions: Number,
+            clicks: Number,
+            leads: Number,
+          },
+        ],
       },
     },
     status: {
@@ -135,122 +267,71 @@ const ClientSchema = new Schema<Client>(
     },
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt
+    timestamps: true,
   }
 );
 
 /**
- * Indexes for performance
+ * Indexes for Performance
  */
-
-// Compound index for querying user's clients by status
 ClientSchema.index({ userId: 1, status: 1 });
-
-// Compound index for searching by userId and name
 ClientSchema.index({ userId: 1, name: 1 });
+ClientSchema.index({ _id: 1, userId: 1 });
 
 /**
  * Instance Methods
  */
-
-/**
- * Get list of connected platforms for this client
- */
-ClientSchema.methods.getConnectedPlatforms = function (): string[] {
-  const connected: string[] = [];
-
-  if (this.platforms?.googleAnalytics?.connected) {
-    connected.push('googleAnalytics');
-  }
-  if (this.platforms?.googleAds?.connected) {
-    connected.push('googleAds');
-  }
-  if (this.platforms?.metaAds?.connected) {
-    connected.push('metaAds');
-  }
-  if (this.platforms?.linkedInAds?.connected) {
-    connected.push('linkedInAds');
-  }
-
-  return connected;
+ClientSchema.methods.updatePlatform = async function (
+  platformName: string,
+  platformData: any
+) {
+  this.platforms = this.platforms || {};
+  (this.platforms as any)[platformName] = platformData;
+  return this.save();
 };
 
-/**
- * Check if client has any platforms connected
- */
-ClientSchema.methods.hasConnectedPlatforms = function (): boolean {
-  return this.getConnectedPlatforms().length > 0;
-};
-
-/**
- * Archive the client (soft delete)
- */
-ClientSchema.methods.archive = async function (): Promise<Client> {
+ClientSchema.methods.archive = async function () {
   this.status = 'archived';
   return this.save();
 };
 
-/**
- * Activate the client
- */
-ClientSchema.methods.activate = async function (): Promise<Client> {
-  this.status = 'active';
-  return this.save();
+ClientSchema.methods.getConnectedPlatforms = function (): string[] {
+  const connected: string[] = [];
+
+  if (this.platforms?.googleAnalytics?.connected) connected.push('Google Analytics');
+  if (this.platforms?.googleAds?.connected) connected.push('Google Ads');
+  if (this.platforms?.metaAds?.connected) connected.push('Meta Ads');
+  if (this.platforms?.linkedInAds?.connected) connected.push('LinkedIn Ads');
+
+  return connected;
 };
 
-/**
- * Deactivate the client
- */
-ClientSchema.methods.deactivate = async function (): Promise<Client> {
-  this.status = 'inactive';
-  return this.save();
+ClientSchema.methods.hasPlatformData = function (): boolean {
+  return this.getConnectedPlatforms().length > 0;
 };
 
 /**
  * Static Methods
  */
-
-/**
- * Find all active clients for a user
- */
-ClientSchema.statics.findActiveByUser = function (
-  userId: string
-): Promise<Client[]> {
+ClientSchema.statics.findByUserId = function (userId: string) {
   return this.find({ userId, status: 'active' })
-    .sort({ name: 1 }) // Alphabetical order
+    .sort({ name: 1 })
     .exec();
 };
 
-/**
- * Find all clients for a user (including archived)
- */
-ClientSchema.statics.findAllByUser = function (
-  userId: string
-): Promise<Client[]> {
-  return this.find({ userId })
-    .sort({ status: 1, name: 1 }) // Active first, then alphabetical
-    .exec();
-};
-
-/**
- * Find client by ID and userId (ensures user owns the client)
- */
-ClientSchema.statics.findByIdAndUser = function (
+ClientSchema.statics.findByClientId = function (
   clientId: string,
   userId: string
-): Promise<Client | null> {
+) {
   return this.findOne({ _id: clientId, userId }).exec();
 };
 
-/**
- * Create new client
- */
 ClientSchema.statics.createClient = function (
   userId: string,
   name: string,
   email?: string,
   logo?: string
-): Promise<Client> {
+) {
   return this.create({
     userId,
     name,
@@ -262,19 +343,10 @@ ClientSchema.statics.createClient = function (
 };
 
 /**
- * Get client count for user
- */
-ClientSchema.statics.countByUser = function (
-  userId: string
-): Promise<number> {
-  return this.countDocuments({ userId, status: 'active' }).exec();
-};
-
-/**
  * Export Model
- * Use singleton pattern to prevent "model already defined" errors in development
  */
-const ClientModel: Model<Client> =
-  mongoose.models.Client || mongoose.model<Client>('Client', ClientSchema);
+const ClientModel =
+  (mongoose.models.Client as IClientModel) ||
+  mongoose.model<IClient, IClientModel>('Client', ClientSchema);
 
 export default ClientModel;
