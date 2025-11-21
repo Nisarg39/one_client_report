@@ -153,7 +153,7 @@ UserSchema.statics.upsertFromOAuth = async function (profile: {
   provider: string;
   providerId: string;
 }) {
-  const existingUser = await this.findByEmail(profile.email);
+  const existingUser = await (this as IUserModel).findByEmail(profile.email);
 
   if (existingUser) {
     // Update existing user
