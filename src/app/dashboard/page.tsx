@@ -62,7 +62,7 @@ export default function DashboardPage() {
 
         {/* Logout */}
         <button
-          onClick={() => router.push("/login")}
+          onClick={() => router.push("/signin")}
           className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-[#999] hover:text-red-400 hover:bg-[#1a1a1a] hover:shadow-[-4px_-4px_8px_rgba(70,70,70,0.3),4px_4px_8px_rgba(0,0,0,0.6)] transition-all"
         >
           <LogOut className="w-5 h-5" />
@@ -110,7 +110,7 @@ export default function DashboardPage() {
             </nav>
 
             <button
-              onClick={() => router.push("/login")}
+              onClick={() => router.push("/signin")}
               className="flex items-center gap-3 px-4 py-3 rounded-2xl font-medium text-[#999] hover:text-red-400 transition-all mt-4"
             >
               <LogOut className="w-5 h-5" />

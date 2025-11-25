@@ -95,8 +95,7 @@ Successfully installed NextAuth.js v5 with 14 packages.
   email: string (unique, indexed);
   emailVerified?: Date;
   image?: string;
-  password?: string (for credentials, hashed);
-  provider: 'google' | 'github' | 'credentials';
+  provider: 'google' | 'github';  // OAuth providers only
   providerId?: string;
   role: 'user' | 'admin';
   status: 'active' | 'inactive' | 'suspended';
@@ -118,7 +117,7 @@ Successfully installed NextAuth.js v5 with 14 packages.
 
 **Providers Configured:**
 - ✅ Google OAuth (production-ready)
-- ⏳ Credentials (placeholder for future password auth)
+- ✅ GitHub OAuth (configured, requires credentials)
 
 **Callbacks:**
 - `jwt()` - Store user ID in JWT, upsert user on OAuth sign-in
@@ -175,7 +174,7 @@ USE_MOCK_AUTH=true  # Set to false for production
 
 ### Security
 - ✅ JWT-based sessions (stateless, scalable)
-- ✅ Secure password handling (prepared for future)
+- ✅ OAuth-only authentication (no password storage)
 - ✅ OAuth provider verification
 - ✅ Rate limiting to prevent abuse
 - ✅ Environment-based secret management
@@ -325,10 +324,10 @@ All chat features work with demo user (ID: 507f1f77bcf86cd799439011).
 - Not shared across multiple server instances
 - **Recommendation:** Upgrade to Redis for production multi-instance deployments
 
-### Password Authentication
-- Credentials provider configured but not implemented
-- Placeholder for future password-based auth
-- Would require password hashing (bcrypt) and validation
+### GitHub OAuth Setup
+- GitHub OAuth provider configured in code
+- Requires GitHub OAuth credentials from developer settings
+- Add credentials to environment variables to enable GitHub sign-in
 
 ## Next Steps (Optional Enhancements)
 
@@ -346,8 +345,8 @@ All chat features work with demo user (ID: 507f1f77bcf86cd799439011).
 - **Team Sharing** - Share conversations with team members
 - **Custom Quick Replies** - User-configurable suggestions
 - **Redis Rate Limiting** - For multi-instance deployments
-- **Email/Password Auth** - Complete credentials provider
-- **2FA** - Two-factor authentication option
+- **Additional OAuth Providers** - Microsoft, LinkedIn, etc.
+- **2FA** - Two-factor authentication option (via OAuth providers)
 
 ## Success Metrics
 

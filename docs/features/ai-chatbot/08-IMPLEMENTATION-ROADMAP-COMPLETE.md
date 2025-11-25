@@ -168,21 +168,22 @@
 - [ ] Implement rate limiting (50 msg/hour)
 - [ ] Add accessibility (ARIA labels, keyboard nav)
 
-### Part B: Add NextAuth.js (2-3 hours)
-- [ ] **Install next-auth** (`npm install next-auth`)
-- [ ] **Create NextAuth config** (`/api/auth/[...nextauth]/route.ts`)
-- [ ] **Create User model** (if not exists)
-- [ ] **Create nextAuth.ts** adapter implementation
-- [ ] **Update login/signup pages** to use `signIn()` from next-auth
-- [ ] **Update getCurrentUser()** to call `getNextAuthUser()` instead of `getMockUser()`
-- [ ] **Test with real users** (signup, login, OAuth)
+### Part B: Add NextAuth.js OAuth (1-2 hours)
+- [x] **Install next-auth** (`npm install next-auth`)
+- [x] **Create NextAuth config** (`/api/auth/[...nextauth]/route.ts`)
+- [x] **Create User model** (OAuth-only, no password field)
+- [x] **Create nextAuth.ts** adapter implementation
+- [ ] **Create /signin page** (OAuth buttons only)
+- [ ] **Remove /signup page** (redirect to /signin)
+- [x] **Update getCurrentUser()** to call `getNextAuthUser()` instead of `getMockUser()`
+- [ ] **Test with OAuth providers** (Google + GitHub)
 - [ ] **Optional: Migrate demo conversations** to real user
 
 **Deliverables:**
 - Full-featured chatbot with all polish
-- **Real authentication with NextAuth.js** ✅
+- **Real OAuth authentication with NextAuth.js** ✅
 - Multiple users supported
-- OAuth (Google) working
+- OAuth (Google + GitHub) working
 - Markdown + code highlighting
 - Quick replies
 - Accessibility compliance

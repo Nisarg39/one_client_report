@@ -1,15 +1,16 @@
 /**
  * NextAuth.js API Route Handler
  *
- * Handles authentication with Google OAuth and credentials
+ * Handles authentication with OAuth providers (Google & GitHub)
  * https://next-auth.js.org/configuration/initialization#route-handlers-app
  */
 
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
+import GithubProvider from 'next-auth/providers/github';
 import { connectDB } from '@/lib/db';
 import UserModel from '@/models/User';
+import OnboardingProgressModel from '@/models/OnboardingProgress';
 
 /**
  * NextAuth Configuration
@@ -33,23 +34,17 @@ export const authOptions: NextAuthOptions = {
     }),
 
     /**
-     * Credentials Provider (Email/Password)
-     * For future implementation - currently disabled
+     * GitHub OAuth Provider
+     * Get credentials from: https://github.com/settings/developers
+     * Callback URL: http://localhost:3000/api/auth/callback/github
      */
-    CredentialsProvider({
-      name: 'credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error('Missing credentials');
-        }
-
-        // TODO: Implement password-based authentication
-        // For now, return null (disabled)
-        return null;
+    GithubProvider({
+      clientId: process.env.GITHUB_OAUTH_CLIENT_ID || '',
+      clientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET || '',
+      authorization: {
+        params: {
+          scope: 'read:user user:email',
+        },
       },
     }),
   ],
@@ -62,30 +57,35 @@ export const authOptions: NextAuthOptions = {
      * JWT Callback - Called whenever a JWT is created/updated
      */
     async jwt({ token, user, account, profile }) {
-      // Initial sign in
-      if (user) {
-        token.id = user.id;
-      }
-
-      // OAuth sign in - Store user in database
-      if (account && profile && account.provider === 'google') {
+      // OAuth sign in - Store user in database and set token.id
+      if (account && profile && (account.provider === 'google' || account.provider === 'github')) {
         try {
           await connectDB();
 
+          // Extract image URL based on provider
+          const image = account.provider === 'google'
+            ? (profile as any).picture
+            : (profile as any).avatar_url;
+
+          // GitHub may not have a name set, use login (username) as fallback
+          const userName = profile.name || (profile as any).login || 'User';
+
           const dbUser = await UserModel.upsertFromOAuth({
             email: profile.email as string,
-            name: profile.name as string,
-            image: (profile as any).picture as string,
+            name: userName,
+            image: image as string,
             provider: account.provider,
             providerId: account.providerAccountId,
           });
 
+          // Set MongoDB ObjectId as the token ID (not NextAuth's account ID)
           token.id = dbUser._id.toString();
         } catch (error) {
           console.error('Error upserting user:', error);
         }
       }
 
+      // Token already has the MongoDB ID from initial sign-in, just return it
       return token;
     },
 
@@ -100,18 +100,43 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Redirect Callback - Control where user is redirected after auth
+     * Redirect Callback - Smart redirect based on onboarding status
+     * New users → /onboarding
+     * Returning users → /chat
      */
     async redirect({ url, baseUrl }) {
-      // Redirect to /chat page after successful authentication
-      if (url.startsWith(baseUrl)) {
+      // If callback URL is explicitly provided and on same site, use it
+      if (url.startsWith(baseUrl) && url !== `${baseUrl}/signin`) {
         return url;
       }
-      // If callback URL is on same site, allow it
-      else if (url.startsWith('/')) {
+      if (url.startsWith('/') && url !== '/signin') {
         return new URL(url, baseUrl).toString();
       }
-      // Default to chat page
+
+      // Auto-detect: new user vs returning user
+      try {
+        const { getServerSession } = await import('next-auth/next');
+        const session = await getServerSession(authOptions);
+
+        if (session?.user?.id) {
+          await connectDB();
+
+          // Check if user has completed onboarding
+          const onboardingProgress = await OnboardingProgressModel.findByUserId(
+            session.user.id
+          );
+
+          if (!onboardingProgress || !onboardingProgress.completed) {
+            return `${baseUrl}/onboarding`;
+          }
+
+          return `${baseUrl}/chat`;
+        }
+      } catch (error) {
+        console.error('Error in redirect callback:', error);
+      }
+
+      // Fallback to chat
       return `${baseUrl}/chat`;
     },
   },
@@ -120,10 +145,8 @@ export const authOptions: NextAuthOptions = {
    * Pages
    */
   pages: {
-    signIn: '/login', // Custom login page
-    error: '/login', // Redirect to login on error
-    // signOut: '/logout', // Custom sign out page (optional)
-    // verifyRequest: '/verify', // Email verification page (optional)
+    signIn: '/signin', // Custom sign-in page (OAuth only)
+    error: '/signin', // Redirect to sign-in on error
   },
 
   /**

@@ -18,11 +18,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ChatPage() {
-  // Check authentication - redirect to login if not authenticated
+  // Check authentication - redirect to sign-in if not authenticated
   const user = await getCurrentUser();
 
   if (!user) {
-    redirect('/login');
+    redirect('/signin');
   }
 
   return <ChatPageClient />;

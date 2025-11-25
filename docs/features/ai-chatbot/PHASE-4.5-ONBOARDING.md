@@ -116,7 +116,7 @@ Check: Does user have clients?
 async function handleOAuthRedirect(userId: string): Promise<string> {
   // Step 1: Check authentication
   if (!userId) {
-    return '/login';
+    return '/signin';
   }
 
   // Step 2: Check if user has clients
@@ -338,7 +338,7 @@ src/
   // Existing fields...
   email: string,
   name: string,
-  provider: 'google' | 'github' | 'credentials',
+  provider: 'google' | 'github',  // OAuth providers only
 
   // NEW: Onboarding fields
   onboardingCompleted: {
@@ -454,7 +454,7 @@ export default async function OnboardingPage() {
   // 1. Check authentication
   const user = await getCurrentUser();
   if (!user) {
-    redirect('/login');
+    redirect('/signin');
   }
 
   // 2. Check if user already has clients (skip onboarding)
@@ -483,7 +483,7 @@ export default async function OnboardingPage() {
 export default async function ChatPage() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect('/login');
+    redirect('/signin');
   }
   return <ChatPageClient />;
 }
@@ -495,7 +495,7 @@ export default async function ChatPage() {
   // 1. Check authentication
   const user = await getCurrentUser();
   if (!user) {
-    redirect('/login');
+    redirect('/signin');
   }
 
   // 2. Optional: Check if onboarding completed
@@ -900,7 +900,7 @@ return `${baseUrl}/chat`;
 export default async function ChatPage() {
   const user = await getCurrentUser();
   if (!user) {
-    redirect('/login');
+    redirect('/signin');
   }
 
   // Check onboarding status
@@ -1162,7 +1162,7 @@ describe('OAuth to Onboarding Flow', () => {
 ```typescript
 test('new user completes full onboarding flow', async ({ page }) => {
   // 1. Sign in with Google (mock OAuth)
-  await page.goto('/login');
+  await page.goto('/signin');
   await page.click('text=Sign in with Google');
 
   // Mock OAuth success - should redirect to /onboarding
@@ -1202,7 +1202,7 @@ test('user can resume onboarding after closing browser', async ({ page }) => {
   const newPage = await browser.newPage();
 
   // 4. Sign in again
-  await newPage.goto('/login');
+  await newPage.goto('/signin');
   await newPage.click('text=Sign in with Google');
 
   // 5. Verify redirected back to onboarding

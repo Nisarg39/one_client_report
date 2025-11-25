@@ -84,8 +84,7 @@
 **What Gets Added:**
 - ✅ Multiple real users
 - ✅ Google OAuth
-- ✅ GitHub OAuth (optional)
-- ✅ Email/password login
+- ✅ GitHub OAuth
 - ✅ Session management
 - ✅ User model in MongoDB
 
@@ -283,57 +282,76 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 npm install next-auth
 ```
 
-### Step 2: Configure NextAuth.js (1 hour)
+### Step 2: Configure NextAuth.js (30 minutes)
 ```typescript
 // src/app/api/auth/[...nextauth]/route.ts
 
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import clientPromise from "@/lib/mongodb";
+import GithubProvider from "next-auth/providers/github";
+import { connectDB } from '@/lib/db';
+import UserModel from '@/models/User';
 
 export const authOptions = {
-  // Use MongoDB adapter for session storage
-  adapter: MongoDBAdapter(clientPromise),
-
-  // Authentication providers
+  // Authentication providers (OAuth only)
   providers: [
     // Google OAuth
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
     }),
 
-    // Email/Password
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+    // GitHub OAuth
+    GithubProvider({
+      clientId: process.env.GITHUB_OAUTH_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'read:user user:email',
+        },
       },
-      async authorize(credentials) {
-        // Verify credentials against User model
-        const user = await verifyUserCredentials(
-          credentials?.email,
-          credentials?.password
-        );
-
-        return user ? {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name
-        } : null;
-      }
-    })
+    }),
   ],
 
   // Callbacks
   callbacks: {
-    // Add user ID to session
+    async jwt({ token, user, account, profile }) {
+      if (user) {
+        token.id = user.id;
+      }
+
+      // OAuth sign-in - Store user in database
+      if (account && profile) {
+        try {
+          await connectDB();
+
+          const dbUser = await UserModel.upsertFromOAuth({
+            email: profile.email as string,
+            name: profile.name as string,
+            image: (profile as any).picture || (profile as any).avatar_url,
+            provider: account.provider,
+            providerId: account.providerAccountId,
+          });
+
+          token.id = dbUser._id.toString();
+        } catch (error) {
+          console.error('Error upserting user:', error);
+        }
+      }
+
+      return token;
+    },
+
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub!;
+        session.user.id = token.id as string;
       }
       return session;
     }
@@ -341,155 +359,247 @@ export const authOptions = {
 
   // Pages
   pages: {
-    signIn: "/login",      // Use existing login page
-    signUp: "/signup",     // Use existing signup page
-    error: "/login",       // Redirect errors to login
+    signIn: "/signin",     // Custom sign-in page (OAuth only)
+    error: "/signin",      // Redirect errors to sign-in
   },
 
   // Session
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
-  }
+  },
+
+  // Security
+  secret: process.env.NEXTAUTH_SECRET,
+
+  // Debug (disable in production)
+  debug: process.env.NODE_ENV === 'development',
 };
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
 ```
 
-### Step 3: Create User Model (30 minutes)
+### Step 3: User Model (Already Created in Phase 4)
 ```typescript
-// src/models/User.ts
+// src/models/User.ts - OAuth-only authentication
 
-import mongoose, { Schema } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose, { Schema, Document } from 'mongoose';
+
+export interface IUser extends Document {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  emailVerified?: Date | null;
+  image?: string | null;
+  provider: 'google' | 'github';  // OAuth providers only
+  providerId?: string;
+  role: 'user' | 'admin';
+  status: 'active' | 'inactive' | 'suspended';
+  createdAt: Date;
+  updatedAt: Date;
+  toAuthUser(): {
+    id: string;
+    name: string;
+    email: string;
+    image?: string | null;
+  };
+}
 
 const UserSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
     unique: true,
     lowercase: true,
   },
-  name: {
+  emailVerified: {
+    type: Date,
+    default: null,
+  },
+  image: {
+    type: String,
+    default: null,
+  },
+  provider: {
+    type: String,
+    enum: ['google', 'github'],  // OAuth providers only
+    required: true,
+  },
+  providerId: {
     type: String,
   },
-  password: {
-    type: String, // Hashed with bcrypt
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
   },
-  // NextAuth fields
-  emailVerified: Date,
-  image: String,
-
-  // Platform connections (for chatbot)
-  platforms: {
-    googleAnalytics: {
-      connected: Boolean,
-      accessToken: String,
-      refreshToken: String,
-      expiresAt: Date,
-      metrics: Schema.Types.Mixed,
-    },
-    googleAds: { /* ... */ },
-    metaAds: { /* ... */ },
-    linkedInAds: { /* ... */ },
+  status: {
+    type: String,
+    enum: ['active', 'inactive', 'suspended'],
+    default: 'active',
   },
-
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+}, {
+  timestamps: true,
 });
 
-// Hash password before saving
-UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
-});
+// Instance method: Convert to AuthUser format
+UserSchema.methods.toAuthUser = function () {
+  return {
+    id: this._id.toString(),
+    name: this.name,
+    email: this.email,
+    image: this.image,
+  };
+};
 
-export default mongoose.models.User || mongoose.model('User', UserSchema);
+// Static method: Find by email
+UserSchema.statics.findByEmail = function (email: string) {
+  return this.findOne({ email: email.toLowerCase() });
+};
+
+// Static method: Find by provider ID
+UserSchema.statics.findByProviderId = function (provider: string, providerId: string) {
+  return this.findOne({ provider, providerId });
+};
+
+// Static method: Create or update user from OAuth
+UserSchema.statics.upsertFromOAuth = async function (profile: {
+  email: string;
+  name: string;
+  image?: string;
+  provider: string;
+  providerId: string;
+}) {
+  const existingUser = await this.findOne({
+    email: profile.email.toLowerCase(),
+  });
+
+  if (existingUser) {
+    // Update existing user
+    existingUser.name = profile.name;
+    existingUser.image = profile.image || existingUser.image;
+    existingUser.provider = profile.provider;
+    existingUser.providerId = profile.providerId;
+    existingUser.emailVerified = new Date();
+    await existingUser.save();
+    return existingUser;
+  }
+
+  // Create new user
+  return await this.create({
+    email: profile.email.toLowerCase(),
+    name: profile.name,
+    image: profile.image,
+    provider: profile.provider,
+    providerId: profile.providerId,
+    emailVerified: new Date(),
+    role: 'user',
+    status: 'active',
+  });
+};
+
+export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 ```
 
-### Step 4: Update Login/Signup Pages (1 hour)
+### Step 4: Create Sign-In Page (OAuth Only - 30 minutes)
 ```typescript
-// src/app/(auth)/login/page.tsx
+// src/app/(auth)/signin/page.tsx
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { ArrowRight } from "lucide-react";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
+  const handleOAuthClick = async (provider: "google" | "github") => {
+    try {
+      setIsLoading(true);
+      setError('');
 
-    // ❌ Remove mock alert
-    // alert("Login successful (mock)");
-
-    // ✅ Add NextAuth
-    const result = await signIn("credentials", {
-      email: formData.email,
-      password: formData.password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError("Invalid email or password");
+      await signIn(provider, {
+        callbackUrl: "/chat",  // NextAuth will handle new vs returning user redirect
+      });
+    } catch (error) {
+      console.error(`${provider} sign-in error:`, error);
+      setError(`Failed to sign in with ${provider}. Please try again.`);
       setIsLoading(false);
-    } else {
-      router.push("/dashboard");
     }
   };
 
-  const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/dashboard" });
-  };
-
   return (
-    <div>
-      {/* Existing UI stays the same! */}
-      <form onSubmit={handleSubmit}>
-        {/* ... existing form fields ... */}
-      </form>
+    <div className="w-full max-w-md">
+      {/* Logo/Title */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-[#f5f5f5] mb-2">
+          <span className="text-[#6CA3A2]">One</span>Report
+        </h1>
+        <p className="text-[#c0c0c0] text-sm">Sign in to continue</p>
+      </div>
 
-      <button onClick={handleGoogleLogin}>
-        Sign in with Google
-      </button>
+      {/* Sign-In Card */}
+      <div className="bg-[#1a1a1a] p-8 rounded-3xl shadow-lg">
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* OAuth Buttons */}
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => handleOAuthClick("google")}
+            disabled={isLoading}
+            className="w-full px-6 py-3 rounded-2xl font-medium bg-[#1a1a1a] text-[#f5f5f5]
+                     shadow-lg hover:shadow-xl transition-all duration-300
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Signing in..." : "Continue with Google"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOAuthClick("github")}
+            disabled={isLoading}
+            className="w-full px-6 py-3 rounded-2xl font-medium bg-[#1a1a1a] text-[#f5f5f5]
+                     shadow-lg hover:shadow-xl transition-all duration-300
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Signing in..." : "Continue with GitHub"}
+          </button>
+        </div>
+
+        {/* Auto-Account Creation Notice */}
+        <p className="mt-6 text-xs text-[#999] text-center">
+          New to OneReport? Signing in will create your account automatically.
+        </p>
+      </div>
     </div>
   );
 }
 ```
 
-### Step 5: Update Auth Adapter (30 seconds!)
-```typescript
-// src/lib/auth/adapter.ts
+**Note:** /signup route should redirect to /signin. Email/password authentication is NOT supported - OAuth only.
 
-export async function getCurrentUser(): Promise<AuthUser | null> {
-  // ❌ Disable mock
-  // return await getMockUser();
+### Step 5: Test OAuth Flow (30 minutes)
+- ✅ Visit /signin - OAuth buttons displayed
+- ✅ Click "Continue with Google" - redirects to Google OAuth
+- ✅ Complete Google auth - creates account automatically (if new user)
+- ✅ New user redirects to /onboarding (when implemented)
+- ✅ Returning user redirects to /chat
+- ✅ Click "Continue with GitHub" - works after credentials added
+- ✅ Sign out and sign back in - conversations persist
 
-  // ✅ Enable NextAuth
-  return await getNextAuthUser();
-}
-```
-
-### Step 6: Test (30 minutes)
-- ✅ Sign up new user
-- ✅ Log in with email/password
-- ✅ Log in with Google OAuth
-- ✅ Open chatbot (should work with real user ID)
-- ✅ Send messages (saved with real user ID)
-- ✅ Log out and back in (conversations persist)
-
-**Total Time: ~2-3 hours**
+**Total Time: ~1-2 hours**
 
 ---
 
@@ -576,15 +686,16 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 ```
 
-### NextAuth.js Security (Week 5+)
+### NextAuth.js Security (OAuth-Only)
 
 **Security Features:**
 - ✅ JWT-based sessions
 - ✅ CSRF protection (built-in)
 - ✅ OAuth 2.0 (Google, GitHub)
-- ✅ Password hashing (bcrypt)
+- ✅ No password storage (OAuth providers handle authentication)
 - ✅ Session expiration (30 days)
 - ✅ HTTP-only cookies
+- ✅ Automatic security updates from OAuth providers
 
 **Additional Security:**
 ```typescript
@@ -634,9 +745,9 @@ export async function sendMessage(message: string) {
 
 1. ✅ **Auth abstraction layer** allows switching between mock and NextAuth.js with one line
 2. ✅ **Mock auth first** enables faster chatbot development (Weeks 2-4)
-3. ✅ **NextAuth.js later** adds real authentication in ~2-3 hours (Week 5)
+3. ✅ **OAuth-only NextAuth.js** adds real authentication in ~1-2 hours (Week 5)
 4. ✅ **No code changes** needed in chatbot components when switching auth
-5. ✅ **Production-ready** security with NextAuth.js + proper validation
+5. ✅ **Production-ready** security with OAuth (no password storage required)
 
 ### Implementation Checklist
 
@@ -646,13 +757,13 @@ export async function sendMessage(message: string) {
 - [ ] Build chatbot with mock user
 - [ ] Test all features with demo user
 
-**Phase 5 (NextAuth.js):**
-- [ ] Install next-auth
-- [ ] Configure auth providers
-- [ ] Create User model
-- [ ] Update login/signup pages
-- [ ] Switch auth adapter (1 line!)
-- [ ] Test with real users
+**Phase 5 (NextAuth.js - OAuth Only):**
+- [x] Install next-auth
+- [x] Configure OAuth providers (Google + GitHub)
+- [x] Create User model (OAuth only, no password field)
+- [ ] Create /signin page (OAuth buttons only)
+- [ ] Remove /signup page (redirect to /signin)
+- [ ] Test OAuth flows (Google + GitHub)
 - [ ] Deploy to production
 
 ### Timeline
@@ -671,10 +782,12 @@ export async function sendMessage(message: string) {
 
 ---
 
-**Document Complete** ✅
+**Document Complete** ✅ **Updated for OAuth-Only Authentication**
 
 This authentication strategy ensures:
 - Fast chatbot development without auth complexity
-- Seamless transition to production-ready NextAuth.js
+- Seamless transition to production-ready OAuth authentication (Google + GitHub)
+- No password storage required (OAuth providers handle authentication)
 - No wasted work or major refactoring needed
 - Security best practices maintained throughout
+- Simpler user experience (no signup page, auto-account creation)

@@ -16,10 +16,9 @@ export interface IUser extends Document {
   email: string;
   emailVerified?: Date | null;
   image?: string | null;
-  password?: string; // For credentials login (hashed)
 
-  // OAuth provider data
-  provider?: 'google' | 'github' | 'credentials';
+  // OAuth provider data (OAuth-only authentication)
+  provider: 'google' | 'github';
   providerId?: string;
 
   // User metadata
@@ -65,14 +64,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
-    password: {
-      type: String,
-      select: false, // Don't return password by default
-    },
     provider: {
       type: String,
-      enum: ['google', 'github', 'credentials'],
-      default: 'credentials',
+      enum: ['google', 'github'],
+      required: [true, 'OAuth provider is required'],
     },
     providerId: {
       type: String,
@@ -160,7 +155,7 @@ UserSchema.statics.upsertFromOAuth = async function (profile: {
     existingUser.name = profile.name;
     existingUser.image = profile.image || existingUser.image;
     existingUser.emailVerified = new Date();
-    existingUser.provider = profile.provider as 'google' | 'github' | 'credentials';
+    existingUser.provider = profile.provider as 'google' | 'github';
     existingUser.providerId = profile.providerId;
     await existingUser.save();
     return existingUser;
