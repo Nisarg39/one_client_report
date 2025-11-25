@@ -11,6 +11,8 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/adapter';
 import { ChatPageClient } from './ChatPageClient';
+import { connectDB } from '@/lib/db';
+import OnboardingProgressModel from '@/models/OnboardingProgress';
 
 export const metadata: Metadata = {
   title: 'OneAssist - AI Chat | OneReport',
@@ -23,6 +25,19 @@ export default async function ChatPage() {
 
   if (!user) {
     redirect('/signin');
+  }
+
+  // Check if user has completed onboarding
+  try {
+    await connectDB();
+    const onboardingProgress = await OnboardingProgressModel.findByUserId(user.id);
+
+    if (!onboardingProgress || !onboardingProgress.completed) {
+      redirect('/onboarding');
+    }
+  } catch (error) {
+    console.error('Error checking onboarding status:', error);
+    // If there's an error, allow access to chat (fail open)
   }
 
   return <ChatPageClient />;

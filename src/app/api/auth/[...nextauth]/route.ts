@@ -10,7 +10,6 @@ import GoogleProvider from 'next-auth/providers/google';
 import GithubProvider from 'next-auth/providers/github';
 import { connectDB } from '@/lib/db';
 import UserModel from '@/models/User';
-import OnboardingProgressModel from '@/models/OnboardingProgress';
 
 /**
  * NextAuth Configuration
@@ -56,7 +55,7 @@ export const authOptions: NextAuthOptions = {
     /**
      * JWT Callback - Called whenever a JWT is created/updated
      */
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, account, profile }) {
       // OAuth sign in - Store user in database and set token.id
       if (account && profile && (account.provider === 'google' || account.provider === 'github')) {
         try {
@@ -100,43 +99,27 @@ export const authOptions: NextAuthOptions = {
     },
 
     /**
-     * Redirect Callback - Smart redirect based on onboarding status
-     * New users → /onboarding
-     * Returning users → /chat
+     * Redirect Callback - Handle post-login redirects
+     * After OAuth sign-in, always redirect to /chat
+     * The /chat page will handle onboarding check and redirect if needed
      */
     async redirect({ url, baseUrl }) {
-      // If callback URL is explicitly provided and on same site, use it
-      if (url.startsWith(baseUrl) && url !== `${baseUrl}/signin`) {
+      // Never redirect to signin page after authentication
+      if (url === `${baseUrl}/signin` || url === '/signin') {
+        return `${baseUrl}/chat`;
+      }
+
+      // If URL is on same site and valid
+      if (url.startsWith(baseUrl)) {
         return url;
       }
-      if (url.startsWith('/') && url !== '/signin') {
+
+      // Allow relative URLs
+      if (url.startsWith('/')) {
         return new URL(url, baseUrl).toString();
       }
 
-      // Auto-detect: new user vs returning user
-      try {
-        const { getServerSession } = await import('next-auth/next');
-        const session = await getServerSession(authOptions);
-
-        if (session?.user?.id) {
-          await connectDB();
-
-          // Check if user has completed onboarding
-          const onboardingProgress = await OnboardingProgressModel.findByUserId(
-            session.user.id
-          );
-
-          if (!onboardingProgress || !onboardingProgress.completed) {
-            return `${baseUrl}/onboarding`;
-          }
-
-          return `${baseUrl}/chat`;
-        }
-      } catch (error) {
-        console.error('Error in redirect callback:', error);
-      }
-
-      // Fallback to chat
+      // Default redirect to /chat
       return `${baseUrl}/chat`;
     },
   },
