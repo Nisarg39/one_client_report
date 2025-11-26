@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { useChatStore } from '@/stores/useChatStore';
 import { MessageList } from '@/components/chat/MessageList';
 import { ChatInput } from '@/components/chat/ChatInput';
@@ -41,6 +42,7 @@ export function ChatPageClient() {
   } = useChatStore();
 
   const { streamMessage } = useStreamingChat();
+  const { data: session } = useSession();
 
   const [isMounted, setIsMounted] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -335,6 +337,7 @@ export function ChatPageClient() {
         clients={clients}
         conversations={conversations}
         currentConversationId={currentConversationId}
+        user={session?.user}
         onClientChange={handleClientChange}
         onCreateClient={() => setIsCreateModalOpen(true)}
         onConfigurePlatforms={handleConfigurePlatforms}

@@ -36,6 +36,10 @@ export default async function ChatPage() {
       redirect('/onboarding');
     }
   } catch (error) {
+    // Re-throw NEXT_REDIRECT errors (they're not real errors, just Next.js redirect mechanism)
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error;
+    }
     console.error('Error checking onboarding status:', error);
     // If there's an error, allow access to chat (fail open)
   }

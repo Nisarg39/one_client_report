@@ -11,6 +11,8 @@
 'use client';
 
 import { useState } from 'react';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import {
   Building2,
   Plus,
@@ -25,6 +27,8 @@ import {
   Briefcase,
   MessageSquare,
   Trash2,
+  LogOut,
+  User,
   type LucideIcon,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +40,11 @@ export interface ChatSidebarProps {
   clients: ClientClient[];
   conversations: ConversationSummary[];
   currentConversationId: string | null;
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
   onClientChange: (clientId: string) => void;
   onCreateClient: () => void;
   onConfigurePlatforms: (client: ClientClient) => void;
@@ -49,6 +58,7 @@ export function ChatSidebar({
   clients,
   conversations,
   currentConversationId,
+  user,
   onClientChange,
   onCreateClient,
   onConfigurePlatforms,
@@ -57,6 +67,13 @@ export function ChatSidebar({
   onConversationDelete,
 }: ChatSidebarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const router = useRouter();
+
+  // Handle logout
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/signin');
+  };
 
   // Count connected platforms for a client
   const getConnectedPlatformsCount = (client: ClientClient): number => {
@@ -346,13 +363,24 @@ export function ChatSidebar({
                 No platforms connected
               </p>
               <button
-                onClick={() => onConfigurePlatforms(currentClient)}
+                onClick={() => router.push('/settings/platforms')}
                 className="text-xs text-[#6CA3A2] hover:text-[#5a9291] transition-colors font-medium"
                 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
               >
-                Configure platforms
+                Connect platforms →
               </button>
             </div>
+          )}
+
+          {/* Add More Platforms Link */}
+          {currentClient && connectedPlatforms.length > 0 && connectedPlatforms.length < 4 && (
+            <button
+              onClick={() => router.push('/settings/platforms')}
+              className="w-full text-center text-xs text-[#6CA3A2] hover:text-[#5a9291] transition-colors py-2"
+              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+            >
+              + Connect more platforms
+            </button>
           )}
 
           {/* New Chat Button */}
@@ -485,6 +513,53 @@ export function ChatSidebar({
           </div>
         </div>
       </div>
+
+      {/* User Profile Section */}
+      {user && (
+        <div className="p-4 border-t border-gray-800/50 bg-[#1a1a1a]">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-[#1a1a1a] rounded-xl shadow-[inset_2px_2px_6px_rgba(0,0,0,0.6),inset_-2px_-2px_6px_rgba(60,60,60,0.2)]">
+            {/* User Avatar */}
+            <div className="flex-shrink-0">
+              {user.image ? (
+                <img
+                  src={user.image}
+                  alt={user.name || 'User'}
+                  className="w-10 h-10 rounded-full object-cover ring-2 ring-[#6CA3A2]/20"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-[#6CA3A2] rounded-full flex items-center justify-center ring-2 ring-[#6CA3A2]/20">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
+            </div>
+
+            {/* User Info */}
+            <div className="flex-1 min-w-0">
+              <p
+                className="text-sm font-medium text-[#f5f5f5] truncate"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {user.name || 'User'}
+              </p>
+              <p
+                className="text-xs text-[#c0c0c0] truncate"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {user.email}
+              </p>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex-shrink-0 p-2 rounded-lg bg-[#1a1a1a] shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] hover:shadow-[-2px_-2px_8px_rgba(60,60,60,0.4),2px_2px_8px_rgba(0,0,0,0.8)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.7),inset_-4px_-4px_8px_rgba(60,60,60,0.3)] transition-all duration-200 hover:bg-red-500/10"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4 text-red-400" />
+            </button>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

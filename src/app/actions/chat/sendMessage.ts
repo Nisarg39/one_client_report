@@ -12,9 +12,22 @@ import { getAIProvider } from '@/lib/ai/provider';
 import { buildSystemPrompt } from '@/lib/ai/systemPrompt';
 import type { Message } from '@/types/chat';
 import ClientModel from '@/models/Client';
+import PlatformConnectionModel from '@/models/PlatformConnection';
 import { connectDB } from '@/lib/db';
 import { saveMessage } from '@/app/actions/conversations/saveMessage';
 import { checkRateLimit, getTimeUntilReset } from '@/lib/rateLimit';
+import { fetchAllGoogleAnalyticsProperties } from '@/lib/platforms/googleAnalytics/fetchData';
+import { fetchLinkedInAdsData } from '@/lib/platforms/linkedin-ads/fetchData';
+import { fetchMetaAdsData } from '@/lib/platforms/meta-ads/fetchData';
+import { fetchGoogleAdsData } from '@/lib/platforms/google-ads/fetchData';
+
+// Map platformId from PlatformConnection to the format expected by AI
+const platformIdToKey: Record<string, string> = {
+  'google-analytics': 'googleAnalytics',
+  'google-ads': 'googleAds',
+  'meta-ads': 'metaAds',
+  'linkedin-ads': 'linkedInAds',
+};
 
 /**
  * Send a message to the AI and get a streaming response
@@ -53,7 +66,7 @@ export async function sendMessageStream(
 
     // Fetch client data and platform data if clientId provided
     let client = null;
-    let platformData = null;
+    let platformData: any = null;
 
     if (clientId) {
       try {
@@ -61,38 +74,94 @@ export async function sendMessageStream(
         const clientDoc = await ClientModel.findByClientId(clientId, user.id);
 
         if (clientDoc) {
+          // Get platform connections from PlatformConnection collection
+          const connections = await (PlatformConnectionModel as any).findByClientId(clientId);
+          const userConnections = connections.filter(
+            (conn: any) => conn.userId.toString() === user.id
+          );
+
+          // Build platforms object from actual connections
+          const platforms: Record<string, { connected: boolean; status: string }> = {};
+          for (const conn of userConnections) {
+            const key = platformIdToKey[conn.platformId];
+            if (key && (conn.status === 'active' || conn.status === 'connected')) {
+              platforms[key] = {
+                connected: true,
+                status: conn.status,
+              };
+            }
+          }
+
           // Convert to plain object for the prompt
           client = {
             id: String(clientDoc._id),
             name: clientDoc.name,
             email: clientDoc.email,
-            platforms: {
-              googleAnalytics: clientDoc.platforms?.googleAnalytics?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.googleAnalytics.status
-              } : undefined,
-              googleAds: clientDoc.platforms?.googleAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.googleAds.status
-              } : undefined,
-              metaAds: clientDoc.platforms?.metaAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.metaAds.status
-              } : undefined,
-              linkedInAds: clientDoc.platforms?.linkedInAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.linkedInAds.status
-              } : undefined,
-            },
+            platforms,
           };
 
-          // Extract platform metrics for AI context
-          platformData = {
-            googleAnalytics: clientDoc.platforms?.googleAnalytics?.metrics || null,
-            googleAds: clientDoc.platforms?.googleAds?.campaigns || null,
-            metaAds: clientDoc.platforms?.metaAds?.campaigns || null,
-            linkedInAds: clientDoc.platforms?.linkedInAds?.campaigns || null,
-          };
+          // Fetch real platform data from APIs
+          platformData = {};
+
+          // Fetch Google Analytics data from ALL properties if connected
+          const gaConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'google-analytics' && conn.status === 'active'
+          );
+          if (gaConnection) {
+            try {
+              const gaMultiData = await fetchAllGoogleAnalyticsProperties(gaConnection);
+              if (gaMultiData) {
+                platformData.googleAnalyticsMulti = gaMultiData;
+              }
+            } catch (gaError) {
+              console.error('Error fetching Google Analytics data:', gaError);
+            }
+          }
+
+          // Fetch LinkedIn Ads data if connected
+          const linkedInConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'linkedin-ads' && conn.status === 'active'
+          );
+          if (linkedInConnection) {
+            try {
+              const linkedInData = await fetchLinkedInAdsData(linkedInConnection);
+              if (linkedInData) {
+                platformData.linkedInAds = linkedInData;
+              }
+            } catch (linkedInError) {
+              console.error('Error fetching LinkedIn Ads data:', linkedInError);
+            }
+          }
+
+          // Fetch Meta Ads data if connected
+          const metaConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'meta-ads' && conn.status === 'active'
+          );
+          if (metaConnection) {
+            try {
+              const metaData = await fetchMetaAdsData(metaConnection);
+              if (metaData) {
+                platformData.metaAds = metaData;
+              }
+            } catch (metaError) {
+              console.error('Error fetching Meta Ads data:', metaError);
+            }
+          }
+
+          // Fetch Google Ads data if connected
+          const googleAdsConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'google-ads' && conn.status === 'active'
+          );
+          if (googleAdsConnection) {
+            try {
+              const googleAdsData = await fetchGoogleAdsData(googleAdsConnection);
+              if (googleAdsData) {
+                platformData.googleAds = googleAdsData;
+              }
+            } catch (googleAdsError) {
+              console.error('Error fetching Google Ads data:', googleAdsError);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching client data:', error);
@@ -241,7 +310,7 @@ export async function sendMessage(
 
     // Fetch client data and platform data (same as streaming version)
     let client = null;
-    let platformData = null;
+    let platformData: any = null;
 
     if (clientId) {
       try {
@@ -249,36 +318,93 @@ export async function sendMessage(
         const clientDoc = await ClientModel.findByClientId(clientId, user.id);
 
         if (clientDoc) {
+          // Get platform connections from PlatformConnection collection
+          const connections = await (PlatformConnectionModel as any).findByClientId(clientId);
+          const userConnections = connections.filter(
+            (conn: any) => conn.userId.toString() === user.id
+          );
+
+          // Build platforms object from actual connections
+          const platforms: Record<string, { connected: boolean; status: string }> = {};
+          for (const conn of userConnections) {
+            const key = platformIdToKey[conn.platformId];
+            if (key && (conn.status === 'active' || conn.status === 'connected')) {
+              platforms[key] = {
+                connected: true,
+                status: conn.status,
+              };
+            }
+          }
+
           client = {
             id: String(clientDoc._id),
             name: clientDoc.name,
             email: clientDoc.email,
-            platforms: {
-              googleAnalytics: clientDoc.platforms?.googleAnalytics?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.googleAnalytics.status
-              } : undefined,
-              googleAds: clientDoc.platforms?.googleAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.googleAds.status
-              } : undefined,
-              metaAds: clientDoc.platforms?.metaAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.metaAds.status
-              } : undefined,
-              linkedInAds: clientDoc.platforms?.linkedInAds?.connected ? {
-                connected: true,
-                status: clientDoc.platforms.linkedInAds.status
-              } : undefined,
-            },
+            platforms,
           };
 
-          platformData = {
-            googleAnalytics: clientDoc.platforms?.googleAnalytics?.metrics || null,
-            googleAds: clientDoc.platforms?.googleAds?.campaigns || null,
-            metaAds: clientDoc.platforms?.metaAds?.campaigns || null,
-            linkedInAds: clientDoc.platforms?.linkedInAds?.campaigns || null,
-          };
+          // Fetch real platform data from APIs
+          platformData = {};
+
+          // Fetch Google Analytics data from ALL properties if connected
+          const gaConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'google-analytics' && conn.status === 'active'
+          );
+          if (gaConnection) {
+            try {
+              const gaMultiData = await fetchAllGoogleAnalyticsProperties(gaConnection);
+              if (gaMultiData) {
+                platformData.googleAnalyticsMulti = gaMultiData;
+              }
+            } catch (gaError) {
+              console.error('Error fetching Google Analytics data:', gaError);
+            }
+          }
+
+          // Fetch LinkedIn Ads data if connected
+          const linkedInConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'linkedin-ads' && conn.status === 'active'
+          );
+          if (linkedInConnection) {
+            try {
+              const linkedInData = await fetchLinkedInAdsData(linkedInConnection);
+              if (linkedInData) {
+                platformData.linkedInAds = linkedInData;
+              }
+            } catch (linkedInError) {
+              console.error('Error fetching LinkedIn Ads data:', linkedInError);
+            }
+          }
+
+          // Fetch Meta Ads data if connected
+          const metaConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'meta-ads' && conn.status === 'active'
+          );
+          if (metaConnection) {
+            try {
+              const metaData = await fetchMetaAdsData(metaConnection);
+              if (metaData) {
+                platformData.metaAds = metaData;
+              }
+            } catch (metaError) {
+              console.error('Error fetching Meta Ads data:', metaError);
+            }
+          }
+
+          // Fetch Google Ads data if connected
+          const googleAdsConnection = userConnections.find(
+            (conn: any) => conn.platformId === 'google-ads' && conn.status === 'active'
+          );
+          if (googleAdsConnection) {
+            try {
+              const googleAdsData = await fetchGoogleAdsData(googleAdsConnection);
+              if (googleAdsData) {
+                platformData.googleAds = googleAdsData;
+              }
+            } catch (googleAdsError) {
+              console.error('Error fetching Google Ads data:', googleAdsError);
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching client data:', error);

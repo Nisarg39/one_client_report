@@ -6,6 +6,7 @@
 'use server';
 
 import ClientModel from '@/models/Client';
+import PlatformConnectionModel from '@/models/PlatformConnection';
 import { connectDB } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/adapter';
 
@@ -28,6 +29,14 @@ export interface GetClientsResult {
   error?: string;
 }
 
+// Map platformId from PlatformConnection to the format expected by UI
+const platformIdToKey: Record<string, string> = {
+  'google-analytics': 'googleAnalytics',
+  'google-ads': 'googleAds',
+  'meta-ads': 'metaAds',
+  'linkedin-ads': 'linkedInAds',
+};
+
 /**
  * Get all clients for the current user
  */
@@ -48,25 +57,54 @@ export async function getClients(): Promise<GetClientsResult> {
     // Get clients
     const clients = await ClientModel.findByUserId(user.id);
 
+    // Get all platform connections for this user
+    const allConnections = await (PlatformConnectionModel as any).findByUserId(user.id);
+
+    // Group connections by clientId
+    const connectionsByClient: Record<string, any[]> = {};
+    for (const conn of allConnections) {
+      const clientId = conn.clientId.toString();
+      if (!connectionsByClient[clientId]) {
+        connectionsByClient[clientId] = [];
+      }
+      connectionsByClient[clientId].push(conn);
+    }
+
     return {
       success: true,
       clients: clients.map((client) => {
-        // Convert Mongoose document to plain object and serialize to remove all Mongoose metadata
-        const plainClient = client.toObject();
-        // Use JSON parse/stringify to fully convert nested Mongoose subdocuments to plain objects
-        const serializedPlatforms = plainClient.platforms
-          ? JSON.parse(JSON.stringify(plainClient.platforms))
-          : {};
+        const clientId = String(client._id);
+        const clientConnections = connectionsByClient[clientId] || [];
+
+        // Build platforms object from PlatformConnection data
+        const platforms: Record<string, { connected: boolean; status: string }> = {};
+
+        for (const conn of clientConnections) {
+          const key = platformIdToKey[conn.platformId];
+          if (key && (conn.status === 'active' || conn.status === 'connected')) {
+            platforms[key] = {
+              connected: true,
+              status: conn.status,
+            };
+          }
+        }
+
+        // Get list of connected platform names
+        const connectedPlatforms: string[] = [];
+        if (platforms.googleAnalytics?.connected) connectedPlatforms.push('Google Analytics');
+        if (platforms.googleAds?.connected) connectedPlatforms.push('Google Ads');
+        if (platforms.metaAds?.connected) connectedPlatforms.push('Meta Ads');
+        if (platforms.linkedInAds?.connected) connectedPlatforms.push('LinkedIn Ads');
 
         return {
-          id: String(client._id),
+          id: clientId,
           userId: client.userId.toString(),
           name: client.name,
           email: client.email,
           logo: client.logo,
           status: client.status,
-          platforms: serializedPlatforms, // Fully serialized platforms data
-          connectedPlatforms: client.getConnectedPlatforms(),
+          platforms, // Platform connection data from PlatformConnection collection
+          connectedPlatforms,
           createdAt: client.createdAt.toISOString(),
           updatedAt: client.updatedAt.toISOString(),
         };
