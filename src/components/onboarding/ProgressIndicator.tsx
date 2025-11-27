@@ -30,16 +30,22 @@ export function ProgressIndicator({
         </p>
       </div>
 
-      {/* Progress bar */}
-      <div className="relative h-2 rounded-full bg-[#1a1a1a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(60,60,60,0.3)] overflow-hidden mb-4">
-        <div
-          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#6CA3A2] to-[#5a9493] transition-all duration-500 ease-out"
-          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-        />
-      </div>
+      {/* Step dots with connecting line */}
+      <div className="relative flex items-center justify-between">
+        {/* Line container - spans between dot centers */}
+        <div className="absolute top-4 left-4 right-4 h-1 -translate-y-1/2">
+          {/* Background line */}
+          <div className="absolute inset-0 rounded-full bg-[#1a1a1a] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5),inset_-2px_-2px_4px_rgba(60,60,60,0.3)]" />
 
-      {/* Step dots */}
-      <div className="flex items-center justify-between">
+          {/* Progress fill line - aligned with dots */}
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[#6CA3A2] to-[#5a9493] transition-all duration-500 ease-out"
+            style={{
+              width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%`
+            }}
+          />
+        </div>
+
         {Array.from({ length: totalSteps }).map((_, index) => {
           const step = index + 1;
           const isCompleted = step < currentStep;
@@ -47,7 +53,7 @@ export function ProgressIndicator({
           const label = stepLabels[index];
 
           return (
-            <div key={step} className="flex flex-col items-center gap-2">
+            <div key={step} className="relative z-10 flex flex-col items-center gap-2">
               {/* Dot */}
               <div
                 className={`flex items-center justify-center w-8 h-8 rounded-full font-semibold text-xs transition-all ${

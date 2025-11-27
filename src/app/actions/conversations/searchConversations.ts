@@ -1,7 +1,6 @@
 /**
- * Get Conversations Server Action
- * Retrieves all conversations for the authenticated user
- * Optionally filtered by clientId
+ * Search Conversations Server Action
+ * Full-text search on conversation messages and titles
  */
 
 'use server';
@@ -9,34 +8,36 @@
 import ConversationModel from '@/models/Conversation';
 import { connectDB } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth/adapter';
+import type { ConversationSummary } from './getConversations';
 
-export interface ConversationSummary {
-  conversationId: string;
-  clientId: string;
-  summary: string;
-  messageCount: number;
-  lastMessageAt: string;
-  createdAt: string;
-  // Phase 6: New fields
-  title?: string;
-  isPinned?: boolean;
-  status: 'active' | 'archived' | 'deleted';
-}
-
-export interface GetConversationsResult {
+export interface SearchConversationsResult {
   success: boolean;
   conversations?: ConversationSummary[];
   error?: string;
 }
 
 /**
- * Get all conversations for the current user
+ * Search conversations by text query
+ * Uses MongoDB text index for full-text search
+ *
+ * @param query - Search query string
  * @param clientId - Optional client ID to filter by
+ * @param limit - Maximum number of results (default: 20)
  */
-export async function getConversations(
-  clientId?: string
-): Promise<GetConversationsResult> {
+export async function searchConversations(
+  query: string,
+  clientId?: string,
+  limit: number = 20
+): Promise<SearchConversationsResult> {
   try {
+    // Validate query
+    if (!query || query.trim().length < 2) {
+      return {
+        success: false,
+        error: 'Search query must be at least 2 characters',
+      };
+    }
+
     // Get authenticated user
     const user = await getCurrentUser();
     if (!user) {
@@ -49,10 +50,12 @@ export async function getConversations(
     // Connect to database
     await connectDB();
 
-    // Get conversations (filtered by client if provided)
-    const conversations = await ConversationModel.findActiveByUser(
+    // Search conversations
+    const conversations = await ConversationModel.searchConversations(
       user.id,
-      clientId
+      query.trim(),
+      clientId,
+      Math.min(limit, 50) // Cap at 50 results
     );
 
     return {
@@ -60,21 +63,20 @@ export async function getConversations(
       conversations: conversations.map((conv: any) => ({
         conversationId: conv.conversationId,
         clientId: String(conv.clientId),
-        summary: conv.title || conv.getSummary(), // Use title if set, otherwise first message
+        summary: conv.title || conv.getSummary(),
         messageCount: conv.messageCount,
         lastMessageAt: conv.lastMessageAt.toISOString(),
         createdAt: conv.createdAt?.toISOString() || new Date().toISOString(),
-        // Phase 6: New fields
         title: conv.title || '',
         isPinned: conv.isPinned || false,
         status: conv.status,
       })),
     };
   } catch (error) {
-    console.error('[getConversations] Error:', error);
+    console.error('[searchConversations] Error:', error);
     return {
       success: false,
-      error: 'Failed to fetch conversations. Please try again.',
+      error: 'Failed to search conversations. Please try again.',
     };
   }
 }

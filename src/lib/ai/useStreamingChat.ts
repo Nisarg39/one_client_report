@@ -8,12 +8,13 @@
 
 import { useState, useCallback } from 'react';
 import { sendMessageStream } from '@/app/actions/chat/sendMessage';
-import type { Message } from '@/types/chat';
+import type { Message, PlatformHealthIssue } from '@/types/chat';
 
 interface UseStreamingChatOptions {
   onToken?: (token: string) => void;
   onComplete?: (fullResponse: string, conversationId: string | null) => void;
   onError?: (error: string) => void;
+  onPlatformStatus?: (issues: PlatformHealthIssue[]) => void;
 }
 
 export function useStreamingChat() {
@@ -27,9 +28,10 @@ export function useStreamingChat() {
       conversationId: string | null,
       messages: Message[],
       clientId: string | null,
-      options: UseStreamingChatOptions = {}
+      options: UseStreamingChatOptions = {},
+      dateRange?: { startDate?: string; endDate?: string }
     ) => {
-      const { onToken, onComplete, onError } = options;
+      const { onToken, onComplete, onError, onPlatformStatus } = options;
 
       setIsStreaming(true);
       let fullResponse = '';
@@ -37,7 +39,7 @@ export function useStreamingChat() {
 
       try {
         // Get streaming response from Server Action
-        const stream = await sendMessageStream(conversationId, messages, clientId);
+        const stream = await sendMessageStream(conversationId, messages, clientId, dateRange);
 
         // Read the stream
         const reader = stream.getReader();
@@ -79,6 +81,13 @@ export function useStreamingChat() {
                   }
                   setIsStreaming(false);
                   return;
+                }
+
+                if (parsed.platformHealthIssues) {
+                  // Platform health issues received
+                  if (onPlatformStatus) {
+                    onPlatformStatus(parsed.platformHealthIssues);
+                  }
                 }
 
                 if (parsed.conversationId) {

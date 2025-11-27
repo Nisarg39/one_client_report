@@ -12,6 +12,7 @@ import { getAIProvider } from '@/lib/ai/provider';
 import { buildSystemPrompt } from '@/lib/ai/systemPrompt';
 import type { Message } from '@/types/chat';
 import ClientModel from '@/models/Client';
+import ConversationModel from '@/models/Conversation';
 import PlatformConnectionModel from '@/models/PlatformConnection';
 import { connectDB } from '@/lib/db';
 import { saveMessage } from '@/app/actions/conversations/saveMessage';
@@ -20,6 +21,7 @@ import { fetchAllGoogleAnalyticsProperties } from '@/lib/platforms/googleAnalyti
 import { fetchLinkedInAdsData } from '@/lib/platforms/linkedin-ads/fetchData';
 import { fetchMetaAdsData } from '@/lib/platforms/meta-ads/fetchData';
 import { fetchGoogleAdsData } from '@/lib/platforms/google-ads/fetchData';
+import type { PlatformHealthIssue } from '@/types/chat';
 
 // Map platformId from PlatformConnection to the format expected by AI
 const platformIdToKey: Record<string, string> = {
@@ -35,12 +37,14 @@ const platformIdToKey: Record<string, string> = {
  * @param conversationId - ID of the conversation (null for new conversation)
  * @param messages - Conversation history
  * @param clientId - ID of the current client
+ * @param dateRange - Optional date range for platform data fetching
  * @returns ReadableStream for SSE
  */
 export async function sendMessageStream(
   conversationId: string | null,
   messages: Message[],
-  clientId: string | null
+  clientId: string | null,
+  dateRange?: { startDate?: string; endDate?: string }
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Verify authentication
@@ -67,6 +71,7 @@ export async function sendMessageStream(
     // Fetch client data and platform data if clientId provided
     let client = null;
     let platformData: any = null;
+    const platformHealthIssues: PlatformHealthIssue[] = [];
 
     if (clientId) {
       try {
@@ -109,12 +114,41 @@ export async function sendMessageStream(
           );
           if (gaConnection) {
             try {
-              const gaMultiData = await fetchAllGoogleAnalyticsProperties(gaConnection);
-              if (gaMultiData) {
-                platformData.googleAnalyticsMulti = gaMultiData;
+              // Check if token is expired BEFORE fetching
+              if (gaConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: gaConnection._id.toString(),
+                  platformId: 'google-analytics',
+                  platformName: 'Google Analytics',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: gaConnection.expiresAt,
+                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const gaMultiData = await fetchAllGoogleAnalyticsProperties(
+                  gaConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (gaMultiData) {
+                  platformData.googleAnalyticsMulti = gaMultiData;
+                }
               }
-            } catch (gaError) {
+            } catch (gaError: any) {
               console.error('Error fetching Google Analytics data:', gaError);
+              // Only add to issues if not already added for expiration
+              if (!platformHealthIssues.some(i => i.platformId === 'google-analytics')) {
+                platformHealthIssues.push({
+                  connectionId: gaConnection._id.toString(),
+                  platformId: 'google-analytics',
+                  platformName: 'Google Analytics',
+                  status: 'error',
+                  error: gaError.message,
+                  errorType: gaError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -124,12 +158,39 @@ export async function sendMessageStream(
           );
           if (linkedInConnection) {
             try {
-              const linkedInData = await fetchLinkedInAdsData(linkedInConnection);
-              if (linkedInData) {
-                platformData.linkedInAds = linkedInData;
+              if (linkedInConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: linkedInConnection._id.toString(),
+                  platformId: 'linkedin-ads',
+                  platformName: 'LinkedIn Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: linkedInConnection.expiresAt,
+                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const linkedInData = await fetchLinkedInAdsData(
+                  linkedInConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (linkedInData) {
+                  platformData.linkedInAds = linkedInData;
+                }
               }
-            } catch (linkedInError) {
+            } catch (linkedInError: any) {
               console.error('Error fetching LinkedIn Ads data:', linkedInError);
+              if (!platformHealthIssues.some(i => i.platformId === 'linkedin-ads')) {
+                platformHealthIssues.push({
+                  connectionId: linkedInConnection._id.toString(),
+                  platformId: 'linkedin-ads',
+                  platformName: 'LinkedIn Ads',
+                  status: 'error',
+                  error: linkedInError.message,
+                  errorType: linkedInError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -139,12 +200,39 @@ export async function sendMessageStream(
           );
           if (metaConnection) {
             try {
-              const metaData = await fetchMetaAdsData(metaConnection);
-              if (metaData) {
-                platformData.metaAds = metaData;
+              if (metaConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: metaConnection._id.toString(),
+                  platformId: 'meta-ads',
+                  platformName: 'Meta Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: metaConnection.expiresAt,
+                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const metaData = await fetchMetaAdsData(
+                  metaConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (metaData) {
+                  platformData.metaAds = metaData;
+                }
               }
-            } catch (metaError) {
+            } catch (metaError: any) {
               console.error('Error fetching Meta Ads data:', metaError);
+              if (!platformHealthIssues.some(i => i.platformId === 'meta-ads')) {
+                platformHealthIssues.push({
+                  connectionId: metaConnection._id.toString(),
+                  platformId: 'meta-ads',
+                  platformName: 'Meta Ads',
+                  status: 'error',
+                  error: metaError.message,
+                  errorType: metaError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -154,12 +242,39 @@ export async function sendMessageStream(
           );
           if (googleAdsConnection) {
             try {
-              const googleAdsData = await fetchGoogleAdsData(googleAdsConnection);
-              if (googleAdsData) {
-                platformData.googleAds = googleAdsData;
+              if (googleAdsConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: googleAdsConnection._id.toString(),
+                  platformId: 'google-ads',
+                  platformName: 'Google Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: googleAdsConnection.expiresAt,
+                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const googleAdsData = await fetchGoogleAdsData(
+                  googleAdsConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (googleAdsData) {
+                  platformData.googleAds = googleAdsData;
+                }
               }
-            } catch (googleAdsError) {
+            } catch (googleAdsError: any) {
               console.error('Error fetching Google Ads data:', googleAdsError);
+              if (!platformHealthIssues.some(i => i.platformId === 'google-ads')) {
+                platformHealthIssues.push({
+                  connectionId: googleAdsConnection._id.toString(),
+                  platformId: 'google-ads',
+                  platformName: 'Google Ads',
+                  status: 'error',
+                  error: googleAdsError.message,
+                  errorType: googleAdsError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
         }
@@ -202,6 +317,8 @@ export async function sendMessageStream(
     // Wrap the stream to collect the full response for saving
     let fullResponse = '';
     let conversationIdSent = false;
+    let platformIssuesSent = false;
+    let tokenUsage: { promptTokens: number; completionTokens: number; totalTokens: number } | null = null; // Phase 6.6
     const wrappedStream = new ReadableStream({
       async start(controller) {
         const reader = stream.getReader();
@@ -209,6 +326,16 @@ export async function sendMessageStream(
         const encoder = new TextEncoder();
 
         try {
+          // Send platform health issues FIRST (before conversationId)
+          if (platformHealthIssues.length > 0 && !platformIssuesSent) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ platformHealthIssues })}\n\n`
+              )
+            );
+            platformIssuesSent = true;
+          }
+
           // Send conversationId as the first message (so frontend knows it immediately)
           if (actualConversationId && !conversationIdSent) {
             controller.enqueue(
@@ -237,6 +364,10 @@ export async function sendMessageStream(
                   if (data.content) {
                     fullResponse += data.content;
                   }
+                  // Phase 6.6: Capture usage from stream
+                  if (data.usage) {
+                    tokenUsage = data.usage;
+                  }
                 } catch (e) {
                   // Ignore JSON parse errors
                 }
@@ -252,6 +383,38 @@ export async function sendMessageStream(
               role: 'assistant',
               content: fullResponse,
             });
+
+            // Phase 6.6: Update token usage for cost tracking
+            if (tokenUsage) {
+              try {
+                await connectDB();
+                const conversation = await ConversationModel.findByConversationId(
+                  actualConversationId,
+                  user.id
+                );
+
+                if (conversation) {
+                  // Update or initialize token usage
+                  if (!conversation.tokenUsage) {
+                    conversation.tokenUsage = {
+                      promptTokens: 0,
+                      completionTokens: 0,
+                      totalTokens: 0,
+                    };
+                  }
+
+                  // Add new token usage to existing totals
+                  conversation.tokenUsage.promptTokens += tokenUsage.promptTokens;
+                  conversation.tokenUsage.completionTokens += tokenUsage.completionTokens;
+                  conversation.tokenUsage.totalTokens += tokenUsage.totalTokens;
+
+                  await conversation.save();
+                }
+              } catch (tokenError) {
+                console.error('Error updating token usage:', tokenError);
+                // Don't fail the request if token tracking fails
+              }
+            }
           }
 
           controller.close();
@@ -287,12 +450,14 @@ export async function sendMessageStream(
  * @param conversationId - ID of the conversation
  * @param messages - Conversation history
  * @param clientId - ID of the current client
+ * @param dateRange - Optional date range for platform data fetching
  * @returns AI response with conversationId
  */
 export async function sendMessage(
   conversationId: string | null,
   messages: Message[],
-  clientId: string | null
+  clientId: string | null,
+  dateRange?: { startDate?: string; endDate?: string }
 ): Promise<{ content: string; conversationId?: string | null; error?: string }> {
   try {
     // Verify authentication
@@ -311,6 +476,7 @@ export async function sendMessage(
     // Fetch client data and platform data (same as streaming version)
     let client = null;
     let platformData: any = null;
+    const platformHealthIssues: PlatformHealthIssue[] = [];
 
     if (clientId) {
       try {
@@ -352,12 +518,41 @@ export async function sendMessage(
           );
           if (gaConnection) {
             try {
-              const gaMultiData = await fetchAllGoogleAnalyticsProperties(gaConnection);
-              if (gaMultiData) {
-                platformData.googleAnalyticsMulti = gaMultiData;
+              // Check if token is expired BEFORE fetching
+              if (gaConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: gaConnection._id.toString(),
+                  platformId: 'google-analytics',
+                  platformName: 'Google Analytics',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: gaConnection.expiresAt,
+                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const gaMultiData = await fetchAllGoogleAnalyticsProperties(
+                  gaConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (gaMultiData) {
+                  platformData.googleAnalyticsMulti = gaMultiData;
+                }
               }
-            } catch (gaError) {
+            } catch (gaError: any) {
               console.error('Error fetching Google Analytics data:', gaError);
+              // Only add to issues if not already added for expiration
+              if (!platformHealthIssues.some(i => i.platformId === 'google-analytics')) {
+                platformHealthIssues.push({
+                  connectionId: gaConnection._id.toString(),
+                  platformId: 'google-analytics',
+                  platformName: 'Google Analytics',
+                  status: 'error',
+                  error: gaError.message,
+                  errorType: gaError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -367,12 +562,39 @@ export async function sendMessage(
           );
           if (linkedInConnection) {
             try {
-              const linkedInData = await fetchLinkedInAdsData(linkedInConnection);
-              if (linkedInData) {
-                platformData.linkedInAds = linkedInData;
+              if (linkedInConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: linkedInConnection._id.toString(),
+                  platformId: 'linkedin-ads',
+                  platformName: 'LinkedIn Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: linkedInConnection.expiresAt,
+                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const linkedInData = await fetchLinkedInAdsData(
+                  linkedInConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (linkedInData) {
+                  platformData.linkedInAds = linkedInData;
+                }
               }
-            } catch (linkedInError) {
+            } catch (linkedInError: any) {
               console.error('Error fetching LinkedIn Ads data:', linkedInError);
+              if (!platformHealthIssues.some(i => i.platformId === 'linkedin-ads')) {
+                platformHealthIssues.push({
+                  connectionId: linkedInConnection._id.toString(),
+                  platformId: 'linkedin-ads',
+                  platformName: 'LinkedIn Ads',
+                  status: 'error',
+                  error: linkedInError.message,
+                  errorType: linkedInError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -382,12 +604,39 @@ export async function sendMessage(
           );
           if (metaConnection) {
             try {
-              const metaData = await fetchMetaAdsData(metaConnection);
-              if (metaData) {
-                platformData.metaAds = metaData;
+              if (metaConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: metaConnection._id.toString(),
+                  platformId: 'meta-ads',
+                  platformName: 'Meta Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: metaConnection.expiresAt,
+                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const metaData = await fetchMetaAdsData(
+                  metaConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (metaData) {
+                  platformData.metaAds = metaData;
+                }
               }
-            } catch (metaError) {
+            } catch (metaError: any) {
               console.error('Error fetching Meta Ads data:', metaError);
+              if (!platformHealthIssues.some(i => i.platformId === 'meta-ads')) {
+                platformHealthIssues.push({
+                  connectionId: metaConnection._id.toString(),
+                  platformId: 'meta-ads',
+                  platformName: 'Meta Ads',
+                  status: 'error',
+                  error: metaError.message,
+                  errorType: metaError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
 
@@ -397,12 +646,39 @@ export async function sendMessage(
           );
           if (googleAdsConnection) {
             try {
-              const googleAdsData = await fetchGoogleAdsData(googleAdsConnection);
-              if (googleAdsData) {
-                platformData.googleAds = googleAdsData;
+              if (googleAdsConnection.isExpired()) {
+                platformHealthIssues.push({
+                  connectionId: googleAdsConnection._id.toString(),
+                  platformId: 'google-ads',
+                  platformName: 'Google Ads',
+                  status: 'expired',
+                  errorType: 'expired_token',
+                  expiresAt: googleAdsConnection.expiresAt,
+                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
+                });
+              } else {
+                const googleAdsData = await fetchGoogleAdsData(
+                  googleAdsConnection,
+                  dateRange?.startDate,
+                  dateRange?.endDate
+                );
+                if (googleAdsData) {
+                  platformData.googleAds = googleAdsData;
+                }
               }
-            } catch (googleAdsError) {
+            } catch (googleAdsError: any) {
               console.error('Error fetching Google Ads data:', googleAdsError);
+              if (!platformHealthIssues.some(i => i.platformId === 'google-ads')) {
+                platformHealthIssues.push({
+                  connectionId: googleAdsConnection._id.toString(),
+                  platformId: 'google-ads',
+                  platformName: 'Google Ads',
+                  status: 'error',
+                  error: googleAdsError.message,
+                  errorType: googleAdsError.message.includes('401') ? 'expired_token' : 'api_error',
+                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
+                });
+              }
             }
           }
         }
@@ -449,6 +725,38 @@ export async function sendMessage(
         role: 'assistant',
         content: response.content,
       });
+
+      // Phase 6.6: Update token usage for cost tracking
+      if (response.usage) {
+        try {
+          await connectDB();
+          const conversation = await ConversationModel.findByConversationId(
+            actualConversationId,
+            user.id
+          );
+
+          if (conversation) {
+            // Update or initialize token usage
+            if (!conversation.tokenUsage) {
+              conversation.tokenUsage = {
+                promptTokens: 0,
+                completionTokens: 0,
+                totalTokens: 0,
+              };
+            }
+
+            // Add new token usage to existing totals
+            conversation.tokenUsage.promptTokens += response.usage.promptTokens;
+            conversation.tokenUsage.completionTokens += response.usage.completionTokens;
+            conversation.tokenUsage.totalTokens += response.usage.totalTokens;
+
+            await conversation.save();
+          }
+        } catch (tokenError) {
+          console.error('Error updating token usage:', tokenError);
+          // Don't fail the request if token tracking fails
+        }
+      }
     }
 
     return {

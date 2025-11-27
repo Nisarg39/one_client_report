@@ -7,25 +7,45 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { useChatStore } from '@/stores/useChatStore';
 import { MessageList } from '@/components/chat/MessageList';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { CreateClientModal } from '@/components/chat/CreateClientModal';
 import { PlatformConfigModal } from '@/components/chat/PlatformConfigModal';
+import { DeleteConfirmDialog } from '@/components/chat/DeleteConfirmDialog';
+import { EditProfileModal } from '@/components/chat/EditProfileModal';
+import { EditClientModal } from '@/components/chat/EditClientModal';
+import { DashboardView } from '@/components/dashboard/DashboardView';
+import { PlatformHealthBanner } from '@/components/chat/PlatformHealthBanner';
 import { useStreamingChat } from '@/lib/ai/useStreamingChat';
 import { generateSuggestions } from '@/lib/ai/suggestions';
-import type { Message, ClientClient } from '@/types/chat';
+import type { Message, ClientClient, ConversationFilter, ExportFormat, ViewMode, DashboardSection, PlatformHealthIssue } from '@/types/chat';
+import { refreshPlatformConnection } from '@/app/actions/platforms/refreshPlatformConnection';
 import { getClients } from '@/app/actions/clients/getClients';
 import { createClient } from '@/app/actions/clients/createClient';
+import { archiveClient } from '@/app/actions/clients/archiveClient';
 import {
   getConversations,
   type ConversationSummary,
 } from '@/app/actions/conversations/getConversations';
 import { getConversationById } from '@/app/actions/conversations/getConversationById';
 import { deleteConversation } from '@/app/actions/conversations/deleteConversation';
+// Phase 6: Conversation management imports
+import { searchConversations } from '@/app/actions/conversations/searchConversations';
+import { pinConversation, unpinConversation } from '@/app/actions/conversations/pinConversation';
+import { archiveConversation, unarchiveConversation } from '@/app/actions/conversations/archiveConversation';
+import { renameConversation } from '@/app/actions/conversations/renameConversation';
+import { exportConversation } from '@/app/actions/conversations/exportConversation';
+import { getConversationsByStatus } from '@/app/actions/conversations/getConversationsByStatus';
+// Phase 6.6: User and client management imports
+import { updateUserProfile, type NotificationPreferences } from '@/app/actions/user/updateUserProfile';
+import { exportUserData } from '@/app/actions/user/exportUserData';
+import { deleteAccount } from '@/app/actions/user/deleteAccount';
+import { updateClient } from '@/app/actions/clients/updateClient';
 
 export function ChatPageClient() {
   const {
@@ -39,19 +59,52 @@ export function ChatPageClient() {
     setCurrentClient,
     setClients,
     clearMessages,
+    dateRangeFilter,
   } = useChatStore();
 
   const { streamMessage } = useStreamingChat();
   const { data: session } = useSession();
+  const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPlatformConfigOpen, setIsPlatformConfigOpen] = useState(false);
   const [clientToConfig, setClientToConfig] = useState<ClientClient | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  // Phase 6: Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [conversationFilter, setConversationFilter] = useState<ConversationFilter>('active');
+  const [isSearching, setIsSearching] = useState(false);
+  // Pagination state
+  const [conversationPage, setConversationPage] = useState(0);
+  const [hasMoreConversations, setHasMoreConversations] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // Delete confirmation state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    conversationId: string | null;
+  }>({ isOpen: false, conversationId: null });
+  // Phase 6.5: View mode state
+  const [viewMode, setViewMode] = useState<ViewMode>('chat');
+  const [dashboardSection, setDashboardSection] = useState<DashboardSection>('overview');
+  // Platform health notifications
+  const [platformHealthIssues, setPlatformHealthIssues] = useState<PlatformHealthIssue[]>([]);
+  const [dismissedIssues, setDismissedIssues] = useState<Set<string>>(new Set());
+  const [refreshingPlatform, setRefreshingPlatform] = useState<string | null>(null);
+  // Phase 6.6: Modal state
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showEditClient, setShowEditClient] = useState(false);
+  const [editingClient, setEditingClient] = useState<ClientClient | null>(null);
 
   // Get current client
   const currentClient = clients.find((c) => c.id === currentClientId) || null;
+
+  // Phase 6.6: Calculate user stats
+  const userStats = {
+    totalClients: clients.length,
+    totalConversations: conversations.length,
+    totalMessages: conversations.reduce((sum, conv) => sum + (conv.messageCount || 0), 0),
+  };
 
   // Handle hydration & load real clients from database
   useEffect(() => {
@@ -93,31 +146,44 @@ export function ChatPageClient() {
     fetchClients();
   }, []);
 
-  // Load conversations when client changes
+  // Load conversations when client changes, filter changes, or search clears
   useEffect(() => {
     if (!currentClientId) {
       setConversations([]);
+      setHasMoreConversations(false);
+      return;
+    }
+
+    // Don't fetch if we're actively searching (search handler will update)
+    if (searchQuery.trim().length >= 2) {
       return;
     }
 
     const fetchConversations = async () => {
       try {
-        const result = await getConversations(currentClientId);
+        // Reset to first page when filter/client changes
+        setConversationPage(0);
+
+        // Use filter-based fetch with pagination
+        const result = await getConversationsByStatus(conversationFilter, currentClientId, 0);
 
         if (result.success && result.conversations) {
           setConversations(result.conversations);
+          setHasMoreConversations(result.hasMore || false);
         } else {
           console.error('Failed to fetch conversations:', result.error);
           setConversations([]);
+          setHasMoreConversations(false);
         }
       } catch (error) {
         console.error('Error loading conversations:', error);
         setConversations([]);
+        setHasMoreConversations(false);
       }
     };
 
     fetchConversations();
-  }, [currentClientId]);
+  }, [currentClientId, conversationFilter, searchQuery]);
 
   // Handle sending a message
   const handleSendMessage = async (content: string) => {
@@ -143,6 +209,10 @@ export function ChatPageClient() {
       {
         onToken: (token) => {
           // Token streaming happens in background
+        },
+        onPlatformStatus: (issues: PlatformHealthIssue[]) => {
+          // Received platform health issues from stream
+          setPlatformHealthIssues(issues);
         },
         onComplete: async (fullResponse, conversationId) => {
           // Set conversationId in store if we received one (for new conversations)
@@ -193,7 +263,8 @@ export function ChatPageClient() {
           };
           addMessage(errorMessage);
         },
-      }
+      },
+      dateRangeFilter ? { startDate: dateRangeFilter.startDate, endDate: dateRangeFilter.endDate } : undefined
     );
   };
 
@@ -264,6 +335,32 @@ export function ChatPageClient() {
     // and call updateClientPlatforms for each platform that changed
   };
 
+  // Handle deleting (archiving) a client
+  const handleClientDelete = async (clientId: string) => {
+    try {
+      const result = await archiveClient({ clientId });
+
+      if (result.success) {
+        // Remove from local state
+        const updatedClients = clients.filter((c) => c.id !== clientId);
+        setClients(updatedClients);
+
+        // If this was the current client, switch to another or clear
+        if (currentClientId === clientId) {
+          if (updatedClients.length > 0) {
+            setCurrentClient(updatedClients[0].id);
+          } else {
+            setCurrentClient('');
+          }
+        }
+      } else {
+        console.error('Failed to delete client:', result.error);
+      }
+    } catch (error) {
+      console.error('Error deleting client:', error);
+    }
+  };
+
   // Handle starting a new chat
   const handleNewChat = () => {
     // Clear current messages to start a new conversation
@@ -302,8 +399,19 @@ export function ChatPageClient() {
     }
   };
 
-  // Handle conversation deletion
-  const handleConversationDelete = async (conversationId: string) => {
+  // Handle conversation deletion request (shows confirmation dialog)
+  const handleConversationDeleteRequest = (conversationId: string) => {
+    setDeleteDialog({ isOpen: true, conversationId });
+  };
+
+  // Handle confirmed conversation deletion
+  const handleConversationDeleteConfirm = async () => {
+    const conversationId = deleteDialog.conversationId;
+    if (!conversationId) return;
+
+    // Close dialog first
+    setDeleteDialog({ isOpen: false, conversationId: null });
+
     try {
       const result = await deleteConversation({ conversationId });
 
@@ -325,6 +433,372 @@ export function ChatPageClient() {
     }
   };
 
+  // Handle cancel delete
+  const handleConversationDeleteCancel = () => {
+    setDeleteDialog({ isOpen: false, conversationId: null });
+  };
+
+  // Phase 6: Search conversations
+  const handleSearch = useCallback(async (query: string) => {
+    if (!currentClientId) return;
+
+    setSearchQuery(query);
+    setIsSearching(true);
+
+    try {
+      const result = await searchConversations(query, currentClientId);
+
+      if (result.success && result.conversations) {
+        setConversations(result.conversations);
+      } else {
+        console.error('Search failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Error searching conversations:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [currentClientId]);
+
+  // Phase 6: Clear search
+  const handleClearSearch = useCallback(async () => {
+    setSearchQuery('');
+    setIsSearching(false);
+
+    // Refetch with current filter
+    if (currentClientId) {
+      try {
+        const result = await getConversationsByStatus(conversationFilter, currentClientId);
+        if (result.success && result.conversations) {
+          setConversations(result.conversations);
+        }
+      } catch (error) {
+        console.error('Error refetching conversations:', error);
+      }
+    }
+  }, [currentClientId, conversationFilter]);
+
+  // Phase 6: Filter change
+  const handleFilterChange = useCallback((filter: ConversationFilter) => {
+    setConversationFilter(filter);
+    setSearchQuery(''); // Clear search when changing filter
+  }, []);
+
+  // Phase 6: Load more conversations (pagination)
+  const handleLoadMoreConversations = useCallback(async () => {
+    if (!currentClientId || isLoadingMore || !hasMoreConversations) return;
+
+    setIsLoadingMore(true);
+    const nextPage = conversationPage + 1;
+
+    try {
+      const result = await getConversationsByStatus(conversationFilter, currentClientId, nextPage);
+
+      if (result.success && result.conversations) {
+        // Append new conversations to existing list
+        setConversations((prev) => [...prev, ...result.conversations!]);
+        setConversationPage(nextPage);
+        setHasMoreConversations(result.hasMore || false);
+      } else {
+        console.error('Failed to load more conversations:', result.error);
+      }
+    } catch (error) {
+      console.error('Error loading more conversations:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [currentClientId, conversationFilter, conversationPage, isLoadingMore, hasMoreConversations]);
+
+  // Phase 6: Pin conversation
+  const handleConversationPin = useCallback(async (conversationId: string) => {
+    try {
+      const conversation = conversations.find(c => c.conversationId === conversationId);
+      const action = conversation?.isPinned ? unpinConversation : pinConversation;
+
+      const result = await action(conversationId);
+
+      if (result.success) {
+        // Update local state
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.conversationId === conversationId
+              ? { ...conv, isPinned: !conv.isPinned }
+              : conv
+          ).sort((a, b) => {
+            // Sort pinned first, then by date
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+          })
+        );
+      } else {
+        console.error('Failed to pin/unpin conversation:', result.error);
+      }
+    } catch (error) {
+      console.error('Error pinning conversation:', error);
+    }
+  }, [conversations]);
+
+  // Phase 6: Archive conversation
+  const handleConversationArchive = useCallback(async (conversationId: string) => {
+    try {
+      const result = await archiveConversation(conversationId);
+
+      if (result.success) {
+        // Remove from list if viewing active, keep if viewing all/archived
+        if (conversationFilter === 'active') {
+          setConversations((prev) =>
+            prev.filter((conv) => conv.conversationId !== conversationId)
+          );
+        } else {
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.conversationId === conversationId
+                ? { ...conv, status: 'archived' as const }
+                : conv
+            )
+          );
+        }
+      } else {
+        console.error('Failed to archive conversation:', result.error);
+      }
+    } catch (error) {
+      console.error('Error archiving conversation:', error);
+    }
+  }, [conversationFilter]);
+
+  // Phase 6: Unarchive conversation
+  const handleConversationUnarchive = useCallback(async (conversationId: string) => {
+    try {
+      const result = await unarchiveConversation(conversationId);
+
+      if (result.success) {
+        // Remove from list if viewing archived, keep if viewing all/active
+        if (conversationFilter === 'archived') {
+          setConversations((prev) =>
+            prev.filter((conv) => conv.conversationId !== conversationId)
+          );
+        } else {
+          setConversations((prev) =>
+            prev.map((conv) =>
+              conv.conversationId === conversationId
+                ? { ...conv, status: 'active' as const }
+                : conv
+            )
+          );
+        }
+      } else {
+        console.error('Failed to unarchive conversation:', result.error);
+      }
+    } catch (error) {
+      console.error('Error unarchiving conversation:', error);
+    }
+  }, [conversationFilter]);
+
+  // Phase 6: Rename conversation
+  const handleConversationRename = useCallback(async (conversationId: string, newTitle: string) => {
+    try {
+      const result = await renameConversation(conversationId, newTitle);
+
+      if (result.success) {
+        // Update local state
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.conversationId === conversationId
+              ? { ...conv, title: newTitle, summary: newTitle }
+              : conv
+          )
+        );
+      } else {
+        console.error('Failed to rename conversation:', result.error);
+      }
+    } catch (error) {
+      console.error('Error renaming conversation:', error);
+    }
+  }, []);
+
+  // Phase 6: Export conversation
+  const handleConversationExport = useCallback(async (conversationId: string, format: ExportFormat) => {
+    try {
+      const result = await exportConversation(conversationId, format);
+
+      if (result.success && result.content) {
+        // Create and download file
+        const blob = new Blob([result.content], {
+          type: result.mimeType || (format === 'json'
+            ? 'application/json'
+            : format === 'csv'
+              ? 'text/csv'
+              : 'text/markdown')
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.filename || `conversation.${format === 'markdown' ? 'md' : format}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        console.error('Failed to export conversation:', result.error);
+      }
+    } catch (error) {
+      console.error('Error exporting conversation:', error);
+    }
+  }, []);
+
+  // Handle platform refresh
+  const handlePlatformRefresh = useCallback(async (connectionId: string, platformName: string) => {
+    setRefreshingPlatform(connectionId);
+
+    try {
+      const result = await refreshPlatformConnection({ connectionId });
+
+      if (result.success) {
+        // Remove from issues list
+        setPlatformHealthIssues(prev => prev.filter(i => i.connectionId !== connectionId));
+        setDismissedIssues(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(connectionId);
+          return newSet;
+        });
+      } else {
+        console.error('Refresh failed:', result.error);
+      }
+    } catch (error) {
+      console.error('Error refreshing platform:', error);
+    } finally {
+      setRefreshingPlatform(null);
+    }
+  }, []);
+
+  // Handle dismissing a platform issue
+  const handleDismissIssue = useCallback((connectionId: string) => {
+    setDismissedIssues(prev => new Set(prev).add(connectionId));
+  }, []);
+
+  // Phase 6.6: Profile and settings handlers
+  const handleEditProfile = () => {
+    setShowEditProfile(true);
+  };
+
+  const handleSaveProfile = async (data: {
+    inAppEnabled: boolean;
+  }) => {
+    try {
+      // Only update in-app notification preferences
+      // Email preferences are coming soon - backend not yet implemented
+      const result = await updateUserProfile({
+        notificationPreferences: {
+          email: {
+            enabled: false,
+            newMessages: false,
+            platformUpdates: false,
+            weeklyReports: false,
+            frequency: 'instant' as const,
+          },
+          inApp: {
+            enabled: data.inAppEnabled,
+          },
+        },
+      });
+
+      if (result.success) {
+        // Success - modal will close automatically
+        // Next-auth session will be updated on next request
+        console.log('Profile updated successfully');
+      } else {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error; // Re-throw so modal can show error
+    }
+  };
+
+  const handleExportData = async () => {
+    try {
+      const result = await exportUserData();
+
+      if (result.success && result.data) {
+        // Create JSON blob and trigger download
+        const blob = new Blob([JSON.stringify(result.data, null, 2)], {
+          type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `user-data-export-${new Date().toISOString()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        console.error('Export failed:', result.error);
+        alert(result.error || 'Failed to export data');
+      }
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      alert('Failed to export data. Please try again.');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      const result = await deleteAccount();
+
+      if (result.success) {
+        // Sign out and redirect to home
+        const { signOut } = await import('next-auth/react');
+        await signOut({ callbackUrl: '/' });
+      } else {
+        console.error('Delete account failed:', result.error);
+        alert(result.error || 'Failed to delete account');
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('Failed to delete account. Please try again.');
+    }
+  };
+
+  const handleClientEdit = (client: ClientClient) => {
+    setEditingClient(client);
+    setShowEditClient(true);
+  };
+
+  const handleSaveClient = async (
+    clientId: string,
+    data: { name: string; email?: string; logo?: string }
+  ) => {
+    try {
+      const result = await updateClient({ clientId, ...data });
+
+      if (result.success && result.client) {
+        // Update local state
+        const updatedClients = clients.map((c) =>
+          c.id === clientId
+            ? {
+                ...c,
+                name: result.client!.name,
+                email: result.client!.email,
+                logo: result.client!.logo,
+                updatedAt: result.client!.updatedAt,
+              }
+            : c
+        );
+        setClients(updatedClients);
+        setShowEditClient(false);
+        setEditingClient(null);
+      } else {
+        throw new Error(result.error || 'Failed to update client');
+      }
+    } catch (error) {
+      console.error('Error updating client:', error);
+      throw error; // Re-throw so modal can show error
+    }
+  };
+
   if (!isMounted) {
     return null; // Avoid hydration issues
   }
@@ -338,31 +812,89 @@ export function ChatPageClient() {
         conversations={conversations}
         currentConversationId={currentConversationId}
         user={session?.user}
+        // Phase 6.5: View mode props
+        viewMode={viewMode}
+        dashboardSection={dashboardSection}
+        onViewModeChange={setViewMode}
+        onDashboardSectionChange={setDashboardSection}
+        // Phase 6: Search & Filter props
+        searchQuery={searchQuery}
+        conversationFilter={conversationFilter}
+        isSearching={isSearching}
+        // Pagination props
+        hasMoreConversations={hasMoreConversations}
+        isLoadingMore={isLoadingMore}
+        // Phase 6.5: Date range filter props
+        hasMessages={messages.length > 0}
         onClientChange={handleClientChange}
         onCreateClient={() => setIsCreateModalOpen(true)}
         onConfigurePlatforms={handleConfigurePlatforms}
         onNewChat={handleNewChat}
         onConversationSelect={handleConversationSelect}
-        onConversationDelete={handleConversationDelete}
+        onConversationDelete={handleConversationDeleteRequest}
+        // Phase 6: New callbacks
+        onSearch={handleSearch}
+        onClearSearch={handleClearSearch}
+        onFilterChange={handleFilterChange}
+        onLoadMore={handleLoadMoreConversations}
+        onConversationPin={handleConversationPin}
+        onConversationArchive={handleConversationArchive}
+        onConversationUnarchive={handleConversationUnarchive}
+        onConversationRename={handleConversationRename}
+        onConversationExport={handleConversationExport}
       />
 
-      {/* Main Chat Area */}
+      {/* Main Content Area */}
       <main className="flex-1 flex flex-col bg-[#1a1a1a]">
-        {/* Messages */}
-        <div className="flex-1 min-h-0">
-          <MessageList
-            messages={messages}
-            isTyping={isTyping}
-            onQuickReply={handleQuickReply}
-          />
-        </div>
+        {viewMode === 'chat' ? (
+          <>
+            {/* Platform Health Banner */}
+            {platformHealthIssues.filter(i => !dismissedIssues.has(i.connectionId)).length > 0 && (
+              <PlatformHealthBanner
+                issues={platformHealthIssues.filter(i => !dismissedIssues.has(i.connectionId))}
+                onRefresh={handlePlatformRefresh}
+                onGoToSettings={() => router.push('/settings/platforms')}
+                onDismiss={handleDismissIssue}
+                isRefreshing={refreshingPlatform}
+              />
+            )}
 
-        {/* Input */}
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          disabled={isTyping}
-          placeholder="Ask me about your marketing data..."
-        />
+            {/* Messages */}
+            <div className="flex-1 min-h-0">
+              <MessageList
+                messages={messages}
+                isTyping={isTyping}
+                onQuickReply={handleQuickReply}
+              />
+            </div>
+
+            {/* Input */}
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              disabled={isTyping}
+              placeholder="Ask me about your marketing data..."
+            />
+          </>
+        ) : (
+          /* Phase 6.5: Dashboard View */
+          <DashboardView
+            section={dashboardSection}
+            clients={clients}
+            currentClient={currentClient}
+            totalConversations={conversations.length}
+            user={session?.user}
+            userStats={userStats}
+            onSectionChange={setDashboardSection}
+            onClientCreate={() => setIsCreateModalOpen(true)}
+            onClientSelect={handleClientChange}
+            onClientDelete={handleClientDelete}
+            onClientEdit={handleClientEdit}
+            onConfigurePlatforms={handleConfigurePlatforms}
+            onEditProfile={handleEditProfile}
+            onExportData={handleExportData}
+            onDeleteAccount={handleDeleteAccount}
+          />
+        )}
       </main>
 
       {/* Create Client Modal */}
@@ -381,6 +913,36 @@ export function ChatPageClient() {
         }}
         client={clientToConfig}
         onUpdatePlatforms={handleUpdatePlatforms}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onConfirm={handleConversationDeleteConfirm}
+        onCancel={handleConversationDeleteCancel}
+      />
+
+      {/* Phase 6.6: Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={showEditProfile}
+        user={session?.user ? {
+          name: session.user.name || '',
+          email: session.user.email || '',
+          notificationPreferences: (session.user as any).notificationPreferences,
+        } : null}
+        onClose={() => setShowEditProfile(false)}
+        onSubmit={handleSaveProfile}
+      />
+
+      {/* Phase 6.6: Edit Client Modal */}
+      <EditClientModal
+        isOpen={showEditClient}
+        client={editingClient}
+        onClose={() => {
+          setShowEditClient(false);
+          setEditingClient(null);
+        }}
+        onSubmit={handleSaveClient}
       />
     </div>
   );

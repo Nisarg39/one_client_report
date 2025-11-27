@@ -181,9 +181,11 @@ PlatformConnectionSchema.methods.getDecryptedRefreshToken = function (): string 
   return decryptToken(encryptedData);
 };
 
-// Check if token is expired
+// Check if token is expired (with 5-minute safety buffer)
 PlatformConnectionSchema.methods.isExpired = function (): boolean {
-  return new Date() >= this.expiresAt;
+  const now = new Date();
+  const buffer = 5 * 60 * 1000; // 5 minute buffer
+  return now.getTime() >= this.expiresAt.getTime() - buffer;
 };
 
 // Convert to PlatformCredentials

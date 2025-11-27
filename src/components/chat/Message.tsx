@@ -137,12 +137,15 @@ export function Message({ message, index, onQuickReply, isTyping = false }: Mess
                 disabled={isSubmitting}
                 className={`p-1.5 rounded-lg transition-all duration-200 ${
                   feedback === 'positive'
-                    ? 'bg-[#6CA3A2] bg-opacity-20 text-[#6CA3A2]'
-                    : 'text-gray-500 hover:text-[#6CA3A2] hover:bg-[#2a2a2a]'
+                    ? 'text-[#6CA3A2]'
+                    : 'text-gray-500 hover:text-[#6CA3A2]'
                 } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 aria-label="Thumbs up"
               >
-                <ThumbsUp className="w-3.5 h-3.5" />
+                <ThumbsUp
+                  className="w-3.5 h-3.5"
+                  fill={feedback === 'positive' ? 'currentColor' : 'none'}
+                />
               </button>
 
               {/* Thumbs Down */}
@@ -151,12 +154,15 @@ export function Message({ message, index, onQuickReply, isTyping = false }: Mess
                 disabled={isSubmitting}
                 className={`p-1.5 rounded-lg transition-all duration-200 ${
                   feedback === 'negative'
-                    ? 'bg-red-500 bg-opacity-20 text-red-400'
-                    : 'text-gray-500 hover:text-red-400 hover:bg-[#2a2a2a]'
+                    ? 'text-red-400'
+                    : 'text-gray-500 hover:text-red-400'
                 } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 aria-label="Thumbs down"
               >
-                <ThumbsDown className="w-3.5 h-3.5" />
+                <ThumbsDown
+                  className="w-3.5 h-3.5"
+                  fill={feedback === 'negative' ? 'currentColor' : 'none'}
+                />
               </button>
             </div>
           )}

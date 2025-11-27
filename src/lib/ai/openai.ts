@@ -102,6 +102,7 @@ export const openAIProvider: AIProvider = {
       temperature: 0.7,
       max_tokens: 1000,
       stream: true,
+      stream_options: { include_usage: true }, // Phase 6.6: Include token usage in stream
     });
 
     // Create a ReadableStream for SSE
@@ -122,6 +123,18 @@ export const openAIProvider: AIProvider = {
               // Send as Server-Sent Event
               const data = `data: ${JSON.stringify({ content })}\n\n`;
               controller.enqueue(encoder.encode(data));
+            }
+
+            // Phase 6.6: Capture usage from final chunk
+            if (chunk.usage) {
+              const usageData = `data: ${JSON.stringify({
+                usage: {
+                  promptTokens: chunk.usage.prompt_tokens,
+                  completionTokens: chunk.usage.completion_tokens,
+                  totalTokens: chunk.usage.total_tokens,
+                }
+              })}\n\n`;
+              controller.enqueue(encoder.encode(usageData));
             }
           }
 

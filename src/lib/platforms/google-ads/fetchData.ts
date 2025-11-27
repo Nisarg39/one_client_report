@@ -49,8 +49,18 @@ export interface GoogleAdsData {
  * @returns Formatted Google Ads data for AI
  */
 export async function fetchGoogleAdsData(
-  connection: IPlatformConnection
+  connection: IPlatformConnection,
+  startDate?: string,
+  endDate?: string
 ): Promise<GoogleAdsData | null> {
+  // Calculate date range string at the start for use in early returns
+  const formatDate = (d: Date) => d.toISOString().split('T')[0];
+  const defaultEndDate = new Date();
+  const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const start = startDate || formatDate(defaultStartDate);
+  const end = endDate || formatDate(defaultEndDate);
+  const dateRangeString = `${start} to ${end}`;
+
   // Check for developer token first
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
 
@@ -67,7 +77,7 @@ export async function fetchGoogleAdsData(
         avgCpc: 0,
       },
       campaigns: [],
-      dateRange: getDateRangeString(),
+      dateRange: dateRangeString,
       developerTokenStatus: 'missing',
     };
   }
@@ -104,7 +114,7 @@ export async function fetchGoogleAdsData(
             avgCpc: 0,
           },
           campaigns: [],
-          dateRange: getDateRangeString(),
+          dateRange: dateRangeString,
           developerTokenStatus: 'pending',
         };
       }
@@ -125,7 +135,7 @@ export async function fetchGoogleAdsData(
           avgCpc: 0,
         },
         campaigns: [],
-        dateRange: getDateRangeString(),
+        dateRange: dateRangeString,
         developerTokenStatus: 'active',
       };
     }
@@ -134,12 +144,6 @@ export async function fetchGoogleAdsData(
     const customerIds = customerResourceNames.map((name) =>
       name.replace('customers/', '')
     );
-
-    // Date range: last 30 days
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-    const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
     // Aggregate metrics
     let totalMetrics = {
@@ -175,8 +179,8 @@ export async function fetchGoogleAdsData(
             'metrics.cost_micros',
             'metrics.conversions',
           ],
-          formatDate(startDate),
-          formatDate(endDate)
+          start,
+          end
         );
 
         // Aggregate metrics and collect campaigns
@@ -261,7 +265,7 @@ export async function fetchGoogleAdsData(
         avgCpc: Math.round(avgCpc * 100) / 100,
       },
       campaigns: allCampaigns.slice(0, 10), // Limit total campaigns to 10
-      dateRange: getDateRangeString(),
+      dateRange: dateRangeString,
       developerTokenStatus: 'active',
     };
   } catch (error) {
@@ -285,7 +289,7 @@ export async function fetchGoogleAdsData(
             avgCpc: 0,
           },
           campaigns: [],
-          dateRange: getDateRangeString(),
+          dateRange: dateRangeString,
           developerTokenStatus: 'pending',
         };
       }
@@ -295,14 +299,3 @@ export async function fetchGoogleAdsData(
   }
 }
 
-/**
- * Helper to get formatted date range string
- */
-function getDateRangeString(): string {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
-  return `${formatDate(startDate)} to ${formatDate(endDate)}`;
-}

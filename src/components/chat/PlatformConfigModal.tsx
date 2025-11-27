@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   CheckCircle2,
@@ -78,15 +78,17 @@ export function PlatformConfigModal({
   onUpdatePlatforms,
 }: PlatformConfigModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<PlatformKey>>(
-    new Set(
-      client
-        ? (Object.keys(client.platforms) as PlatformKey[]).filter(
-            (key) => client.platforms[key]?.connected
-          )
-        : []
-    )
-  );
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<PlatformKey>>(new Set());
+
+  // Reset selected platforms when modal opens or client changes
+  useEffect(() => {
+    if (isOpen && client) {
+      const connectedKeys = (Object.keys(client.platforms) as PlatformKey[]).filter(
+        (key) => client.platforms[key]?.connected
+      );
+      setSelectedPlatforms(new Set(connectedKeys));
+    }
+  }, [isOpen, client]);
 
   const togglePlatform = (platform: PlatformKey) => {
     setSelectedPlatforms((prev) => {
@@ -128,10 +130,10 @@ export function PlatformConfigModal({
 
   if (!client) return null;
 
-  // Filter to show only connected platforms for this client
-  const connectedPlatforms = AVAILABLE_PLATFORMS.filter(
-    (platform) => client.platforms[platform.key]?.connected
-  );
+  // Count currently connected platforms
+  const connectedCount = AVAILABLE_PLATFORMS.filter(
+    (platform) => selectedPlatforms.has(platform.key)
+  ).length;
 
   return (
     <AnimatePresence>
@@ -186,18 +188,15 @@ export function PlatformConfigModal({
 
               {/* Platform List */}
               <div className="p-6 max-h-[500px] overflow-y-auto">
-                {connectedPlatforms.length > 0 ? (
-                  <>
-                    <p
-                      className="text-sm text-[#c0c0c0] mb-4"
-                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                    >
-                      These are the platforms currently connected for this client.
-                      You can enable or disable them below.
-                    </p>
+                <p
+                  className="text-sm text-[#c0c0c0] mb-4"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                >
+                  Select the platforms you want to connect for this client.
+                </p>
 
-                    <div className="space-y-3">
-                      {connectedPlatforms.map((platform) => {
+                <div className="space-y-3">
+                  {AVAILABLE_PLATFORMS.map((platform) => {
                     const isConnected = selectedPlatforms.has(platform.key);
                     const Icon = platform.icon;
 
@@ -246,36 +245,19 @@ export function PlatformConfigModal({
                       </button>
                     );
                   })}
-                    </div>
+                </div>
 
-                    {/* Info Box */}
-                    <div className="mt-6 p-4 bg-[#1a1a1a] rounded-xl shadow-[inset_2px_2px_6px_rgba(0,0,0,0.6),inset_-2px_-2px_6px_rgba(60,60,60,0.2),0_0_0_1px_rgba(108,163,162,0.2)]">
-                      <p className="text-sm text-[#c0c0c0] flex items-start gap-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                        <Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#6CA3A2]" />
-                        <span>
-                          <strong className="text-[#f5f5f5]">Note:</strong> This is a simplified setup for
-                          development. In production, you'll authenticate with OAuth
-                          for each platform.
-                        </span>
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <p
-                      className="text-sm text-[#c0c0c0] mb-2"
-                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                    >
-                      No platforms are currently connected for this client.
-                    </p>
-                    <p
-                      className="text-xs text-[#808080]"
-                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                    >
-                      Connect platforms to start tracking marketing data.
-                    </p>
-                  </div>
-                )}
+                {/* Info Box */}
+                <div className="mt-6 p-4 bg-[#1a1a1a] rounded-xl shadow-[inset_2px_2px_6px_rgba(0,0,0,0.6),inset_-2px_-2px_6px_rgba(60,60,60,0.2),0_0_0_1px_rgba(108,163,162,0.2)]">
+                  <p className="text-sm text-[#c0c0c0] flex items-start gap-2" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                    <Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#6CA3A2]" />
+                    <span>
+                      <strong className="text-[#f5f5f5]">Note:</strong> This is a simplified setup for
+                      development. In production, you'll authenticate with OAuth
+                      for each platform.
+                    </span>
+                  </p>
+                </div>
               </div>
 
               {/* Footer */}
@@ -284,8 +266,7 @@ export function PlatformConfigModal({
                   className="text-sm text-[#c0c0c0]"
                   style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
                 >
-                  {connectedPlatforms.length} connected platform
-                  {connectedPlatforms.length !== 1 ? 's' : ''}
+                  {connectedCount} platform{connectedCount !== 1 ? 's' : ''} selected
                 </div>
                 <div className="flex gap-3">
                   <button

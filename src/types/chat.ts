@@ -47,6 +47,15 @@ export interface Message {
 }
 
 /**
+ * Token usage tracking for AI cost monitoring (Phase 6.6)
+ */
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+/**
  * Complete conversation with messages
  */
 export interface Conversation {
@@ -59,6 +68,13 @@ export interface Conversation {
   messageCount: number;
   createdAt: Date;
   lastMessageAt: Date;
+  // Phase 6: New fields
+  title?: string; // User-editable title (empty = use first message)
+  isPinned?: boolean; // Pin to top of list
+  tags?: string[]; // Optional tags for filtering
+  archivedAt?: Date; // When conversation was archived
+  // Phase 6.6: Token usage tracking
+  tokenUsage?: TokenUsage; // AI token usage for cost tracking
 }
 
 /**
@@ -73,7 +89,40 @@ export interface ClientConversation {
   messageCount: number;
   createdAt: string;
   lastMessageAt: string;
+  // Phase 6: New fields
+  title?: string;
+  isPinned?: boolean;
+  tags?: string[];
+  archivedAt?: string;
+  // Phase 6.6: Token usage tracking
+  tokenUsage?: TokenUsage;
 }
+
+/**
+ * Conversation filter type
+ */
+export type ConversationFilter = 'all' | 'active' | 'archived';
+
+/**
+ * Export format type
+ */
+export type ExportFormat = 'json' | 'csv' | 'markdown';
+
+/**
+ * View mode for chat page (Phase 6.5)
+ * - 'chat': Show chat interface (messages, input)
+ * - 'dashboard': Show integrated dashboard
+ */
+export type ViewMode = 'chat' | 'dashboard';
+
+/**
+ * Dashboard section navigation (Phase 6.5)
+ * - 'overview': Stats and quick actions
+ * - 'clients': Client management
+ * - 'profile': User profile settings
+ * - 'settings': App settings
+ */
+export type DashboardSection = 'overview' | 'clients' | 'profile' | 'settings';
 
 /**
  * New message payload
@@ -228,6 +277,21 @@ export interface ClientPlatforms {
   googleAds?: PlatformConnection;
   metaAds?: PlatformConnection;
   linkedInAds?: PlatformConnection;
+}
+
+/**
+ * Platform health issue for chat notifications
+ * Tracks platform connection problems detected during data fetching
+ */
+export interface PlatformHealthIssue {
+  connectionId: string;       // ID of the PlatformConnection document
+  platformId: string;         // 'google-analytics', 'google-ads', etc.
+  platformName: string;       // 'Google Analytics', 'Google Ads', etc.
+  status: 'expired' | 'error';
+  error?: string;
+  errorType?: 'expired_token' | 'invalid_grant' | 'network' | 'api_error';
+  expiresAt?: Date;
+  hasRefreshToken: boolean;   // Can we auto-refresh or needs reconnection?
 }
 
 /**

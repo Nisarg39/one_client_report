@@ -7,6 +7,7 @@
 
 import { GoogleAnalyticsClient } from '../google-analytics/client';
 import { IPlatformConnection } from '@/models/PlatformConnection';
+import { getCached, setCache } from './cache';
 
 /**
  * GA property data format - Enhanced with comprehensive metrics
@@ -227,9 +228,26 @@ export async function fetchGoogleAnalyticsData(
  * @returns Data from all accessible properties with enhanced metrics
  */
 export async function fetchAllGoogleAnalyticsProperties(
-  connection: IPlatformConnection
+  connection: IPlatformConnection,
+  startDate?: string,
+  endDate?: string
 ): Promise<GAMultiPropertyData | null> {
   try {
+    // Date range: use provided dates or default to last 30 days
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    const defaultEndDate = new Date();
+    const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const start = startDate || formatDate(defaultStartDate);
+    const end = endDate || formatDate(defaultEndDate);
+
+    // Check cache first (5-minute TTL) - Include date range in cache key
+    const cacheKey = `ga-all-${connection.userId}-${connection.clientId}-${start}-${end}`;
+    const cached = getCached<GAMultiPropertyData>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
     const accessToken = connection.getDecryptedAccessToken();
     if (!accessToken) {
       console.error('No access token available for Google Analytics');
@@ -241,24 +259,17 @@ export async function fetchAllGoogleAnalyticsProperties(
     // Get all available properties
     const allProperties = await client.listProperties();
     if (allProperties.length === 0) {
-      console.log('[GA Fetch] No properties found');
       return null;
     }
 
-    console.log(`[GA Fetch] Found ${allProperties.length} properties, fetching comprehensive data...`);
+    // Create date ranges array for API calls
+    const dateRanges = [{ startDate: start, endDate: end }];
 
-    // Date range: last 30 days
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-    const formatDate = (d: Date) => d.toISOString().split('T')[0];
-    const dateRanges = [{ startDate: formatDate(startDate), endDate: formatDate(endDate) }];
+    // Fetch data for each property (limit to first 3 for performance)
+    const propertiesToFetch = allProperties.slice(0, 3);
 
-    // Fetch data for each property (limit to first 5 to avoid rate limits)
-    const propertiesToFetch = allProperties.slice(0, 5);
-    const propertiesData: GAPropertyData[] = [];
-
-    for (const prop of propertiesToFetch) {
+    // Fetch all properties in parallel for better performance
+    const propertiesDataPromises = propertiesToFetch.map(async (prop) => {
       try {
         // 1. Fetch REAL-TIME active users first
         let realtime: GAPropertyData['realtime'] = undefined;
@@ -268,10 +279,8 @@ export async function fetchAllGoogleAnalyticsProperties(
             activeUsers: realtimeData.activeUsers,
             byDevice: realtimeData.activeUsersByDevice,
           };
-          console.log(`[GA Fetch] ${prop.displayName}: ${realtimeData.activeUsers} active users RIGHT NOW`);
         } catch (realtimeError: any) {
-          // Real-time might not be available for all properties
-          console.log(`[GA Fetch] Realtime not available for ${prop.displayName}: ${realtimeError.message}`);
+          // Real-time might not be available for all properties - silently continue
         }
 
         // 2. Fetch comprehensive historical metrics
@@ -381,13 +390,11 @@ export async function fetchAllGoogleAnalyticsProperties(
             }));
           } catch (e) { /* skip on error */ }
 
-          // 7. Fetch daily breakdown (last 7 days for trends)
+          // 7. Fetch daily breakdown for the selected date range
           try {
-            const last7Days = new Date();
-            last7Days.setDate(last7Days.getDate() - 7);
             const dailyResponse = await client.runReport({
               propertyId: prop.propertyId,
-              dateRanges: [{ startDate: formatDate(last7Days), endDate: formatDate(endDate) }],
+              dateRanges: [{ startDate: start, endDate: end }],
               metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'screenPageViews' }],
               dimensions: [{ name: 'date' }],
             });
@@ -400,26 +407,34 @@ export async function fetchAllGoogleAnalyticsProperties(
           } catch (e) { /* skip on error */ }
         }
 
-        propertiesData.push({
+        return {
           propertyId: prop.propertyId,
           propertyName: prop.displayName,
           realtime,
           metrics,
           dimensions,
-        });
-
-        console.log(`[GA Fetch] ${prop.displayName}: ${metrics.sessions} sessions (30d), ${realtime?.activeUsers || 0} active now`);
+        };
       } catch (propError: any) {
         // Skip properties that error (e.g., 429 rate limits on demo properties)
-        console.log(`[GA Fetch] Skipping ${prop.displayName}: ${propError.message}`);
+        console.error(`Error fetching data for GA property ${prop.displayName}:`, propError);
+        return null;
       }
-    }
+    });
 
-    return {
+    // Wait for all properties to be fetched in parallel
+    const propertiesResults = await Promise.all(propertiesDataPromises);
+    const propertiesData = propertiesResults.filter((p) => p !== null) as GAPropertyData[];
+
+    const result = {
       properties: propertiesData,
-      dateRange: `${formatDate(startDate)} to ${formatDate(endDate)}`,
+      dateRange: `${start} to ${end}`,
       selectedPropertyId: connection.metadata?.propertyId,
     };
+
+    // Cache the result for 5 minutes
+    setCache(cacheKey, result);
+
+    return result;
   } catch (error) {
     console.error('Error fetching all GA properties:', error);
     return null;

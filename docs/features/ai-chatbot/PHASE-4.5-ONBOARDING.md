@@ -173,7 +173,7 @@ async function handleOAuthRedirect(userId: string): Promise<string> {
 ┌────────────────────────────────────────────────────────────────┐
 │ Step 2: Create First Client                                   │
 ├────────────────────────────────────────────────────────────────┤
-│ Who do you work with? 👥                                       │
+│ Who do you work with?                                       │
 │                                                                │
 │ [ Client Name ]                                                │
 │ [ Client Email (optional) ]                                    │
@@ -655,7 +655,7 @@ Ready to get started? Let's set up your first client!
 
 **Content:**
 ```
-Who do you work with? 👥
+Who do you work with?
 
 Add your first client to get started with OneAssist
 

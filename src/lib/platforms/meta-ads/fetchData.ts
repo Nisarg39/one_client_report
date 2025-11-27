@@ -67,9 +67,19 @@ function getAccountStatusString(status: number): string {
  * @returns Formatted Meta Ads data for AI
  */
 export async function fetchMetaAdsData(
-  connection: IPlatformConnection
+  connection: IPlatformConnection,
+  startDate?: string,
+  endDate?: string
 ): Promise<MetaAdsData | null> {
   try {
+    // Calculate date range string at the start for use in early returns
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    const defaultEndDate = new Date();
+    const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate || formatDate(defaultStartDate);
+    const end = endDate || formatDate(defaultEndDate);
+    const dateRangeString = `${start} to ${end}`;
+
     // Get the access token
     const accessToken = connection.getDecryptedAccessToken();
     if (!accessToken) {
@@ -105,7 +115,7 @@ export async function fetchMetaAdsData(
           frequency: 0,
         },
         campaigns: [],
-        dateRange: getDateRangeString(),
+        dateRange: dateRangeString,
       };
     }
 
@@ -124,10 +134,9 @@ export async function fetchMetaAdsData(
 
     for (const account of accountsToFetch) {
       try {
-        // Get account-level insights for last 30 days
-        const insightsResponse = await client.getInsights({
+        // Get account-level insights
+        const insightsParams: any = {
           adAccountId: account.id,
-          datePreset: 'last_30d',
           fields: [
             'impressions',
             'reach',
@@ -139,7 +148,16 @@ export async function fetchMetaAdsData(
             'frequency',
           ],
           level: 'account',
-        });
+        };
+
+        // Use time_range if custom dates provided, otherwise use preset
+        if (startDate && endDate) {
+          insightsParams.time_range = { since: start, until: end };
+        } else {
+          insightsParams.datePreset = 'last_30d';
+        }
+
+        const insightsResponse = await client.getInsights(insightsParams);
 
         // Sum up metrics from response
         if (insightsResponse.data && insightsResponse.data.length > 0) {
@@ -157,12 +175,20 @@ export async function fetchMetaAdsData(
 
           // Get campaign-level insights
           if (campaigns.length > 0) {
-            const campaignInsights = await client.getInsights({
+            const campaignInsightsParams: any = {
               adAccountId: account.id,
-              datePreset: 'last_30d',
               fields: ['campaign_id', 'campaign_name', 'impressions', 'clicks', 'spend'],
               level: 'campaign',
-            });
+            };
+
+            // Use time_range if custom dates provided, otherwise use preset
+            if (startDate && endDate) {
+              campaignInsightsParams.time_range = { since: start, until: end };
+            } else {
+              campaignInsightsParams.datePreset = 'last_30d';
+            }
+
+            const campaignInsights = await client.getInsights(campaignInsightsParams);
 
             // Map campaign IDs to insights
             const campaignMetricsMap = new Map<string, any>();
@@ -229,7 +255,7 @@ export async function fetchMetaAdsData(
         frequency: Math.round(frequency * 100) / 100,
       },
       campaigns: allCampaigns,
-      dateRange: getDateRangeString(),
+      dateRange: dateRangeString,
     };
   } catch (error) {
     console.error('[Meta Ads] Error fetching data:', error);
@@ -241,16 +267,4 @@ export async function fetchMetaAdsData(
 
     return null;
   }
-}
-
-/**
- * Helper to get formatted date range string
- */
-function getDateRangeString(): string {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
-  return `${formatDate(startDate)} to ${formatDate(endDate)}`;
 }

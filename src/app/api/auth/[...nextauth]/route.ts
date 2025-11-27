@@ -79,6 +79,7 @@ export const authOptions: NextAuthOptions = {
 
           // Set MongoDB ObjectId as the token ID (not NextAuth's account ID)
           token.id = dbUser._id.toString();
+          token.createdAt = dbUser.createdAt.toISOString();
         } catch (error) {
           console.error('Error upserting user:', error);
         }
@@ -94,6 +95,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
+        (session.user as any).createdAt = token.createdAt as string;
       }
       return session;
     },

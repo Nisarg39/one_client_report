@@ -114,7 +114,7 @@ export function CreateClientStep({
           className="text-3xl font-bold text-[#f5f5f5] mb-3"
           style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
         >
-          Who do you work with? 👥
+          Who do you work with? 
         </h2>
         <p className="text-[#c0c0c0]">
           Add your first client to get started with OneAssist

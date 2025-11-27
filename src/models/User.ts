@@ -25,6 +25,20 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   status: 'active' | 'inactive' | 'suspended';
 
+  // Phase 6.6: Notification preferences
+  notificationPreferences?: {
+    email: {
+      enabled: boolean;
+      newMessages: boolean;
+      platformUpdates: boolean;
+      weeklyReports: boolean;
+      frequency: 'instant' | 'daily' | 'weekly';
+    };
+    inApp: {
+      enabled: boolean;
+    };
+  };
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -81,6 +95,38 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ['active', 'inactive', 'suspended'],
       default: 'active',
+    },
+    // Phase 6.6: Notification preferences
+    notificationPreferences: {
+      email: {
+        enabled: {
+          type: Boolean,
+          default: true,
+        },
+        newMessages: {
+          type: Boolean,
+          default: true,
+        },
+        platformUpdates: {
+          type: Boolean,
+          default: true,
+        },
+        weeklyReports: {
+          type: Boolean,
+          default: false,
+        },
+        frequency: {
+          type: String,
+          enum: ['instant', 'daily', 'weekly'],
+          default: 'instant',
+        },
+      },
+      inApp: {
+        enabled: {
+          type: Boolean,
+          default: true,
+        },
+      },
     },
   },
   {

@@ -43,15 +43,45 @@ export interface LinkedInAdsData {
 }
 
 /**
+ * Helper to convert ISO 8601 date string to LinkedIn's date format
+ */
+function convertToLinkedInDate(isoDateString: string): { year: number; month: number; day: number } {
+  const date = new Date(isoDateString);
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1, // LinkedIn uses 1-indexed months
+    day: date.getDate(),
+  };
+}
+
+/**
  * Fetch LinkedIn Ads data for AI context
  *
  * @param connection - Platform connection with decrypted tokens
+ * @param startDate - Optional start date in ISO 8601 format (YYYY-MM-DD)
+ * @param endDate - Optional end date in ISO 8601 format (YYYY-MM-DD)
  * @returns Formatted LinkedIn Ads data for AI
  */
 export async function fetchLinkedInAdsData(
-  connection: IPlatformConnection
+  connection: IPlatformConnection,
+  startDate?: string,
+  endDate?: string
 ): Promise<LinkedInAdsData | null> {
   try {
+    // Calculate date range string at the start for use in early returns
+    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    const defaultEndDate = new Date();
+    const defaultStartDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = startDate || formatDate(defaultStartDate);
+    const end = endDate || formatDate(defaultEndDate);
+    const dateRangeString = `${start} to ${end}`;
+
+    // Convert to LinkedIn's date format
+    const dateRange = {
+      start: convertToLinkedInDate(start),
+      end: convertToLinkedInDate(end),
+    };
+
     // Get the access token
     const accessToken = connection.getDecryptedAccessToken();
     if (!accessToken) {
@@ -88,27 +118,9 @@ export async function fetchLinkedInAdsData(
           shares: 0,
         },
         campaigns: [],
-        dateRange: getDateRangeString(),
+        dateRange: dateRangeString,
       };
     }
-
-    // Date range: last 30 days
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
-
-    const dateRange = {
-      start: {
-        year: startDate.getFullYear(),
-        month: startDate.getMonth() + 1, // LinkedIn uses 1-indexed months
-        day: startDate.getDate(),
-      },
-      end: {
-        year: endDate.getFullYear(),
-        month: endDate.getMonth() + 1,
-        day: endDate.getDate(),
-      },
-    };
 
     // Aggregate metrics from all accounts
     let totalMetrics = {
@@ -235,7 +247,7 @@ export async function fetchLinkedInAdsData(
         shares: totalMetrics.shares,
       },
       campaigns: allCampaigns,
-      dateRange: getDateRangeString(),
+      dateRange: dateRangeString,
     };
   } catch (error) {
     console.error('[LinkedIn Ads] Error fetching data:', error);
@@ -247,16 +259,4 @@ export async function fetchLinkedInAdsData(
 
     return null;
   }
-}
-
-/**
- * Helper to get formatted date range string
- */
-function getDateRangeString(): string {
-  const endDate = new Date();
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-
-  const formatDate = (d: Date) => d.toISOString().split('T')[0];
-  return `${formatDate(startDate)} to ${formatDate(endDate)}`;
 }
