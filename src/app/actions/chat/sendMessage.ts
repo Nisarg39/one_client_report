@@ -346,6 +346,30 @@ export async function sendMessageStream(
             conversationIdSent = true;
           }
 
+          // Phase 6.7: Send platform data to client for metrics dashboard
+          if (platformData && Object.keys(platformData).length > 0) {
+            // Build platform data payload
+            const platformDataPayload = {
+              timestamp: Date.now(),
+              dateRange: {
+                startDate: dateRange?.startDate || '',
+                endDate: dateRange?.endDate || '',
+              },
+              platforms: {
+                googleAnalytics: platformData.googleAnalyticsMulti || null,
+                googleAds: platformData.googleAds || null,
+                metaAds: platformData.metaAds || null,
+                linkedInAds: platformData.linkedInAds || null,
+              },
+            };
+
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ platformData: platformDataPayload })}\n\n`
+              )
+            );
+          }
+
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;

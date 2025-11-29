@@ -21,6 +21,8 @@ import { EditProfileModal } from '@/components/chat/EditProfileModal';
 import { EditClientModal } from '@/components/chat/EditClientModal';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { PlatformHealthBanner } from '@/components/chat/PlatformHealthBanner';
+import { MetricsDashboardPanel } from '@/components/chat/MetricsDashboardPanel';
+import { ChartBar } from 'lucide-react';
 import { useStreamingChat } from '@/lib/ai/useStreamingChat';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import type { Message, ClientClient, ConversationFilter, ExportFormat, ViewMode, DashboardSection, PlatformHealthIssue } from '@/types/chat';
@@ -60,6 +62,10 @@ export function ChatPageClient() {
     setClients,
     clearMessages,
     dateRangeFilter,
+    // Phase 6.7: Metrics Dashboard
+    metricsDashboard,
+    toggleMetricsDashboard,
+    setPlatformData,
   } = useChatStore();
 
   const { streamMessage } = useStreamingChat();
@@ -213,6 +219,10 @@ export function ChatPageClient() {
         onPlatformStatus: (issues: PlatformHealthIssue[]) => {
           // Received platform health issues from stream
           setPlatformHealthIssues(issues);
+        },
+        onPlatformData: (data) => {
+          // Phase 6.7: Received platform data for metrics dashboard
+          setPlatformData(data);
         },
         onComplete: async (fullResponse, conversationId) => {
           // Set conversationId in store if we received one (for new conversations)
@@ -845,9 +855,24 @@ export function ChatPageClient() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col bg-[#1a1a1a]">
+      <main
+        className="flex-1 flex flex-col bg-[#1a1a1a] transition-all duration-300"
+        style={{
+          marginRight: metricsDashboard.isVisible ? `${metricsDashboard.width}px` : '0px',
+        }}
+      >
         {viewMode === 'chat' ? (
           <>
+            {/* Phase 6.7: Metrics Toggle Button */}
+            <button
+              onClick={toggleMetricsDashboard}
+              className="fixed top-4 right-4 z-30 p-3 rounded-xl bg-[#6CA3A2] text-white shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.4)] transition-all"
+              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              title="Toggle metrics panel"
+            >
+              <ChartBar className="w-5 h-5" />
+            </button>
+
             {/* Platform Health Banner */}
             {platformHealthIssues.filter(i => !dismissedIssues.has(i.connectionId)).length > 0 && (
               <PlatformHealthBanner
@@ -943,6 +968,12 @@ export function ChatPageClient() {
           setEditingClient(null);
         }}
         onSubmit={handleSaveClient}
+      />
+
+      {/* Phase 6.7: Metrics Dashboard Panel */}
+      <MetricsDashboardPanel
+        isVisible={metricsDashboard.isVisible}
+        onToggle={toggleMetricsDashboard}
       />
     </div>
   );

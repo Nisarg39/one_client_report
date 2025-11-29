@@ -101,7 +101,7 @@ export function EmptyState({ onQuickReply }: EmptyStateProps) {
       >
         <Lightbulb className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
         <span>
-          Tip: Connect your marketing platforms in Settings → Integrations to
+          Tip: Connect your marketing platforms in Settings → Platforms to
           get real insights about your data.
         </span>
       </motion.p>

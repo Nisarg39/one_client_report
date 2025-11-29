@@ -382,6 +382,16 @@ function PlatformsContent() {
           </div>
         )}
 
+        {/* Back to Chat Link */}
+        <div className="max-w-3xl mx-auto">
+          <a
+            href="/chat"
+            className="inline-flex items-center gap-2 text-base font-medium text-[#6CA3A2] hover:text-[#5a9493] transition-colors"
+          >
+            ← Back to Chat
+          </a>
+        </div>
+
         {/* Client Selector */}
         <div className="max-w-3xl mx-auto">
           <div className="p-6 rounded-2xl bg-[#1a1a1a] shadow-[-8px_-8px_20px_rgba(70,70,70,0.3),8px_8px_20px_rgba(0,0,0,0.7)] border border-[#2a2a2a]">
@@ -646,16 +656,6 @@ function PlatformsContent() {
             </div>
           </div>
         )}
-
-        {/* Back to Chat Link */}
-        <div className="text-center">
-          <a
-            href="/chat"
-            className="inline-flex items-center gap-2 text-sm text-[#6CA3A2] hover:text-[#5a9493] transition-colors"
-          >
-            ← Back to Chat
-          </a>
-        </div>
       </div>
     </div>
   );

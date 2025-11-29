@@ -9,12 +9,14 @@
 import { useState, useCallback } from 'react';
 import { sendMessageStream } from '@/app/actions/chat/sendMessage';
 import type { Message, PlatformHealthIssue } from '@/types/chat';
+import type { PlatformDataPayload } from '@/stores/useChatStore';
 
 interface UseStreamingChatOptions {
   onToken?: (token: string) => void;
   onComplete?: (fullResponse: string, conversationId: string | null) => void;
   onError?: (error: string) => void;
   onPlatformStatus?: (issues: PlatformHealthIssue[]) => void;
+  onPlatformData?: (data: PlatformDataPayload) => void; // Phase 6.7
 }
 
 export function useStreamingChat() {
@@ -31,7 +33,7 @@ export function useStreamingChat() {
       options: UseStreamingChatOptions = {},
       dateRange?: { startDate?: string; endDate?: string }
     ) => {
-      const { onToken, onComplete, onError, onPlatformStatus } = options;
+      const { onToken, onComplete, onError, onPlatformStatus, onPlatformData } = options;
 
       setIsStreaming(true);
       let fullResponse = '';
@@ -93,6 +95,13 @@ export function useStreamingChat() {
                 if (parsed.conversationId) {
                   // Conversation ID received (for new conversations)
                   receivedConversationId = parsed.conversationId;
+                }
+
+                if (parsed.platformData) {
+                  // Phase 6.7: Platform metrics data received
+                  if (onPlatformData) {
+                    onPlatformData(parsed.platformData);
+                  }
                 }
 
                 if (parsed.content) {

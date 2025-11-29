@@ -11,8 +11,32 @@
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Message, ClientClient, ConversationFilter } from '@/types/chat';
 import type { DatePreset, DateRange } from '@/lib/utils/datePresets';
+
+/**
+ * Platform type identifier
+ */
+export type PlatformType = 'googleAnalytics' | 'googleAds' | 'metaAds' | 'linkedInAds';
+
+/**
+ * Platform data payload from SSE stream
+ * Contains metrics data for all connected platforms
+ */
+export interface PlatformDataPayload {
+  timestamp: number;
+  dateRange: {
+    startDate: string;
+    endDate: string;
+  };
+  platforms: {
+    googleAnalytics?: any; // GA4 property data array
+    googleAds?: any;
+    metaAds?: any;
+    linkedInAds?: any;
+  };
+}
 
 /**
  * Chat store state and actions
@@ -38,6 +62,18 @@ interface ChatStore {
   // Phase 6.5: Date Range Filter State
   dateRangeFilter: DateRange | null;    // Current date range filter (null = use default)
   selectedDatePreset: DatePreset;       // Currently selected preset
+
+  // Phase 6.7: Metrics Dashboard State
+  metricsDashboard: {
+    isVisible: boolean;                 // Is metrics panel visible?
+    selectedPlatform: PlatformType | null; // Currently selected platform tab
+    width: number;                      // Panel width in pixels (desktop)
+    mode: 'split' | 'collapsed' | 'overlay'; // Layout mode
+  };
+
+  // Phase 6.7: Platform Data Cache
+  platformData: PlatformDataPayload | null;  // Cached platform metrics data
+  platformDataTimestamp: number | null;       // When data was last fetched
 
   // UI Actions
   openChat: () => void;
@@ -70,6 +106,13 @@ interface ChatStore {
   setDateRangeFilter: (dateRange: DateRange | null) => void;
   setSelectedDatePreset: (preset: DatePreset) => void;
   clearDateRangeFilter: () => void;
+
+  // Phase 6.7: Metrics Dashboard Actions
+  toggleMetricsDashboard: () => void;
+  setMetricsDashboardVisible: (visible: boolean) => void;
+  setMetricsDashboardPlatform: (platform: PlatformType) => void;
+  setMetricsDashboardWidth: (width: number) => void;
+  setPlatformData: (data: PlatformDataPayload) => void;
 }
 
 /**
@@ -80,7 +123,9 @@ interface ChatStore {
  * const { isOpen, openChat, messages, addMessage } = useChatStore();
  * ```
  */
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>()(
+  persist(
+    (set) => ({
   // Initial State
   isOpen: false,
   isTyping: false,
@@ -95,6 +140,18 @@ export const useChatStore = create<ChatStore>((set) => ({
   // Phase 6.5: Date Range Filter Initial State
   dateRangeFilter: null, // null = use default (last 30 days in backend)
   selectedDatePreset: 'last_30d' as DatePreset,
+
+  // Phase 6.7: Metrics Dashboard Initial State
+  metricsDashboard: {
+    isVisible: false,
+    selectedPlatform: null,
+    width: 400, // Default panel width (px)
+    mode: 'collapsed' as const,
+  },
+
+  // Phase 6.7: Platform Data Initial State
+  platformData: null,
+  platformDataTimestamp: null,
 
   // UI Actions
   openChat: () => set({ isOpen: true }),
@@ -163,4 +220,55 @@ export const useChatStore = create<ChatStore>((set) => ({
       dateRangeFilter: null,
       selectedDatePreset: 'last_30d' as DatePreset,
     }),
-}));
+
+  // Phase 6.7: Metrics Dashboard Actions
+  toggleMetricsDashboard: () =>
+    set((state) => ({
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        isVisible: !state.metricsDashboard.isVisible,
+        mode: !state.metricsDashboard.isVisible ? 'split' : 'collapsed',
+      },
+    })),
+
+  setMetricsDashboardVisible: (visible) =>
+    set((state) => ({
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        isVisible: visible,
+        mode: visible ? 'split' : 'collapsed',
+      },
+    })),
+
+  setMetricsDashboardPlatform: (platform) =>
+    set((state) => ({
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        selectedPlatform: platform,
+      },
+    })),
+
+  setMetricsDashboardWidth: (width) =>
+    set((state) => ({
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        width: Math.max(300, Math.min(800, width)), // Constrain between 300-800px
+      },
+    })),
+
+  setPlatformData: (data) =>
+    set({
+      platformData: data,
+      platformDataTimestamp: Date.now(),
+    }),
+    }),
+    {
+      name: 'chat-store',
+      partialize: (state) => ({
+        // Persist only UI preferences, not transient data
+        metricsDashboard: state.metricsDashboard,
+        // Don't persist platformData (always fetch fresh)
+      }),
+    }
+  )
+);

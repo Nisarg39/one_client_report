@@ -60,6 +60,7 @@ You help users understand their marketing data from Google Analytics, Google Ads
 - Break down complex data into bullet points
 - Provide actionable insights, not just raw numbers
 
+
 ## Capabilities`;
 
   // Add platform-specific information
@@ -114,10 +115,10 @@ You help users understand their marketing data from Google Analytics, Google Ads
         platformInfo += `\n## Data Status\nNote: Platform data is currently being synced. For now, let the user know you'll be able to provide insights once the data sync is complete. You can still explain what kind of insights you'll be able to provide.`;
       }
     } else {
-      platformInfo += `\n\n## No Platforms Connected\nThe user hasn't connected any marketing platforms yet. Guide them to:\n1. Go to Settings → Integrations\n2. Connect their Google Analytics, Ads, Meta, or LinkedIn accounts\n3. Return here to start getting insights`;
+      platformInfo += `\n\n## No Platforms Connected\nThe user hasn't connected any marketing platforms yet. Guide them to:\n1. Go to Settings → Platforms\n2. Connect their Google Analytics, Ads, Meta, or LinkedIn accounts\n3. Return here to start getting insights`;
     }
   } else {
-    platformInfo += `\n\n## Getting Started\nTo provide insights, the user needs to:\n1. Select or create a client\n2. Connect marketing platforms (Settings → Integrations)\n3. Ask questions about their data`;
+    platformInfo += `\n\n## Getting Started\nTo provide insights, the user needs to:\n1. Select or create a client\n2. Connect marketing platforms (Settings → Platforms)\n3. Ask questions about their data`;
   }
 
   const limitations = `\n\n## Important Notes
@@ -218,6 +219,48 @@ export function buildPlatformDataContext(platformData: any): string {
           context += `\n**Top Countries:**\n`;
           prop.dimensions.countries.forEach((c: any) => {
             context += `- ${c.country}: ${c.users?.toLocaleString()} users\n`;
+          });
+        }
+
+        // Enhanced Phase 2 Metrics: Campaigns (UTM tracking)
+        if (prop.topCampaigns && prop.topCampaigns.length > 0) {
+          context += `\n**Top Campaigns (UTM Tracking):**\n`;
+          prop.topCampaigns.forEach((c: any) => {
+            context += `- Source: ${c.source} | Medium: ${c.medium} | Campaign: ${c.campaign}\n`;
+            context += `  ${c.sessions?.toLocaleString()} sessions, ${c.users?.toLocaleString()} users\n`;
+          });
+        }
+
+        // Enhanced Phase 2 Metrics: Events
+        if (prop.topEvents && prop.topEvents.length > 0) {
+          context += `\n**Top Events Tracked:**\n`;
+          prop.topEvents.forEach((e: any) => {
+            context += `- ${e.eventName}: ${e.eventCount?.toLocaleString()} times\n`;
+          });
+        }
+
+        // Enhanced Phase 2 Metrics: Landing Pages
+        if (prop.topLandingPages && prop.topLandingPages.length > 0) {
+          context += `\n**Best Performing Landing Pages:**\n`;
+          prop.topLandingPages.forEach((p: any) => {
+            const bounceRateStr = p.bounceRate ? (p.bounceRate * 100).toFixed(1) + '%' : 'N/A';
+            context += `- ${p.page}: ${p.sessions?.toLocaleString()} sessions (Bounce Rate: ${bounceRateStr})\n`;
+          });
+        }
+
+        // Enhanced Phase 2 Metrics: Cities
+        if (prop.topCities && prop.topCities.length > 0) {
+          context += `\n**Top Cities:**\n`;
+          prop.topCities.forEach((c: any) => {
+            context += `- ${c.city}, ${c.country}: ${c.sessions?.toLocaleString()} sessions\n`;
+          });
+        }
+
+        // Enhanced Phase 2 Metrics: Regions
+        if (prop.topRegions && prop.topRegions.length > 0) {
+          context += `\n**Top Regions/States:**\n`;
+          prop.topRegions.forEach((r: any) => {
+            context += `- ${r.region}, ${r.country}: ${r.sessions?.toLocaleString()} sessions\n`;
           });
         }
 

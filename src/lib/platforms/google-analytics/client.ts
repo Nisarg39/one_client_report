@@ -11,7 +11,7 @@ import { GA4RunReportRequest, GA4Response, GA4Property } from './types';
  */
 export class GoogleAnalyticsClient {
   private accessToken: string;
-  private apiVersion: string = 'v1beta';
+  private apiVersion: string = 'v1beta'; // NOTE: v1 doesn't exist yet, API is still in beta
 
   constructor(accessToken: string) {
     this.accessToken = accessToken;
@@ -51,6 +51,50 @@ export class GoogleAnalyticsClient {
     }
 
     return response.json();
+  }
+
+  /**
+   * Run multiple GA4 reports in a single batch request
+   * This is much more efficient than multiple sequential runReport calls
+   *
+   * @param propertyId - GA4 property ID
+   * @param requests - Array of report request parameters
+   * @returns Array of GA4 API responses
+   */
+  async batchRunReports(
+    propertyId: string,
+    requests: Omit<GA4RunReportRequest, 'propertyId'>[]
+  ): Promise<GA4Response[]> {
+    const url = `https://analyticsdata.googleapis.com/${this.apiVersion}/properties/${propertyId}:batchRunReports`;
+
+    const body = {
+      requests: requests.map((req) => ({
+        dateRanges: req.dateRanges,
+        metrics: req.metrics,
+        dimensions: req.dimensions || [],
+        limit: req.limit || 10000,
+        offset: req.offset || 0,
+      })),
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Google Analytics Batch API error (${response.status}): ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    return data.reports || [];
   }
 
   /**

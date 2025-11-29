@@ -51,18 +51,19 @@ export function QuickReplySuggestions({
           onClick={() => !disabled && onSuggestionClick(suggestion)}
           disabled={disabled}
           className={`
-            px-3 py-2
+            px-4 py-2.5
             text-xs font-medium
-            rounded-lg
-            border border-gray-700
-            bg-[#2a2a2a]
+            rounded-xl
+            bg-[#1a1a1a]
+            text-left
             transition-all duration-200
             ${
               disabled
-                ? 'opacity-50 cursor-not-allowed text-gray-500'
-                : 'hover:border-[#6CA3A2] hover:bg-[#6CA3A2] hover:bg-opacity-10 hover:text-[#6CA3A2] text-gray-300 cursor-pointer'
+                ? 'opacity-50 cursor-not-allowed text-gray-500 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5),inset_-2px_-2px_4px_rgba(60,60,60,0.2)]'
+                : 'text-[#c0c0c0] cursor-pointer shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] hover:shadow-[-2px_-2px_8px_rgba(60,60,60,0.4),2px_2px_8px_rgba(0,0,0,0.8)] active:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.7),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]'
             }
           `}
+          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
           aria-label={`Quick reply: ${suggestion.text}`}
         >
           {suggestion.text}

@@ -25,6 +25,7 @@ export interface GAPropertyData {
     sessions: number;
     users: number;
     newUsers: number;
+    returningUsers: number; // PHASE 1: Added!
     pageviews: number;
     bounceRate: number;
     avgSessionDuration: number;
@@ -40,6 +41,44 @@ export interface GAPropertyData {
     countries: Array<{ country: string; users: number }>;
     daily: Array<{ date: string; sessions: number; users: number; pageviews: number }>;
   };
+
+  // NEW: Enhanced metrics (Phase 2 - Campaign, Events, Landing/Exit, Geography)
+  topCampaigns?: Array<{
+    source: string;
+    medium: string;
+    campaign: string;
+    sessions: number;
+    users: number;
+  }>;
+
+  topEvents?: Array<{
+    eventName: string;
+    eventCount: number;
+  }>;
+
+  topLandingPages?: Array<{
+    page: string;
+    sessions: number;
+    bounceRate: number;
+  }>;
+
+  topCities?: Array<{
+    city: string;
+    country: string;
+    sessions: number;
+  }>;
+
+  topRegions?: Array<{
+    region: string;
+    country: string;
+    sessions: number;
+  }>;
+
+  // PHASE 1: Browser breakdown
+  browserBreakdown?: Array<{
+    browser: string;
+    sessions: number;
+  }>;
 }
 
 /**
@@ -283,28 +322,119 @@ export async function fetchAllGoogleAnalyticsProperties(
           // Real-time might not be available for all properties - silently continue
         }
 
-        // 2. Fetch comprehensive historical metrics
-        const metricsResponse = await client.runReport({
-          propertyId: prop.propertyId,
-          dateRanges,
-          metrics: [
-            { name: 'sessions' },
-            { name: 'activeUsers' },
-            { name: 'newUsers' },
-            { name: 'screenPageViews' },
-            { name: 'bounceRate' },
-            { name: 'averageSessionDuration' },
-            { name: 'engagementRate' },
-            { name: 'sessionsPerUser' },
-            { name: 'eventCount' },
-          ],
-        });
+        // 2. BATCH FETCH: Split into 3 batches (GA4 API limit: 5 requests per batch)
+        // Batch 1: Essential metrics (Reports 0-4)
+        const batch1 = await client.batchRunReports(prop.propertyId, [
+          // Report 0: Comprehensive historical metrics
+          {
+            dateRanges,
+            metrics: [
+              { name: 'sessions' },
+              { name: 'totalUsers' }, // PHASE 1: Changed from activeUsers to get total unique users
+              { name: 'newUsers' },
+              { name: 'screenPageViews' },
+              { name: 'bounceRate' },
+              { name: 'averageSessionDuration' },
+              { name: 'engagementRate' },
+              { name: 'sessionsPerUser' },
+              { name: 'eventCount' },
+            ],
+          },
+          // Report 1: Top traffic sources with users
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
+            dimensions: [{ name: 'sessionSource' }],
+            limit: 5,
+          },
+          // Report 2: Device breakdown (including browser!)
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }],
+            dimensions: [{ name: 'deviceCategory' }, { name: 'browser' }], // PHASE 1: Added browser!
+          },
+          // Report 3: Top pages
+          {
+            dateRanges,
+            metrics: [{ name: 'screenPageViews' }, { name: 'averageSessionDuration' }],
+            dimensions: [{ name: 'pagePath' }],
+            limit: 5,
+          },
+          // Report 4: Top countries
+          {
+            dateRanges,
+            metrics: [{ name: 'activeUsers' }],
+            dimensions: [{ name: 'country' }],
+            limit: 5,
+          },
+        ]);
 
-        const metricsRow = metricsResponse.rows?.[0];
+        // Batch 2: Enhanced metrics (Reports 5-9)
+        const batch2 = await client.batchRunReports(prop.propertyId, [
+          // Report 5: Daily breakdown
+          {
+            dateRanges: [{ startDate: start, endDate: end }],
+            metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'screenPageViews' }],
+            dimensions: [{ name: 'date' }],
+          },
+          // Report 6: Top campaigns
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
+            dimensions: [
+              { name: 'sessionSource' },
+              { name: 'sessionMedium' },
+              { name: 'sessionCampaignName' },
+            ],
+            limit: 10,
+          },
+          // Report 7: Top events
+          {
+            dateRanges,
+            metrics: [{ name: 'eventCount' }],
+            dimensions: [{ name: 'eventName' }],
+            limit: 10,
+          },
+          // Report 8: Top landing pages
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }, { name: 'bounceRate' }],
+            dimensions: [{ name: 'landingPage' }],
+            limit: 10,
+          },
+          // Report 9: Top cities
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }],
+            dimensions: [{ name: 'city' }, { name: 'country' }],
+            limit: 10,
+          },
+        ]);
+
+        // Batch 3: Geography (Report 10)
+        const batch3 = await client.batchRunReports(prop.propertyId, [
+          // Report 10: Top regions
+          {
+            dateRanges,
+            metrics: [{ name: 'sessions' }],
+            dimensions: [{ name: 'region' }, { name: 'country' }],
+            limit: 10,
+          },
+        ]);
+
+        // Combine all batches
+        const batchResponses = [...batch1, ...batch2, ...batch3];
+
+        // Parse Report 0: Metrics
+        const metricsRow = batchResponses[0]?.rows?.[0];
+        const totalUsers = parseInt(metricsRow?.metricValues?.[1]?.value || '0', 10);
+        const newUsers = parseInt(metricsRow?.metricValues?.[2]?.value || '0', 10);
+
         const metrics = {
           sessions: parseInt(metricsRow?.metricValues?.[0]?.value || '0', 10),
-          users: parseInt(metricsRow?.metricValues?.[1]?.value || '0', 10),
-          newUsers: parseInt(metricsRow?.metricValues?.[2]?.value || '0', 10),
+          users: totalUsers,
+          newUsers: newUsers,
+          returningUsers: Math.max(0, totalUsers - newUsers), // PHASE 1: Calculated from totalUsers - newUsers
           pageviews: parseInt(metricsRow?.metricValues?.[3]?.value || '0', 10),
           bounceRate: parseFloat(metricsRow?.metricValues?.[4]?.value || '0'),
           avgSessionDuration: parseFloat(metricsRow?.metricValues?.[5]?.value || '0'),
@@ -322,89 +452,116 @@ export async function fetchAllGoogleAnalyticsProperties(
           daily: [],
         };
 
-        // Only fetch dimensional data if there's traffic
-        if (metrics.sessions > 0) {
-          // 3. Fetch top traffic sources with users
-          try {
-            const sourcesResponse = await client.runReport({
-              propertyId: prop.propertyId,
-              dateRanges,
-              metrics: [{ name: 'sessions' }, { name: 'activeUsers' }],
-              dimensions: [{ name: 'sessionSource' }],
-              limit: 5,
-            });
-            dimensions.topSources = (sourcesResponse.rows || []).map((row) => ({
-              source: row.dimensionValues?.[0]?.value || 'Unknown',
-              sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
-              users: parseInt(row.metricValues?.[1]?.value || '0', 10),
-            }));
-          } catch (e) { /* skip on error */ }
+        // Initialize enhanced metrics
+        let topCampaigns: GAPropertyData['topCampaigns'] = undefined;
+        let topEvents: GAPropertyData['topEvents'] = undefined;
+        let topLandingPages: GAPropertyData['topLandingPages'] = undefined;
+        let topCities: GAPropertyData['topCities'] = undefined;
+        let topRegions: GAPropertyData['topRegions'] = undefined;
+        let browserBreakdown: Array<{ browser: string; sessions: number }> = [];
 
-          // 4. Fetch device breakdown
-          try {
-            const devicesResponse = await client.runReport({
-              propertyId: prop.propertyId,
-              dateRanges,
-              metrics: [{ name: 'sessions' }],
-              dimensions: [{ name: 'deviceCategory' }],
-            });
-            const totalSessions = metrics.sessions;
-            dimensions.devices = (devicesResponse.rows || []).map((row) => {
-              const sessions = parseInt(row.metricValues?.[0]?.value || '0', 10);
-              return {
-                device: row.dimensionValues?.[0]?.value || 'Unknown',
-                sessions,
-                percentage: totalSessions > 0 ? Math.round((sessions / totalSessions) * 100) : 0,
-              };
-            });
-          } catch (e) { /* skip on error */ }
+        // Parse Report 1: Top sources
+        dimensions.topSources = (batchResponses[1]?.rows || []).map((row) => ({
+          source: row.dimensionValues?.[0]?.value || 'Unknown',
+          sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+          users: parseInt(row.metricValues?.[1]?.value || '0', 10),
+        }));
 
-          // 5. Fetch top pages
-          try {
-            const pagesResponse = await client.runReport({
-              propertyId: prop.propertyId,
-              dateRanges,
-              metrics: [{ name: 'screenPageViews' }, { name: 'averageSessionDuration' }],
-              dimensions: [{ name: 'pagePath' }],
-              limit: 5,
-            });
-            dimensions.topPages = (pagesResponse.rows || []).map((row) => ({
-              page: row.dimensionValues?.[0]?.value || '/',
-              views: parseInt(row.metricValues?.[0]?.value || '0', 10),
-              avgTime: parseFloat(row.metricValues?.[1]?.value || '0'),
-            }));
-          } catch (e) { /* skip on error */ }
+        // Parse Report 2: Device & Browser breakdown
+        const totalSessions = metrics.sessions;
+        const deviceBrowserMap = new Map<string, number>();
+        const browserMap = new Map<string, number>();
 
-          // 6. Fetch top countries
-          try {
-            const countriesResponse = await client.runReport({
-              propertyId: prop.propertyId,
-              dateRanges,
-              metrics: [{ name: 'activeUsers' }],
-              dimensions: [{ name: 'country' }],
-              limit: 5,
-            });
-            dimensions.countries = (countriesResponse.rows || []).map((row) => ({
-              country: row.dimensionValues?.[0]?.value || 'Unknown',
-              users: parseInt(row.metricValues?.[0]?.value || '0', 10),
-            }));
-          } catch (e) { /* skip on error */ }
+        (batchResponses[2]?.rows || []).forEach((row) => {
+          const device = row.dimensionValues?.[0]?.value || 'Unknown';
+          const browser = row.dimensionValues?.[1]?.value || 'Unknown';
+          const sessions = parseInt(row.metricValues?.[0]?.value || '0', 10);
 
-          // 7. Fetch daily breakdown for the selected date range
-          try {
-            const dailyResponse = await client.runReport({
-              propertyId: prop.propertyId,
-              dateRanges: [{ startDate: start, endDate: end }],
-              metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'screenPageViews' }],
-              dimensions: [{ name: 'date' }],
-            });
-            dimensions.daily = (dailyResponse.rows || []).map((row) => ({
-              date: row.dimensionValues?.[0]?.value || '',
-              sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
-              users: parseInt(row.metricValues?.[1]?.value || '0', 10),
-              pageviews: parseInt(row.metricValues?.[2]?.value || '0', 10),
-            })).sort((a, b) => a.date.localeCompare(b.date));
-          } catch (e) { /* skip on error */ }
+          // Aggregate by device
+          deviceBrowserMap.set(device, (deviceBrowserMap.get(device) || 0) + sessions);
+
+          // Aggregate by browser
+          browserMap.set(browser, (browserMap.get(browser) || 0) + sessions);
+        });
+
+        dimensions.devices = Array.from(deviceBrowserMap.entries()).map(([device, sessions]) => ({
+          device,
+          sessions,
+          percentage: totalSessions > 0 ? Math.round((sessions / totalSessions) * 100) : 0,
+        }));
+
+        browserBreakdown = Array.from(browserMap.entries())
+          .map(([browser, sessions]) => ({ browser, sessions }))
+          .sort((a, b) => b.sessions - a.sessions)
+          .slice(0, 5);
+
+        // Parse Report 3: Top pages
+        dimensions.topPages = (batchResponses[3]?.rows || []).map((row) => ({
+          page: row.dimensionValues?.[0]?.value || '/',
+          views: parseInt(row.metricValues?.[0]?.value || '0', 10),
+          avgTime: parseFloat(row.metricValues?.[1]?.value || '0'),
+        }));
+
+        // Parse Report 4: Top countries
+        dimensions.countries = (batchResponses[4]?.rows || []).map((row) => ({
+          country: row.dimensionValues?.[0]?.value || 'Unknown',
+          users: parseInt(row.metricValues?.[0]?.value || '0', 10),
+        }));
+
+        // Parse Report 5: Daily breakdown
+        dimensions.daily = (batchResponses[5]?.rows || [])
+          .map((row) => ({
+            date: row.dimensionValues?.[0]?.value || '',
+            sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+            users: parseInt(row.metricValues?.[1]?.value || '0', 10),
+            pageviews: parseInt(row.metricValues?.[2]?.value || '0', 10),
+          }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        // Parse Report 6: Top campaigns
+        if (batchResponses[6]?.rows && batchResponses[6].rows.length > 0) {
+          topCampaigns = batchResponses[6].rows.map((row) => ({
+            source: row.dimensionValues?.[0]?.value || '(not set)',
+            medium: row.dimensionValues?.[1]?.value || '(not set)',
+            campaign: row.dimensionValues?.[2]?.value || '(not set)',
+            sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+            users: parseInt(row.metricValues?.[1]?.value || '0', 10),
+          }));
+        }
+
+        // Parse Report 7: Top events
+        if (batchResponses[7]?.rows && batchResponses[7].rows.length > 0) {
+          topEvents = batchResponses[7].rows.map((row) => ({
+            eventName: row.dimensionValues?.[0]?.value || 'unknown',
+            eventCount: parseInt(row.metricValues?.[0]?.value || '0', 10),
+          }));
+        }
+
+        // Parse Report 8: Top landing pages
+        if (batchResponses[8]?.rows && batchResponses[8].rows.length > 0) {
+          topLandingPages = batchResponses[8].rows.map((row) => ({
+            page: row.dimensionValues?.[0]?.value || '/',
+            sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+            bounceRate: parseFloat(row.metricValues?.[1]?.value || '0'),
+          }));
+        }
+
+        // Parse Report 9: Top cities
+        if (batchResponses[9]?.rows && batchResponses[9].rows.length > 0) {
+          topCities = batchResponses[9].rows.map((row) => ({
+            city: row.dimensionValues?.[0]?.value || 'Unknown',
+            country: row.dimensionValues?.[1]?.value || 'Unknown',
+            sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+          }));
+        }
+
+        // Parse Report 10: Top regions
+        if (batchResponses[10]?.rows && batchResponses[10].rows.length > 0) {
+          topRegions = batchResponses[10].rows.map((row) => ({
+            region: row.dimensionValues?.[0]?.value || 'Unknown',
+            country: row.dimensionValues?.[1]?.value || 'Unknown',
+            sessions: parseInt(row.metricValues?.[0]?.value || '0', 10),
+          }));
         }
 
         return {
@@ -413,6 +570,14 @@ export async function fetchAllGoogleAnalyticsProperties(
           realtime,
           metrics,
           dimensions,
+          // NEW: Include enhanced metrics
+          topCampaigns,
+          topEvents,
+          topLandingPages,
+          topCities,
+          topRegions,
+          // PHASE 1: Browser breakdown
+          browserBreakdown: browserBreakdown.length > 0 ? browserBreakdown : undefined,
         };
       } catch (propError: any) {
         // Skip properties that error (e.g., 429 rate limits on demo properties)
