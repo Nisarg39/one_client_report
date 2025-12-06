@@ -82,7 +82,6 @@ export async function GET(request: NextRequest) {
           propertyId: properties[0].id,
           propertyName: properties[0].name,
         };
-        console.log(`[Google Analytics OAuth] Auto-selected property: ${properties[0].name} (${properties[0].id})`);
       }
     } catch (propError) {
       console.error('[Google Analytics OAuth] Failed to fetch properties:', propError);

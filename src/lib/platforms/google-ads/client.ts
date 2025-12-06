@@ -101,13 +101,13 @@ export class GoogleAdsClient {
     const url = `https://googleads.googleapis.com/${this.apiVersion}/customers:listAccessibleCustomers`;
 
     const response = await fetch(url, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${this.accessToken}`,
         'developer-token': this.developerToken,
-        'login-customer-id': this.developerToken, // Some Google Ads setups require this
       },
+      body: JSON.stringify({}),
     });
 
     if (!response.ok) {

@@ -6,6 +6,7 @@ import { ConditionalNavbar } from "@/components/layout/conditional-navbar";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
 import { KeyboardShortcuts } from "@/components/chat/KeyboardShortcuts";
 import { NextAuthSessionProvider } from "@/components/providers/SessionProvider";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -112,6 +113,7 @@ export default function RootLayout({
     <html lang="en" className="dark bg-[#1a1a1a] ">
       <head>
         <OrganizationSchema />
+        <GoogleAnalytics />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

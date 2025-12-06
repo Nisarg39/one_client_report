@@ -99,13 +99,6 @@ export async function saveFeedback(
       ? { $unset: { [fieldPath]: '' } } // Remove feedback field entirely
       : { $set: { [fieldPath]: validated.feedback } }; // Set feedback value
 
-    console.log('[saveFeedback] Updating:', {
-      conversationId: validated.conversationId,
-      messageIndex: validated.messageIndex,
-      feedback: validated.feedback,
-      operation: validated.feedback === 'null' ? '$unset' : '$set',
-    });
-
     // Perform atomic update
     const updateResult = await ConversationModel.updateOne(
       {
@@ -114,11 +107,6 @@ export async function saveFeedback(
       },
       updateOperation
     );
-
-    console.log('[saveFeedback] Update result:', {
-      matched: updateResult.matchedCount,
-      modified: updateResult.modifiedCount,
-    });
 
     if (updateResult.matchedCount === 0) {
       return {

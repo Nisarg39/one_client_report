@@ -61,6 +61,9 @@ src/
 - [Product Requirements Document (PRD)](./docs/PRD.md) - Comprehensive product requirements and market analysis
 - [Color Palette](./docs/COLOR_PALETTE.md) - Custom dark theme color scheme and usage guidelines
 
+### Analytics & Tracking
+- [Google Tag Manager Setup](./docs/GOOGLE-TAG-MANAGER-SETUP.md) - Complete guide for configuring GTM and Google Analytics
+
 ### Design System
 - [Design System Overview](./docs/design/README.md) - Complete design system documentation
 - [Design Principles](./docs/design/01-DESIGN_PRINCIPLES.md) - Core design philosophy and values

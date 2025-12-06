@@ -58,9 +58,6 @@ export class LinkedInAdsClient {
     // but DO encode the accountsList
     const url = `${this.baseUrl}/adAnalytics?${baseParams}&dateRange=${dateRange}&accounts=${accountsList}&fields=${fieldsParam}`;
 
-    console.log('[LinkedIn API - getAnalytics] Request URL:', url);
-    console.log('[LinkedIn API - getAnalytics] Fields requested:', fieldsParam);
-
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -88,13 +85,8 @@ export class LinkedInAdsClient {
    * @returns List of ad accounts
    */
   async listAdAccounts(): Promise<LinkedInAdAccount[]> {
-    const logPrefix = '[LinkedIn API - listAdAccounts]';
-    console.log(`${logPrefix} Starting request...`);
-
     // Use the simple finder API to get all ad accounts the user has access to
     const url = `${this.baseUrl}/adAccounts?q=search`;
-    console.log(`${logPrefix} Request URL:`, url);
-    console.log(`${logPrefix} API Version:`, this.apiVersion);
 
     const response = await fetch(url, {
       method: 'GET',
@@ -105,18 +97,13 @@ export class LinkedInAdsClient {
       },
     });
 
-    console.log(`${logPrefix} Response status:`, response.status);
-    console.log(`${logPrefix} Response headers:`, Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`${logPrefix} Error response body:`, errorText);
 
       let errorMessage = 'Failed to fetch ad accounts';
       try {
         const error = JSON.parse(errorText);
         errorMessage = error.message || error.serviceErrorCode || errorText;
-        console.error(`${logPrefix} Parsed error:`, error);
       } catch {
         errorMessage = errorText;
       }
@@ -126,7 +113,6 @@ export class LinkedInAdsClient {
     }
 
     const data = await response.json();
-    console.log(`${logPrefix} Success response:`, JSON.stringify(data, null, 2));
 
     const accounts = data.elements?.map((account: any) => ({
       id: account.id,
@@ -136,7 +122,6 @@ export class LinkedInAdsClient {
       currency: account.currency,
     })) || [];
 
-    console.log(`${logPrefix} Successfully mapped ${accounts.length} accounts`);
     return accounts;
   }
 
@@ -283,7 +268,6 @@ export class LinkedInAdsClient {
       await this.listAdAccounts();
       return true;
     } catch (error) {
-      console.error('LinkedIn Ads connection test failed:', error);
       return false;
     }
   }

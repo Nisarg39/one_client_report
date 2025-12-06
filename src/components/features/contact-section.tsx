@@ -1,11 +1,12 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Mail, MessageSquare, Send, MapPin, Phone, CheckCircle, XCircle } from "lucide-react";
+import { Mail, MessageSquare, Send, Phone, CheckCircle, XCircle, Clock, FileText, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import Link from "next/link";
 import { submitContactForm } from "@/backend/server_actions/guestActions";
 
 export function ContactSection() {
@@ -16,6 +17,7 @@ export function ContactSection() {
     message: "",
   });
 
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     type: "success" | "error" | null;
@@ -36,12 +38,6 @@ export function ContactSection() {
       value: "+91 8888215802",
       href: "tel:+918888215802",
     },
-    {
-      icon: MapPin,
-      label: "Location",
-      value: "Pune, India",
-      href: null,
-    },
   ];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -50,6 +46,14 @@ export function ContactSection() {
     // Reset previous errors and status
     setFieldErrors({});
     setSubmitStatus({ type: null, message: "" });
+
+    // Validate agreement checkbox
+    if (!agreedToTerms) {
+      setFieldErrors({ terms: "You must agree to the Privacy Policy and Terms & Conditions to submit the form." });
+      setIsSubmitting(false);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -67,6 +71,7 @@ export function ContactSection() {
           message: result.message,
         });
         setFormData({ name: "", email: "", message: "" });
+        setAgreedToTerms(false);
 
         // Auto-hide success message after 5 seconds
         setTimeout(() => {
@@ -283,10 +288,92 @@ export function ContactSection() {
                   )}
                 </div>
 
+                {/* Terms & Conditions Agreement */}
+                <div className="space-y-2">
+                  <div className="flex items-start gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAgreedToTerms(!agreedToTerms);
+                        if (fieldErrors.terms) {
+                          setFieldErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.terms;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                      className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 cursor-pointer ${
+                        agreedToTerms
+                          ? "bg-[#6CA3A2] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3),inset_-2px_-2px_4px_rgba(108,163,162,0.3)]"
+                          : "bg-[#1a1a1a] border-2 border-[#2a2a2a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(40,40,40,0.2)] hover:border-[#6CA3A2]/50"
+                      }`}
+                      aria-label={agreedToTerms ? "Uncheck agreement" : "Check agreement"}
+                      aria-pressed={agreedToTerms}
+                    >
+                      {agreedToTerms && (
+                        <Check
+                          className="w-4 h-4 text-white"
+                          strokeWidth={3}
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
+                    <input
+                      type="checkbox"
+                      id="terms-agreement"
+                      name="terms-agreement"
+                      checked={agreedToTerms}
+                      onChange={(e) => {
+                        setAgreedToTerms(e.target.checked);
+                        if (fieldErrors.terms) {
+                          setFieldErrors((prev) => {
+                            const newErrors = { ...prev };
+                            delete newErrors.terms;
+                            return newErrors;
+                          });
+                        }
+                      }}
+                      className="sr-only"
+                      required
+                    />
+                    <Label
+                      htmlFor="terms-agreement"
+                      className="text-sm text-[#c0c0c0] leading-relaxed cursor-pointer flex-1"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      I agree to the{" "}
+                      <Link
+                        href="/privacy-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors"
+                      >
+                        Privacy Policy
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors"
+                      >
+                        Terms & Conditions
+                      </Link>
+                    </Label>
+                  </div>
+                  {fieldErrors.terms && (
+                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1 ml-8">
+                      <XCircle className="w-4 h-4" />
+                      {fieldErrors.terms}
+                    </p>
+                  )}
+                </div>
+
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !agreedToTerms}
                   className="w-full sm:w-auto relative overflow-hidden text-base px-8 md:px-10 h-12 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 focus:ring-2 focus:ring-[#FF8C42] focus:ring-offset-2 focus:ring-offset-[#151515] focus:outline-none"
                   aria-label={isSubmitting ? "Sending message..." : "Send message"}
                   style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
@@ -388,12 +475,20 @@ export function ContactSection() {
 
             {/* Response Time & Support */}
             <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)]">
-              <h4
-                className="text-lg font-bold text-[#f5f5f5] mb-4"
-                style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-              >
-                Quick Response Guarantee
-              </h4>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
+                  <Clock
+                    className="w-6 h-6 text-[#6CA3A2]"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h4
+                  className="text-lg font-bold text-[#f5f5f5]"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                >
+                  Quick Response Guarantee
+                </h4>
+              </div>
               <div className="space-y-3 text-sm text-[#c0c0c0]">
                 <div className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
@@ -414,12 +509,30 @@ export function ContactSection() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 pt-4 border-t border-[#2a2a2a]">
-                <p
-                  className="text-xs text-[#999]"
+            </div>
+            
+            {/* Legal Information */}
+            <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)]">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
+                  <FileText
+                    className="w-6 h-6 text-[#6CA3A2]"
+                    aria-hidden="true"
+                  />
+                </div>
+                <h4
+                  className="text-lg font-bold text-[#f5f5f5]"
                   style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
                 >
-                  Available 7 days a week. We&apos;re here to help you succeed!
+                  Legal Information
+                </h4>
+              </div>
+              <div className="space-y-3 text-sm text-[#c0c0c0]">
+                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                  This website is operated by Nisarg Manojkumar Shah
+                </p>
+                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
+                  314/25, Netaji Nagar, Wanowrie, Pune - 411040, Maharashtra, India
                 </p>
               </div>
             </div>

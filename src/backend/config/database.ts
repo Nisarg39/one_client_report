@@ -9,7 +9,6 @@ const connection: ConnectionObject = {};
 async function connectDB(): Promise<void> {
   // Check if we have a connection to the database or if it's currently connecting
   if (connection.isConnected) {
-    console.log('Already connected to database');
     return;
   }
 
@@ -20,8 +19,6 @@ async function connectDB(): Promise<void> {
     });
 
     connection.isConnected = db.connections[0].readyState;
-
-    console.log('Database connected successfully');
   } catch (error) {
     console.error('Database connection failed:', error);
 

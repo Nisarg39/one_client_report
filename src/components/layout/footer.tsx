@@ -10,31 +10,27 @@ export function Footer() {
 
   const navigation = {
     product: [
-      { name: "Features", href: "#features" },
+      { name: "Features", href: "/features" },
+      { name: "Products", href: "/products" },
       { name: "Pricing", href: "#pricing" },
       { name: "Integrations", href: "#integrations" },
-      { name: "Templates", href: "#templates" },
-      { name: "API", href: "#api" },
     ],
     company: [
       { name: "About", href: "/about" },
       { name: "Blog", href: "#blog" },
-      { name: "Careers", href: "#careers" },
       { name: "Contact", href: "/contact" },
-      { name: "Partners", href: "#partners" },
     ],
     resources: [
       { name: "Help Center", href: "#help" },
       { name: "Documentation", href: "#docs" },
       { name: "Guides", href: "#guides" },
-      { name: "API Reference", href: "#api-docs" },
-      { name: "Status", href: "#status" },
     ],
     legal: [
       { name: "Privacy Policy", href: "/privacy-policy" },
       { name: "Terms of Service", href: "/terms" },
       { name: "Refund Policy", href: "/refund-policy" },
-      { name: "Cookie Policy", href: "#cookies" },
+      { name: "Cancellation Policy", href: "/cancellation-policy" },
+      { name: "Shipping Policy", href: "/shipping-policy" },
     ],
   };
 
@@ -96,7 +92,7 @@ export function Footer() {
               </p>
 
               {/* Social Links */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 hidden">
                 {socialLinks.map((social) => {
                   const Icon = social.icon;
                   return (
@@ -134,13 +130,23 @@ export function Footer() {
             <ul className="space-y-3">
               {navigation.product.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                  >
-                    {item.name}
-                  </a>
+                  {item.href.startsWith("/") ? (
+                    <Link
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -336,6 +342,20 @@ export function Footer() {
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
               Refund
+            </Link>
+            <Link
+              href="/cancellation-policy"
+              className="text-sm text-[#999] hover:text-[#6CA3A2] transition-colors duration-200"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            >
+              Cancellation
+            </Link>
+            <Link
+              href="/shipping-policy"
+              className="text-sm text-[#999] hover:text-[#6CA3A2] transition-colors duration-200"
+              style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            >
+              Shipping
             </Link>
           </div>
         </motion.div>

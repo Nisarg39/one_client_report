@@ -132,13 +132,10 @@ class CacheManager {
     if (redisUrl && redisToken) {
       try {
         this.store = new RedisCache();
-        console.log('✅ Using Redis cache');
       } catch (error) {
-        console.warn('⚠️  Redis not configured, falling back to memory cache');
         this.store = new MemoryCache();
       }
     } else {
-      console.log('💾 Using in-memory cache (Redis not configured)');
       this.store = new MemoryCache();
     }
   }

@@ -383,7 +383,6 @@ export function ChatPageClient() {
   const handleUpdatePlatforms = async (clientId: string, platforms: any) => {
     // TODO: Implement full platform update logic
     // For now, update local state only (server update will be added in later phase)
-    console.log('Platform update requested for client:', clientId, platforms);
 
     const updatedClients = clients.map((c) =>
       c.id === clientId
@@ -768,7 +767,6 @@ export function ChatPageClient() {
       if (result.success) {
         // Success - modal will close automatically
         // Next-auth session will be updated on next request
-        console.log('Profile updated successfully');
       } else {
         throw new Error(result.error || 'Failed to update profile');
       }

@@ -150,6 +150,22 @@ export default function AboutPage() {
 
               <section>
                 <h2 className="text-xl sm:text-2xl font-bold text-[#f5f5f5] mb-4">
+                  Legal Information
+                </h2>
+                <p className="leading-relaxed mb-4">
+                  This website is operated by <strong className="text-[#f5f5f5]">Nisarg Manojkumar Shah</strong>.
+                </p>
+                <div className="bg-[#1a1a1a] rounded-xl p-6 mt-4">
+                  <h3 className="text-lg font-semibold text-[#f5f5f5] mb-3">Registered Address:</h3>
+                  <p className="text-[#c0c0c0] leading-relaxed">
+                    314/25, Netaji Nagar, Wanowrie,<br />
+                    Pune - 411040, Maharashtra, India
+                  </p>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#f5f5f5] mb-4">
                   Our Location
                 </h2>
                 <p className="leading-relaxed">

@@ -67,16 +67,7 @@ export async function deleteAccount(): Promise<DeleteAccountResult> {
       };
     }
 
-    // Log deletion summary for audit purposes
-    console.log('[deleteAccount] Account deleted:', {
-      userId: authUser.id,
-      email: authUser.email,
-      deletedConversations: deletedConversations.deletedCount,
-      deletedPlatformConnections: deletedPlatformConnections.deletedCount,
-      deletedClients: deletedClients.deletedCount,
-      timestamp: new Date().toISOString(),
-    });
-
+    // Account deleted successfully
     return {
       success: true,
     };

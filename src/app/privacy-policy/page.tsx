@@ -211,7 +211,14 @@ export default function PrivacyPolicyPage() {
                   >
                     hello@onereport.com
                   </a>
-                  {" "}or visit our{" "}
+                  {" "}or call us at{" "}
+                  <a
+                    href="tel:+918888215802"
+                    className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
+                  >
+                    +91 8888215802
+                  </a>
+                  . You can also visit our{" "}
                   <Link
                     href="/contact"
                     className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"

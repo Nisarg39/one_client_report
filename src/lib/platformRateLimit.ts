@@ -146,13 +146,10 @@ class RateLimiterManager {
     if (redisUrl && redisToken) {
       try {
         this.limiter = new UpstashRateLimiter();
-        console.log('✅ Using Upstash rate limiting for platforms');
       } catch (error) {
-        console.warn('⚠️  Upstash not configured, falling back to memory rate limiter for platforms');
         this.limiter = new MemoryRateLimiter();
       }
     } else {
-      console.log('💾 Using in-memory rate limiter for platforms (Upstash not configured)');
       this.limiter = new MemoryRateLimiter();
     }
   }

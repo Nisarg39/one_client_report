@@ -137,22 +137,53 @@ export default function RefundPolicyPage() {
                   <li>Include any relevant documentation or screenshots if applicable</li>
                 </ol>
                 <p className="leading-relaxed mt-4">
-                  We will review your request and respond within 5-7 business days.
+                  We will review your request and respond within <strong>5-7 business days</strong>. The review process includes verification of your account details, subscription status, and eligibility for refund based on our policy terms.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl sm:text-2xl font-bold text-[#f5f5f5] mb-4">
-                  5. Refund Processing
+                  5. Refund Processing Duration and Mode
                 </h2>
+                
+                <h3 className="text-lg font-semibold text-[#f5f5f5] mb-3 mt-4">
+                  5.1 Refund Processing Duration
+                </h3>
                 <p className="leading-relaxed mb-3">
-                  If your refund request is approved:
+                  If your refund request is approved, the following timelines apply:
                 </p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
-                  <li>Refunds will be processed to the original payment method used for the purchase</li>
-                  <li>Processing time may take 5-10 business days depending on your payment provider</li>
-                  <li>You will receive an email confirmation once the refund has been processed</li>
+                  <li><strong>Request Review:</strong> 5-7 business days from submission</li>
+                  <li><strong>Approval Notification:</strong> Email confirmation sent within 24 hours of approval</li>
+                  <li><strong>Refund Processing:</strong> 5-10 business days from approval date</li>
+                  <li><strong>Total Duration:</strong> 10-17 business days from refund request submission to completion</li>
+                </ul>
+
+                <h3 className="text-lg font-semibold text-[#f5f5f5] mb-3 mt-4">
+                  5.2 Refund Mode
+                </h3>
+                <p className="leading-relaxed mb-3">
+                  Refunds are processed using the following methods:
+                </p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li><strong>Original Payment Method:</strong> Refunds are credited back to the original payment method used for the purchase</li>
+                  <li><strong>Credit/Debit Cards:</strong> Refunds appear on your statement within 5-10 business days</li>
+                  <li><strong>UPI Payments:</strong> Refunds are processed to the original UPI ID within 3-7 business days</li>
+                  <li><strong>Net Banking:</strong> Refunds are credited to the source bank account within 5-10 business days</li>
+                  <li><strong>Digital Wallets:</strong> Refunds are credited to the original wallet within 3-5 business days</li>
+                </ul>
+
+                <h3 className="text-lg font-semibold text-[#f5f5f5] mb-3 mt-4">
+                  5.3 Refund Confirmation
+                </h3>
+                <p className="leading-relaxed mb-3">
+                  Upon refund completion:
+                </p>
+                <ul className="list-disc list-inside space-y-2 ml-4">
+                  <li>You will receive an email confirmation with refund details</li>
+                  <li>The confirmation email includes refund amount, transaction ID, and expected credit date</li>
                   <li>Your account access will be terminated upon refund completion (unless otherwise specified)</li>
+                  <li>Refund receipt/invoice will be provided upon request</li>
                 </ul>
               </section>
 

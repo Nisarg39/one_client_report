@@ -113,15 +113,6 @@ export async function fetchLinkedInAdsData(
   startDate?: string,
   endDate?: string
 ): Promise<LinkedInAdsData | null> {
-  const logPrefix = '[LinkedIn Ads Debug]';
-  console.log(`${logPrefix} ========== START ==========`);
-  console.log(`${logPrefix} Connection ID:`, connection._id);
-  console.log(`${logPrefix} Connection Status:`, connection.status);
-  console.log(`${logPrefix} Connection Platform:`, connection.platformId);
-  console.log(`${logPrefix} Scopes:`, connection.scopes);
-  console.log(`${logPrefix} Expires At:`, connection.expiresAt);
-  console.log(`${logPrefix} Is Expired:`, connection.isExpired());
-
   try {
     // Calculate date range string at the start for use in early returns
     const formatDate = (d: Date) => d.toISOString().split('T')[0];
@@ -130,7 +121,6 @@ export async function fetchLinkedInAdsData(
     const start = startDate || formatDate(defaultStartDate);
     const end = endDate || formatDate(defaultEndDate);
     const dateRangeString = `${start} to ${end}`;
-    console.log(`${logPrefix} Date Range:`, dateRangeString);
 
     // Convert to LinkedIn's date format
     const dateRange = {
@@ -141,43 +131,21 @@ export async function fetchLinkedInAdsData(
     // Get the access token
     const accessToken = connection.getDecryptedAccessToken();
     if (!accessToken) {
-      console.error(`${logPrefix} No access token available`);
       return null;
     }
-    console.log(`${logPrefix} Access token retrieved (length: ${accessToken.length})`);
 
     // Create client
     const client = new LinkedInAdsClient(accessToken);
 
     // Get all ad accounts
-    console.log(`${logPrefix} Attempting to list ad accounts...`);
     let accounts: LinkedInAdAccount[] = [];
     try {
       accounts = await client.listAdAccounts();
-      console.log(`${logPrefix} Ad accounts response:`, {
-        count: accounts.length,
-        accounts: accounts.map(acc => ({
-          id: acc.id,
-          name: acc.name,
-          status: acc.status,
-          type: acc.type,
-        }))
-      });
     } catch (accountError: any) {
-      console.error(`${logPrefix} FAILED to list ad accounts:`, {
-        message: accountError.message,
-        status: accountError.status,
-        stack: accountError.stack,
-      });
       return null;
     }
 
     if (accounts.length === 0) {
-      console.warn(`${logPrefix} No ad accounts found. Possible reasons:`);
-      console.warn('  1. No ad accounts created in LinkedIn Campaign Manager');
-      console.warn('  2. User lacks ad account access permissions');
-      console.warn('  3. OAuth scopes not properly granted');
-      console.warn('  4. API version incompatibility');
 
       return {
         accounts: [],
@@ -369,18 +337,10 @@ export async function fetchLinkedInAdsData(
             }
           }
         } catch (campaignError: any) {
-          // Log campaign fetch errors but continue
-          console.error(`${logPrefix} Campaign fetch error for account ${account.id}:`, {
-            message: campaignError.message,
-            stack: campaignError.stack,
-          });
+          // Continue on campaign fetch errors
         }
       } catch (analyticsError: any) {
-        // Log analytics errors but continue
-        console.error(`${logPrefix} Analytics fetch error for account ${account.id}:`, {
-          message: analyticsError.message,
-          stack: analyticsError.stack,
-        });
+        // Continue on analytics errors
       }
     }
 
@@ -420,7 +380,6 @@ export async function fetchLinkedInAdsData(
 
     // Determine primary currency (use first active account's currency, or first account)
     const primaryCurrency = accounts.find(acc => acc.status === 'ACTIVE')?.currency || accounts[0]?.currency || 'USD';
-    console.log(`${logPrefix} Using primary currency: ${primaryCurrency}`);
 
     // Determine if video or reach data exists
     const hasVideoData = totalMetrics.videoStarts > 0 || totalMetrics.videoViews > 0 || totalMetrics.videoCompletions > 0;

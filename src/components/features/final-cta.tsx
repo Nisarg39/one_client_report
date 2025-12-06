@@ -95,7 +95,7 @@ export function FinalCTA() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: shouldReduceMotion ? 0 : 0.5, delay: shouldReduceMotion ? 0 : 0.3 }}
-          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center mb-8 sm:mb-10"
+          className="flex justify-center items-center mb-8 sm:mb-10"
         >
           {/* Primary Button */}
           <button
@@ -110,18 +110,6 @@ export function FinalCTA() {
                 className="ml-1.5 sm:ml-2 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1"
                 aria-hidden="true"
               />
-            </span>
-          </button>
-
-          {/* Secondary Button */}
-          <button
-            onClick={() => router.push('/demo')}
-            className="w-full sm:w-auto relative overflow-hidden text-sm sm:text-base px-6 sm:px-8 md:px-10 h-11 sm:h-14 rounded-3xl font-semibold group bg-[#1a1a1a] text-[#6CA3A2] shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9)] active:shadow-[inset_8px_8px_16px_rgba(0,0,0,0.6),inset_-8px_-8px_16px_rgba(60,60,60,0.4)] transition-all duration-300 focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a] focus:outline-none"
-            aria-label="Schedule a product demo"
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-          >
-            <span className="relative">
-              Book a Demo
             </span>
           </button>
         </motion.div>
@@ -196,7 +184,7 @@ export function FinalCTA() {
             </div>
             <div>
               <div className="text-xs font-semibold text-[#f5f5f5]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Secure Payments</div>
-              <div className="text-xs text-[#999]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Powered by Stripe</div>
+              <div className="text-xs text-[#999]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>Secured by PayU</div>
             </div>
           </div>
         </motion.div>

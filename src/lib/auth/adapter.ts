@@ -51,7 +51,6 @@ export interface AuthUser {
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   // Always use NextAuth (environment variable issue resolved by removing it)
-  console.log('🔐 [Auth Adapter] Using NEXTAUTH authentication');
   const { getNextAuthUser } = await import('./nextAuth');
   return await getNextAuthUser();
 }
