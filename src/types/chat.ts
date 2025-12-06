@@ -44,6 +44,9 @@ export interface Message {
   feedback?: MessageFeedback; // Optional feedback for AI messages
   messageId?: string; // Unique ID for tracking feedback
   suggestions?: QuickReplySuggestion[]; // Optional quick reply suggestions for AI messages
+  // Multi-agent system fields
+  agentId?: string; // ID of the agent that generated this response
+  agentName?: string; // Name of the agent that generated this response
 }
 
 /**
@@ -327,6 +330,7 @@ export interface ClientClient {
   logo?: string;
   platforms: ClientPlatforms;
   status: ClientStatus;
+  dataSource?: 'real' | 'mock';
   createdAt: string;
   updatedAt: string;
 }

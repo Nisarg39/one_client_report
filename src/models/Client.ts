@@ -96,6 +96,16 @@ export interface IClient {
     linkedInAds?: LinkedInAdsPlatform;
   };
   status: 'active' | 'inactive' | 'archived';
+
+  // Hybrid Mode: Data source and education metadata
+  dataSource: 'real' | 'mock';
+  mockScenario?: Types.ObjectId;
+  educationMetadata?: {
+    assignmentId?: string;
+    caseStudyName?: string;
+    difficulty?: 'beginner' | 'intermediate' | 'advanced';
+    learningObjectives?: string[];
+  };
 }
 
 /**
@@ -265,6 +275,26 @@ const ClientSchema = new Schema<IClient, IClientModel, IClientMethods>(
       default: 'active',
       required: true,
     },
+    // Hybrid Mode: Data source and education metadata
+    dataSource: {
+      type: String,
+      enum: ['real', 'mock'],
+      default: 'real',
+      required: true,
+    },
+    mockScenario: {
+      type: Schema.Types.ObjectId,
+      ref: 'MockDataScenario',
+    },
+    educationMetadata: {
+      assignmentId: String,
+      caseStudyName: String,
+      difficulty: {
+        type: String,
+        enum: ['beginner', 'intermediate', 'advanced'],
+      },
+      learningObjectives: [String],
+    },
   },
   {
     timestamps: true,
@@ -277,6 +307,8 @@ const ClientSchema = new Schema<IClient, IClientModel, IClientMethods>(
 ClientSchema.index({ userId: 1, status: 1 });
 ClientSchema.index({ userId: 1, name: 1 });
 ClientSchema.index({ _id: 1, userId: 1 });
+ClientSchema.index({ dataSource: 1 });
+ClientSchema.index({ mockScenario: 1 });
 
 /**
  * Instance Methods

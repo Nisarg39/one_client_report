@@ -11,62 +11,63 @@ import type { QuickReplySuggestion, ClientClient } from '@/types/chat';
 
 /**
  * Suggestion pool organized by category
+ * Each suggestion now includes an emoji indicating which agent will handle it
  */
 const SUGGESTION_POOL = {
-  // General marketing insights
+  // High-value audits (Growth Strategist focus)
   general: [
-    { id: 'overview', text: 'Show me an overview', category: 'general' as const },
-    { id: 'summary', text: 'Summarize my performance', category: 'general' as const },
-    { id: 'help', text: 'What can you help me with?', category: 'general' as const },
+    { id: 'audit-cpa', text: '💰 Audit my cross-channel CPA', category: 'general' as const },
+    { id: 'wasted-spend', text: '📊 Find wasted ad spend', category: 'general' as const },
+    { id: 'growth-plan', text: '🚦 Generate a 30-day growth plan', category: 'general' as const },
   ],
 
-  // Metrics and analytics
+  // Deep-dive metrics
   metrics: [
-    { id: 'top-campaigns', text: 'Show top performing campaigns', category: 'metrics' as const },
-    { id: 'conversion-trends', text: 'Analyze conversion trends', category: 'metrics' as const },
-    { id: 'roi-analysis', text: 'Calculate ROI by platform', category: 'metrics' as const },
-    { id: 'traffic-sources', text: 'Compare traffic sources', category: 'metrics' as const },
-    { id: 'engagement', text: 'Show engagement metrics', category: 'metrics' as const },
+    { id: 'conversion-drop', text: '🎯 Analyze conversion drop-offs', category: 'metrics' as const },
+    { id: 'roas-compare', text: '💰 Compare ROAS by platform', category: 'metrics' as const },
+    { id: 'revenue-drivers', text: '📊 Identify top 3 revenue drivers', category: 'metrics' as const },
+    { id: 'traffic-quality', text: '🚦 Audit traffic quality', category: 'metrics' as const },
+    { id: 'engagement-audit', text: '🚦 Analyze engagement depth', category: 'metrics' as const },
   ],
 
-  // Campaign management
+  // Campaign Optimization
   campaigns: [
-    { id: 'campaign-performance', text: 'Compare campaign performance', category: 'campaigns' as const },
-    { id: 'underperforming', text: 'Identify underperforming campaigns', category: 'campaigns' as const },
-    { id: 'budget-allocation', text: 'Suggest budget allocation', category: 'campaigns' as const },
-    { id: 'campaign-insights', text: 'Get campaign insights', category: 'campaigns' as const },
+    { id: 'bid-adjust', text: '💰 Suggest bid adjustments', category: 'campaigns' as const },
+    { id: 'creative-fatigue', text: '💰 Find creative fatigue', category: 'campaigns' as const },
+    { id: 'budget-optimize', text: '📊 Optimize budget allocation', category: 'campaigns' as const },
+    { id: 'campaign-scale', text: '💰 Which campaigns should I scale?', category: 'campaigns' as const },
   ],
 
-  // Platform-specific
+  // Platform-specific Audits
   platforms: {
     googleAnalytics: [
-      { id: 'ga-traffic', text: 'Show Google Analytics traffic', category: 'platforms' as const },
-      { id: 'ga-bounce', text: 'Analyze bounce rate trends', category: 'platforms' as const },
-      { id: 'ga-pages', text: 'Top performing pages', category: 'platforms' as const },
+      { id: 'ga-leaks', text: '🚦 Where am I losing visitors?', category: 'platforms' as const },
+      { id: 'ga-high-value', text: '🚦 Who are my best users?', category: 'platforms' as const },
+      { id: 'ga-landing', text: '🎯 Audit landing page performance', category: 'platforms' as const },
     ],
     googleAds: [
-      { id: 'ads-performance', text: 'Google Ads performance', category: 'platforms' as const },
-      { id: 'ads-keywords', text: 'Top performing keywords', category: 'platforms' as const },
-      { id: 'ads-ctr', text: 'Analyze click-through rates', category: 'platforms' as const },
+      { id: 'ads-waste', text: '💰 Find negative keyword opportunities', category: 'platforms' as const },
+      { id: 'ads-quality', text: '💰 Check Quality Score issues', category: 'platforms' as const },
+      { id: 'ads-cpa', text: '💰 Reduce Google Ads CPA', category: 'platforms' as const },
     ],
     metaAds: [
-      { id: 'meta-performance', text: 'Facebook Ads performance', category: 'platforms' as const },
-      { id: 'meta-audience', text: 'Audience demographics', category: 'platforms' as const },
-      { id: 'meta-creative', text: 'Top creative performance', category: 'platforms' as const },
+      { id: 'meta-creative', text: '💰 Audit creative performance', category: 'platforms' as const },
+      { id: 'meta-audience', text: '💰 Find audience saturation', category: 'platforms' as const },
+      { id: 'meta-scale', text: '💰 Scale winning ad sets', category: 'platforms' as const },
     ],
     linkedInAds: [
-      { id: 'li-performance', text: 'LinkedIn Ads performance', category: 'platforms' as const },
-      { id: 'li-leads', text: 'Lead generation metrics', category: 'platforms' as const },
-      { id: 'li-targeting', text: 'Targeting effectiveness', category: 'platforms' as const },
+      { id: 'li-quality', text: '💰 Audit lead quality', category: 'platforms' as const },
+      { id: 'li-targeting', text: '💰 Refine B2B targeting', category: 'platforms' as const },
+      { id: 'li-cpl', text: '💰 Reduce Cost Per Lead', category: 'platforms' as const },
     ],
   },
 
-  // Insights and recommendations
+  // Strategic Insights
   insights: [
-    { id: 'opportunities', text: 'Identify opportunities', category: 'insights' as const },
-    { id: 'recommendations', text: 'Get recommendations', category: 'insights' as const },
-    { id: 'trends', text: 'What are the trends?', category: 'insights' as const },
-    { id: 'optimization', text: 'How can I optimize?', category: 'insights' as const },
+    { id: 'opportunity', text: '📊 What is my biggest opportunity?', category: 'insights' as const },
+    { id: 'execution-plan', text: '📊 Generate execution plan', category: 'insights' as const },
+    { id: 'prediction', text: '⚠️ Predict next month\'s trend', category: 'insights' as const },
+    { id: 'competitor', text: '📊 How do I beat the competition?', category: 'insights' as const },
   ],
 };
 

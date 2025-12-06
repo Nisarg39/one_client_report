@@ -14,9 +14,10 @@ import type { PlatformDataPayload } from '@/stores/useChatStore';
 interface UseStreamingChatOptions {
   onToken?: (token: string) => void;
   onComplete?: (fullResponse: string, conversationId: string | null) => void;
-  onError?: (error: string) => void;
+  onError?: (error: string, redirect?: string, errorData?: any) => void;
   onPlatformStatus?: (issues: PlatformHealthIssue[]) => void;
   onPlatformData?: (data: PlatformDataPayload) => void; // Phase 6.7
+  onAgentSelected?: (agentId: string, agentName: string) => void; // Multi-agent system
 }
 
 export function useStreamingChat() {
@@ -33,7 +34,7 @@ export function useStreamingChat() {
       options: UseStreamingChatOptions = {},
       dateRange?: { startDate?: string; endDate?: string }
     ) => {
-      const { onToken, onComplete, onError, onPlatformStatus, onPlatformData } = options;
+      const { onToken, onComplete, onError, onPlatformStatus, onPlatformData, onAgentSelected } = options;
 
       setIsStreaming(true);
       let fullResponse = '';
@@ -77,9 +78,14 @@ export function useStreamingChat() {
                 const parsed = JSON.parse(data);
 
                 if (parsed.error) {
-                  // Error occurred
+                  // Error occurred - check if redirect is needed
                   if (onError) {
-                    onError(parsed.error);
+                    onError(parsed.error, parsed.redirect, {
+                      reason: parsed.reason,
+                      daysRemaining: parsed.daysRemaining,
+                      messagesUsed: parsed.messagesUsed,
+                      messagesLimit: parsed.messagesLimit,
+                    });
                   }
                   setIsStreaming(false);
                   return;
@@ -89,6 +95,13 @@ export function useStreamingChat() {
                   // Platform health issues received
                   if (onPlatformStatus) {
                     onPlatformStatus(parsed.platformHealthIssues);
+                  }
+                }
+
+                // Multi-agent system: Agent metadata received
+                if (parsed.agentId && parsed.agentName) {
+                  if (onAgentSelected) {
+                    onAgentSelected(parsed.agentId, parsed.agentName);
                   }
                 }
 

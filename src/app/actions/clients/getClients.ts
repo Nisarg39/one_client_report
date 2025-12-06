@@ -19,6 +19,7 @@ export interface ClientData {
   status: string;
   platforms: any; // Platform connection data
   connectedPlatforms: string[];
+  dataSource?: 'real' | 'mock';
   createdAt: string;
   updatedAt: string;
 }
@@ -105,6 +106,7 @@ export async function getClients(): Promise<GetClientsResult> {
           status: client.status,
           platforms, // Platform connection data from PlatformConnection collection
           connectedPlatforms,
+          dataSource: (client as any).dataSource,
           createdAt: client.createdAt.toISOString(),
           updatedAt: client.updatedAt.toISOString(),
         };

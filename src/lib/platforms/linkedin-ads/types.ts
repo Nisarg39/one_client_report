@@ -19,7 +19,7 @@ export const LINKEDIN_ADS_CONFIG: PlatformConfig = {
     'r_organization_social',
     'rw_ads',
   ],
-  apiVersion: 'rest',
+  apiVersion: '202411', // Use valid YYYYMM format (November 2024)
 };
 
 /**
@@ -210,15 +210,39 @@ export interface LinkedInAdsAnalyticsResponse {
       };
     };
     pivotValue?: string; // Campaign/Creative/Account URN
+    // Core metrics
     impressions?: number;
     clicks?: number;
     costInLocalCurrency?: number;
-    externalWebsiteConversions?: number;
+    // Engagement metrics
+    totalEngagements?: number;
     likes?: number;
     comments?: number;
     shares?: number;
+    reactions?: number;
     follows?: number;
+    companyPageClicks?: number;
+    otherEngagements?: number;
+    // Conversion metrics
+    externalWebsiteConversions?: number;
+    externalWebsitePostClickConversions?: number;
+    externalWebsitePostViewConversions?: number;
+    landingPageClicks?: number;
+    // Lead metrics
+    oneClickLeads?: number;
+    qualifiedLeads?: number;
+    oneClickLeadFormOpens?: number;
+    // Video metrics
+    videoStarts?: number;
     videoViews?: number;
+    videoCompletions?: number;
+    videoFirstQuartileCompletions?: number;
+    videoMidpointCompletions?: number;
+    videoThirdQuartileCompletions?: number;
+    fullScreenPlays?: number;
+    // Reach metrics
+    approximateMemberReach?: number;
+    averageDwellTime?: number;
     [key: string]: any;
   }>;
   paging?: {

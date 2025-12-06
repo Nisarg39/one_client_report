@@ -97,7 +97,6 @@ export async function fetchGoogleAdsData(
     let customerResourceNames: string[] = [];
     try {
       customerResourceNames = await client.listAccessibleCustomers();
-      console.log(`[Google Ads] Found ${customerResourceNames.length} accessible customers`);
     } catch (customerError: any) {
       console.error('[Google Ads] Failed to list customers:', customerError.message);
 
@@ -123,7 +122,6 @@ export async function fetchGoogleAdsData(
     }
 
     if (customerResourceNames.length === 0) {
-      console.log('[Google Ads] No accessible customers found');
       return {
         customers: [],
         metrics: {
@@ -233,13 +231,8 @@ export async function fetchGoogleAdsData(
           }));
 
         allCampaigns.push(...campaignList);
-
-        const costInCurrency = totalMetrics.costMicros / 1_000_000;
-        console.log(
-          `[Google Ads] ${customer.descriptiveName}: ${totalMetrics.impressions} impressions, $${costInCurrency.toFixed(2)} spend`
-        );
       } catch (customerError: any) {
-        console.log(`[Google Ads] Could not fetch data for customer ${customerId}: ${customerError.message}`);
+        // Customer data fetch failed, continue without this customer
       }
     }
 

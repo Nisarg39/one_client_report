@@ -19,6 +19,16 @@ export interface AuthUser {
   id: string;         // User ID (MongoDB ObjectId as string)
   email: string;      // User email address
   name?: string;      // User display name (optional)
+  accountType?: 'business' | 'education' | 'instructor'; // Account type
+  usageTier?: 'free' | 'pro' | 'enterprise' | 'student'; // Usage tier
+  restrictions?: {
+    maxClients?: number;
+    maxMessagesPerDay?: number;
+    maxConversations?: number;
+    allowRealAPIs?: boolean;
+    allowedAgents?: string[];
+    aiModel?: string;
+  };
 }
 
 /**

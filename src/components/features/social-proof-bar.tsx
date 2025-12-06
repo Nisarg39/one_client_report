@@ -120,7 +120,7 @@ export function SocialProofBar() {
               className="text-xl sm:text-2xl font-bold text-[#f5f5f5]"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
             >
-              14-Day
+              7-Day
             </div>
             <div
               className="text-xs sm:text-sm text-[#c0c0c0] mt-1"

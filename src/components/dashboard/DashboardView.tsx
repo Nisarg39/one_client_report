@@ -23,6 +23,7 @@ export interface DashboardViewProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    accountType?: 'business' | 'education' | 'instructor';
   };
   userStats?: {
     totalClients: number;

@@ -292,60 +292,62 @@ Three clear tiers optimized for individuals and teams
 No hidden fees: All core features included in each tier
 Annual discount: 2 months free with annual billing (17% savings)
 
-**NEW PRICING MODEL (Research-Backed & Profitable):**
+**NEW PRICING MODEL (AI Chatbot Hybrid - Clients + Messages):**
 
-**STARTER PLAN - $49/month**
-- 25 client reports per month
-- Unlimited team members
-- AI-powered insights
-- 5 platform integrations
-- White-label branding
-- Automated scheduling
-- Email support
+**STUDENT PLAN - FREE (Forever)**
+- 5 client workspaces
+- 50 AI messages per day (forever)
+- Unlimited conversations
+- Mock data scenarios for learning
+- All 5 AI agents included
+- Educational mode only
+- 30-day chat history
+- No trial expiry - truly free
+- Perfect for: Students learning marketing analytics
+
+**PROFESSIONAL PLAN - ₹299/month (RECOMMENDED)**
+- 10 client workspaces
+- 150 AI messages per day (50/day during trial)
+- Unlimited conversations
+- 7-day free trial
+- Real platform API connections
+- All 5 AI agents (GPT-3.5 Turbo)
+- Priority email support
+- PDF exports
+- 1-year chat history
 - Perfect for: Freelancers managing 5-10 clients
 
-**PROFESSIONAL PLAN - $99/month (RECOMMENDED)**
-- 75 client reports per month
-- Unlimited team members
-- AI-powered insights
-- 5 platform integrations
-- White-label branding
-- Automated scheduling
-- Priority email support
-- Custom report templates
-- Perfect for: Small agencies & teams managing 10-25 clients
-
-**AGENCY PLAN - $199/month**
-- 200 client reports per month
-- Unlimited team members
-- Advanced AI-powered insights
-- 5 platform integrations
-- White-label branding
-- Automated scheduling
+**AGENCY PLAN - ₹999/month**
+- 25 client workspaces
+- 300 AI messages per day (50/day during trial)
+- Unlimited conversations
+- 7-day free trial
+- Real platform API connections
+- All 5 AI agents (GPT-3.5 Turbo)
 - Priority email & chat support
-- Custom report templates
 - API access
 - Dedicated account manager
-- Perfect for: Growing agencies managing 25-50+ clients
+- White-label custom domain
+- Forever chat history
+- Perfect for: Growing agencies managing 15-25 clients
 
-**ENTERPRISE PLAN - Custom Pricing**
-- Custom report volume (500+ reports/month)
-- Unlimited team members
-- Advanced AI-powered insights
-- Priority platform integrations (request specific platforms)
-- White-label branding
-- Automated scheduling
-- 24/7 priority support (email, chat, phone)
-- Custom report templates
-- API access with higher rate limits
-- Dedicated account manager
+**ENTERPRISE PLAN - Custom Pricing (Starting ₹25,000+/month)**
+- Unlimited client workspaces
+- Unlimited AI messages
+- Unlimited conversations
+- No trial (custom onboarding)
+- Real platform APIs + custom integrations
+- All agents + custom agent development
+- 24/7 priority support (phone, email, chat)
 - Custom onboarding & training
-- SLA guarantees
-- Annual contract with volume discounts
-- Perfect for: Large agencies & enterprises managing 100+ clients
+- SLA guarantees (99.9% uptime)
+- Annual contract discounts
+- White-label branding
+- Priority platform integration requests
+- Perfect for: Large agencies & enterprises with 100+ clients
 
 Pricing Comparison:
-SolutionFor 10 ClientsFor 20 ClientsFor 50+ ClientsFor 100+ ClientsAgencyAnalytics$120-200/mo$240-400/mo$600-1000/mo$1200-2000/moDashThis$150-289/mo$289+/mo$500+/mo$1000+/moReportGarden$250/mo$250/mo$520/mo$1000+/moOneReport$49-99/mo$99/mo$199/mo$300-500/mo (custom)
+SolutionFor 5 ClientsFor 10 ClientsFor 25 ClientsFor 100+ ClientsAgencyAnalytics₹5,000-8,300/mo₹10,000-16,600/mo₹25,000-41,500/mo₹100,000-166,000/moDashThis₹8,300-12,000/mo₹12,450-24,000/mo₹24,000-41,500/mo₹83,000+/moReportGarden₹12,450/mo₹20,750/mo₹41,500/mo₹83,000+/moOneReport (New)FREE (Student)₹299/mo₹999/mo₹25,000+/mo (custom)
 
 **ENTERPRISE CUSTOM PRICING STRATEGY:**
 
@@ -377,48 +379,53 @@ Our Enterprise tier uses personalized negotiation for several strategic reasons:
 - Filters out tire-kickers, focuses sales team on qualified leads
 
 **Typical Enterprise Pricing Range:**
-- 500 reports/month: ~$300-350/month
-- 1,000 reports/month: ~$500-600/month
-- 2,000+ reports/month: ~$800-1,200/month
+- 100-200 clients: ~₹25,000-30,000/month
+- 200-500 clients: ~₹40,000-50,000/month
+- 500+ clients: ~₹60,000-100,000/month
 - Target margins: 60-70% gross margin (vs 75-90% on lower tiers)
 - Still 50-70% cheaper than AgencyAnalytics at enterprise scale
 
 **Why This Pricing Works:**
 
 **Market Research Insights:**
-- Average freelancer generates 6-10 reports/month (58% send monthly reports per client)
-- Small agencies generate 10-30 reports/month
-- Enterprise agencies generate 30-100+ reports/month
-- Industry pricing: $39-399/month for entry/mid-tier plans, $1000-2000/month for enterprise
-- Per-client pricing models: $12-20 per client/month
+- Student segment needs free tier for learning (5 workspaces, 50 messages/day forever)
+- Freelancers manage 10-20 clients, need unlimited AI insights after trial
+- Small agencies manage 25-50 clients, need unlimited AI insights for client work
+- Enterprise agencies manage 100+ clients, need unlimited access
+- Industry pricing: ₹3,250-33,000/month for entry/mid-tier plans, ₹83,000-166,000/month for enterprise
+- Our hybrid model (clients + unlimited messages) aligns with actual business needs
+- 7-day trial with 50 msg/day limit lets users test before committing
 
 **Cost Structure Analysis:**
-- Infrastructure cost per user: $3.40-3.74/month (database, email, storage, hosting)
-- AI cost per report: $0.15-0.20 (OpenAI GPT-4 API)
-- Stripe fees: 2.9% + $0.30 per transaction
-- Total variable costs: $4-6/month + AI usage + payment fees
+- Infrastructure cost per user: ₹280-310/month (database, email, storage, hosting)
+- AI cost per message: ₹12-17 (OpenAI GPT-4 API)
+- AI cost per user/month: ₹600-850 (assuming 50 messages/day)
+- Payment gateway fees: 2-3% + ₹3 per transaction (Razorpay/Stripe)
+- Total variable costs: ₹900-1,200/month per paid user
 
 **Profitability Metrics:**
-- Starter Plan: 90% gross margin ($44/month profit per user)
-- Professional Plan: 82-85% gross margin ($80/month profit per user)
-- Agency Plan: 75-77% gross margin ($150/month profit per user)
+- Student Plan: ₹0 revenue, -₹900-1,200 cost (loss leader for acquisition)
+- Professional Plan: ~66% gross margin (₹100/month profit per user after costs)
+- Agency Plan: ~86% gross margin (₹600/month profit per user after costs)
+- Enterprise Plan: 95%+ gross margin (₹23,000+ profit per user at ₹25,000 pricing)
 
 **Break-Even Analysis:**
-- Fixed costs (development, marketing, support): ~$8,500-18,000/month
-- Break-even with Professional tier focus: 100-120 customers (~$10,000 MRR)
-- Break-even with Starter tier focus: 180-200 customers (~$9,000 MRR)
-- Mixed tier strategy: 60 Starter + 60 Pro + 15 Agency = $11,910 MRR (profitable)
+- Fixed costs (development, marketing, support): ~₹700,000-1,500,000/month
+- Break-even with Professional tier focus: 7,000-15,000 customers (~₹21,00,000-45,00,000 MRR)
+- Mixed tier strategy: 100 Student (free) + 2,000 Professional + 500 Agency = ₹9,47,500 MRR (approaching break-even)
+- Profitable at: High volume model requiring 5,000-10,000 paid customers
 
 Target Outcome:
 
-50-75% cost savings vs competitors (still highly competitive)
-Strong unit economics enabling faster profitability
-Report limits that feel generous but protect margins:
-  - 25 reports = 1-2 reports per client for 10-15 clients monthly
-  - 75 reports = weekly check-ins + monthly reports for 10-20 clients
-  - 200 reports = practically unlimited for target market (most use 30-60)
-Premium positioning while remaining accessible
-Clear upgrade path as customer base grows
+98-99% cost savings vs competitors (extremely competitive for Indian market)
+High volume, low margin strategy with sustainable gross margins (66-95%)
+Hybrid model (clients + unlimited messages after trial) prevents abuse during trial while being generous for paying customers:
+  - Student: 5 clients + 50 messages/day = sufficient for learning (FREE forever)
+  - Professional: 20 clients + unlimited messages = daily insights for freelancers (₹299/mo)
+  - Agency: 50 clients + unlimited messages = scalable for growing agencies (₹699/mo)
+  - Enterprise: Unlimited = no restrictions for large operations (₹25,000+/mo)
+Ultra-affordable positioning making it accessible to every Indian freelancer and agency
+Clear upgrade path: Student → Professional → Agency → Enterprise
 
 
 Solution to Pain Point #3: Complex Setup

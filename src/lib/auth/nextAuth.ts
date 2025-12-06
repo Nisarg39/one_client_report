@@ -28,6 +28,9 @@ export async function getNextAuthUser(): Promise<AuthUser | null> {
       id: session.user.id,
       email: session.user.email,
       name: session.user.name,
+      accountType: (session.user as any).accountType,
+      usageTier: (session.user as any).usageTier,
+      restrictions: (session.user as any).restrictions,
     };
   } catch (error) {
     console.error('Error getting NextAuth user:', error);

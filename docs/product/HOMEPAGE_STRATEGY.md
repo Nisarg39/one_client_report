@@ -648,81 +648,80 @@ Row 1 (Primary Integrations):
 
 **Pricing Cards:**
 
-#### STARTER - $49/month
-- **Best For:** "Freelancers managing 5-10 clients"
-- **Price:** "$49" (large, bold) + "/month" (smaller)
-- **Badge:** "Most Popular for Freelancers"
+#### STUDENT - FREE (Forever)
+- **Best For:** "Students learning marketing analytics"
+- **Price:** "FREE" (large, bold)
+- **Badge:** "Free Forever"
 
 **What's Included:**
-- ✓ 25 client reports per month
-- ✓ Unlimited team members
-- ✓ AI-powered insights
-- ✓ 5 platform integrations
-- ✓ White-label branding
-- ✓ Automated scheduling
-- ✓ Email support
-- ✓ 14-day free trial
+- ✓ 5 practice client workspaces
+- ✓ 50 AI messages per day (forever)
+- ✓ **Unlimited conversations**
+- ✓ Mock data scenarios for learning
+- ✓ All 5 AI agents included
+- ✓ Educational mode
+- ✓ 30-day chat history
+- ✓ No trial expiry - truly free
 
-#### PROFESSIONAL - $99/month (HIGHLIGHTED)
-- **Best For:** "Small agencies & teams (10-25 clients)"
-- **Price:** "$99" (large, bold) + "/month" (smaller)
+#### PROFESSIONAL - ₹299/month (HIGHLIGHTED)
+- **Best For:** "Freelancers (5-10 clients)"
+- **Price:** "₹299" (large, bold) + "/month" (smaller)
 - **Badge:** "RECOMMENDED" (highlighted with glow)
 
 **What's Included:**
-- ✓ 75 client reports per month
-- ✓ Unlimited team members
-- ✓ AI-powered insights
-- ✓ 5 platform integrations
-- ✓ White-label branding
-- ✓ Automated scheduling
+- ✓ 10 client workspaces
+- ✓ 150 AI messages per day
+- ✓ **Unlimited conversations**
+- ✓ 7-day free trial (50 messages/day)
+- ✓ Real platform API connections
+- ✓ All 5 AI agents (GPT-3.5 Turbo)
 - ✓ **Priority email support**
-- ✓ **Custom report templates**
-- ✓ 14-day free trial
+- ✓ **PDF exports**
+- ✓ **1-year chat history**
 
-#### AGENCY - $199/month
-- **Best For:** "Growing agencies (25-50+ clients)"
-- **Price:** "$199" (large, bold) + "/month" (smaller)
-- **Badge:** "Best Value for Teams"
+#### AGENCY - ₹999/month
+- **Best For:** "Growing agencies (15-25 clients)"
+- **Price:** "₹999" (large, bold) + "/month" (smaller)
+- **Badge:** "Best Value"
 
 **What's Included:**
-- ✓ 200 client reports per month
-- ✓ Unlimited team members
-- ✓ **Advanced AI-powered insights**
-- ✓ 5 platform integrations
-- ✓ White-label branding
-- ✓ Automated scheduling
+- ✓ 25 client workspaces
+- ✓ 300 AI messages per day
+- ✓ **Unlimited conversations**
+- ✓ 7-day free trial (50 messages/day)
+- ✓ Real platform API connections
+- ✓ **All 5 AI agents (GPT-3.5 Turbo)**
 - ✓ **Priority email & chat support**
-- ✓ **Custom report templates**
 - ✓ **API access**
 - ✓ **Dedicated account manager**
-- ✓ 14-day free trial
+- ✓ **White-label custom domain**
+- ✓ **Forever chat history**
 
 #### ENTERPRISE - Custom Pricing
 - **Best For:** "Large agencies & enterprises (100+ clients)"
 - **Price:** "Custom" (large, bold)
-- **Subtext:** "Starting at $300/month"
+- **Subtext:** "Starting at ₹25,000/month"
 - **Badge:** "White Glove Service"
 
 **What's Included:**
-- ✓ **Custom report volume (500+ reports/month)**
-- ✓ Unlimited team members
-- ✓ **Advanced AI-powered insights**
-- ✓ **Priority platform integrations** (request specific)
-- ✓ White-label branding
-- ✓ Automated scheduling
-- ✓ **24/7 priority support** (email, chat, phone)
-- ✓ **Custom report templates**
-- ✓ **API access with higher rate limits**
-- ✓ **Dedicated account manager**
+- ✓ **Unlimited client workspaces**
+- ✓ **Unlimited AI messages**
+- ✓ **Unlimited conversations**
+- ✓ **No trial** (custom onboarding)
+- ✓ **Real platform APIs + custom integrations**
+- ✓ **All agents + custom agent development**
+- ✓ **24/7 priority support** (phone, email, chat)
 - ✓ **Custom onboarding & training**
-- ✓ **SLA guarantees**
-- ✓ **Annual contract with volume discounts**
+- ✓ **SLA guarantees (99.9% uptime)**
+- ✓ **Annual contract discounts**
+- ✓ **White-label branding**
+- ✓ **Priority platform integration requests**
 
 **CTA:** "Contact Sales" button (instead of "Start Free Trial")
 
 #### Comparison Callout (Below Cards)
-- **Badge:** "50-80% cheaper than traditional reporting platforms"
-- **Text:** "Traditional reporting platforms charge $12-20 per client. That's $120-400/month for 20 clients. Our Professional plan is just $99/month with 75 reports."
+- **Badge:** "98-99% cheaper than traditional reporting platforms"
+- **Text:** "Traditional reporting platforms charge ₹1,000-1,650 per client. That's ₹20,000-33,000/month for 20 clients. Our Professional plan is just ₹299/month for up to 20 clients."
 
 #### Trust Signals
 - 🔒 "Secure payment via Stripe"
@@ -748,9 +747,10 @@ Row 1 (Primary Integrations):
 
 **SEO Keywords:**
 - "affordable reporting software"
-- "marketing reporting pricing"
+- "marketing reporting pricing india"
 - "tiered pricing client reports"
-- "$49 $99 $199/month reporting tool"
+- "free ai chatbot marketing analytics"
+- "₹8,299 ₹16,499/month ai assistant"
 
 ---
 
@@ -839,7 +839,7 @@ Row 1 (Primary Integrations):
 ---
 
 #### Q11: How is this so much cheaper than traditional reporting platforms?
-**A:** We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. Traditional reporting platforms charge $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost than traditional reporting platforms.
+**A:** We focus on what freelancers and small agencies actually need (5 key platforms, AI-powered chatbot insights, real-time analytics) instead of building 80+ integrations that create feature bloat. We use a hybrid pricing model (clients + AI messages), not per-client fees. Traditional reporting platforms charge ₹1,000-1,650 per client (₹20,000-33,000/mo for 20 clients), while our Professional plan is just ₹8,299/month for 20 clients with unlimited AI insights. We also offer a FREE Student tier for learning. This allows us to offer premium quality at 60-80% lower cost than traditional reporting platforms.
 
 **SEO Target:** "affordable reporting software", "cheap reporting platform alternative"
 
@@ -1124,14 +1124,14 @@ The homepage tells a complete story in 11 sections:
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://onereport.in/">
 <meta property="og:title" content="OneReport - AI-Powered Client Reporting Software">
-<meta property="og:description" content="Generate professional marketing reports in 5 minutes. Plans from $49-199/mo with generous report limits.">
+<meta property="og:description" content="AI-powered marketing analytics assistant. Free Student plan or Professional from ₹8,299/mo for 20 clients.">
 <meta property="og:image" content="https://onereport.in/og-image.jpg">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://onereport.in/">
 <meta property="twitter:title" content="OneReport - AI-Powered Client Reporting Software">
-<meta property="twitter:description" content="Generate professional marketing reports in 5 minutes. Plans from $49-199/mo with generous report limits.">
+<meta property="twitter:description" content="AI-powered marketing analytics assistant. Free Student plan or Professional from ₹8,299/mo for 20 clients.">
 <meta property="twitter:image" content="https://onereport.in/twitter-image.jpg">
 ```
 

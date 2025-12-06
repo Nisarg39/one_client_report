@@ -16,6 +16,7 @@ import ClientModel from '@/models/Client';
 import ConversationModel from '@/models/Conversation';
 import PlatformConnectionModel from '@/models/PlatformConnection';
 import { fetchAllGoogleAnalyticsProperties } from '@/lib/platforms/googleAnalytics/fetchData';
+import { checkTrialLimits } from '@/lib/utils/trialLimits';
 
 /**
  * Google Analytics Summary
@@ -46,12 +47,8 @@ export interface PlatformHealth {
  */
 export interface AIUsageStats {
   messagesThisMonth: number;
-  tokensUsed: {
-    prompt: number;
-    completion: number;
-    total: number;
-  };
-  estimatedCost: number;
+  messagesToday: number;
+  dailyLimit: number;
   period: string;
 }
 
@@ -247,7 +244,7 @@ async function getPlatformHealth(userId: string): Promise<PlatformHealth[]> {
 }
 
 /**
- * Get AI Usage Stats (this month)
+ * Get AI Usage Stats (this month and today)
  */
 async function getAIUsageStats(userId: string): Promise<AIUsageStats> {
   try {
@@ -262,45 +259,27 @@ async function getAIUsageStats(userId: string): Promise<AIUsageStats> {
       status: { $ne: 'deleted' },
     });
 
-    // Aggregate token usage
-    let totalPromptTokens = 0;
-    let totalCompletionTokens = 0;
-    let totalTokens = 0;
+    // Aggregate monthly message count
     let messagesThisMonth = 0;
-
     for (const conv of conversations) {
-      if (conv.tokenUsage) {
-        totalPromptTokens += conv.tokenUsage.promptTokens || 0;
-        totalCompletionTokens += conv.tokenUsage.completionTokens || 0;
-        totalTokens += conv.tokenUsage.totalTokens || 0;
-      }
       messagesThisMonth += conv.messageCount || 0;
     }
 
-    // Calculate estimated cost (GPT-4o-mini pricing: $0.00015 per 1K tokens)
-    const costPerThousandTokens = 0.00015;
-    const estimatedCost = (totalTokens / 1000) * costPerThousandTokens;
+    // Get daily message usage using existing trial limits logic
+    const trialCheck = await checkTrialLimits(userId);
 
     return {
       messagesThisMonth,
-      tokensUsed: {
-        prompt: totalPromptTokens,
-        completion: totalCompletionTokens,
-        total: totalTokens,
-      },
-      estimatedCost,
+      messagesToday: trialCheck.messagesUsed || 0,
+      dailyLimit: trialCheck.messagesLimit || 50,
       period: `${now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`,
     };
   } catch (error) {
     // Return zero stats on error (don't log - graceful degradation)
     return {
       messagesThisMonth: 0,
-      tokensUsed: {
-        prompt: 0,
-        completion: 0,
-        total: 0,
-      },
-      estimatedCost: 0,
+      messagesToday: 0,
+      dailyLimit: 50,
       period: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
     };
   }

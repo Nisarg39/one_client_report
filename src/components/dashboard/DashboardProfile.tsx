@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User, Mail, Calendar, Shield, Edit2, Users, MessageSquare, Zap } from 'lucide-react';
+import { User, Mail, Calendar, Edit2, Users, MessageSquare, Zap, Briefcase, GraduationCap, School } from 'lucide-react';
 
 export interface DashboardProfileProps {
   user?: {
@@ -16,6 +16,7 @@ export interface DashboardProfileProps {
     email?: string | null;
     image?: string | null;
     createdAt?: string;
+    accountType?: 'business' | 'education' | 'instructor';
   };
   stats?: {
     totalClients: number;
@@ -33,6 +34,43 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
         year: 'numeric',
       })
     : 'Unknown';
+
+  // Get account type display info
+  const getAccountTypeInfo = (accountType?: string) => {
+    switch (accountType) {
+      case 'business':
+        return {
+          label: 'Business Professional',
+          icon: Briefcase,
+          color: 'text-[#6CA3A2]',
+          bgColor: 'bg-[#6CA3A2]/20',
+        };
+      case 'education':
+        return {
+          label: 'Student',
+          icon: GraduationCap,
+          color: 'text-purple-400',
+          bgColor: 'bg-purple-500/20',
+        };
+      case 'instructor':
+        return {
+          label: 'Instructor',
+          icon: School,
+          color: 'text-amber-400',
+          bgColor: 'bg-amber-500/20',
+        };
+      default:
+        return {
+          label: 'Business Professional',
+          icon: Briefcase,
+          color: 'text-[#6CA3A2]',
+          bgColor: 'bg-[#6CA3A2]/20',
+        };
+    }
+  };
+
+  const accountTypeInfo = getAccountTypeInfo(user?.accountType);
+  const AccountTypeIcon = accountTypeInfo.icon;
 
   return (
     <div className="space-y-6">
@@ -106,9 +144,9 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-[#c0c0c0]">
-                <Shield className="w-4 h-4 text-[#6CA3A2]" />
+                <AccountTypeIcon className={`w-4 h-4 ${accountTypeInfo.color}`} />
                 <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                  Google OAuth
+                  {accountTypeInfo.label}
                 </span>
               </div>
               {/* Phase 6.6: Member Since */}
@@ -198,7 +236,7 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
       )}
 
       {/* Account Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {/* Account Info */}
         <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
           <h3
@@ -232,62 +270,17 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
             </div>
             <div>
               <label className="block text-xs text-[#808080] mb-1 uppercase tracking-wider">
-                Authentication Provider
+                Account Type
               </label>
-              <p
-                className="text-[#f5f5f5]"
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-              >
-                Google OAuth
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Security Info */}
-        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
-          <h3
-            className="text-lg font-semibold text-[#f5f5f5] mb-4"
-            style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
-          >
-            Security
-          </h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-[#252525] rounded-xl">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <Shield className="w-5 h-5 text-green-400" />
-              </div>
-              <div>
+              <div className="flex items-center gap-2">
+                <div className={`p-1.5 ${accountTypeInfo.bgColor} rounded-lg`}>
+                  <AccountTypeIcon className={`w-4 h-4 ${accountTypeInfo.color}`} />
+                </div>
                 <p
-                  className="text-sm font-medium text-[#f5f5f5]"
+                  className="text-[#f5f5f5]"
                   style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
                 >
-                  OAuth 2.0 Protected
-                </p>
-                <p
-                  className="text-xs text-[#808080]"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  Your account is secured with Google OAuth
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-3 bg-[#252525] rounded-xl">
-              <div className="p-2 bg-[#6CA3A2]/20 rounded-lg">
-                <Calendar className="w-5 h-5 text-[#6CA3A2]" />
-              </div>
-              <div>
-                <p
-                  className="text-sm font-medium text-[#f5f5f5]"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  Session Active
-                </p>
-                <p
-                  className="text-xs text-[#808080]"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  Currently signed in
+                  {accountTypeInfo.label}
                 </p>
               </div>
             </div>

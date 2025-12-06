@@ -94,14 +94,12 @@ export async function fetchMetaAdsData(
     let accounts: MetaAdAccount[] = [];
     try {
       accounts = await client.listAdAccounts();
-      console.log(`[Meta Ads] Found ${accounts.length} ad accounts`);
     } catch (accountError: any) {
       console.error('[Meta Ads] Failed to list ad accounts:', accountError.message);
       return null;
     }
 
     if (accounts.length === 0) {
-      console.log('[Meta Ads] No ad accounts found');
       return {
         accounts: [],
         metrics: {
@@ -214,12 +212,10 @@ export async function fetchMetaAdsData(
             }
           }
         } catch (campaignError: any) {
-          console.log(`[Meta Ads] Could not fetch campaigns for ${account.name}: ${campaignError.message}`);
+          // Campaign fetch failed, continue without campaign details
         }
-
-        console.log(`[Meta Ads] ${account.name}: ${totalMetrics.impressions} impressions, $${totalMetrics.spend.toFixed(2)} spend`);
       } catch (insightsError: any) {
-        console.log(`[Meta Ads] Could not fetch insights for ${account.name}: ${insightsError.message}`);
+        // Insights fetch failed, continue without insights
       }
     }
 

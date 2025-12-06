@@ -17,10 +17,10 @@ export function Footer() {
       { name: "API", href: "#api" },
     ],
     company: [
-      { name: "About", href: "#about" },
+      { name: "About", href: "/about" },
       { name: "Blog", href: "#blog" },
       { name: "Careers", href: "#careers" },
-      { name: "Contact", href: "#contact" },
+      { name: "Contact", href: "/contact" },
       { name: "Partners", href: "#partners" },
     ],
     resources: [
@@ -31,10 +31,10 @@ export function Footer() {
       { name: "Status", href: "#status" },
     ],
     legal: [
-      { name: "Privacy Policy", href: "#privacy" },
-      { name: "Terms of Service", href: "#terms" },
+      { name: "Privacy Policy", href: "/privacy-policy" },
+      { name: "Terms of Service", href: "/terms" },
+      { name: "Refund Policy", href: "/refund-policy" },
       { name: "Cookie Policy", href: "#cookies" },
-      { name: "GDPR", href: "#gdpr" },
     ],
   };
 
@@ -163,13 +163,23 @@ export function Footer() {
             <ul className="space-y-3">
               {navigation.company.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                  >
-                    {item.name}
-                  </a>
+                  {item.href.startsWith("/") ? (
+                    <Link
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -221,13 +231,23 @@ export function Footer() {
             <ul className="space-y-3">
               {navigation.legal.map((item) => (
                 <li key={item.name}>
-                  <a
-                    href={item.href}
-                    className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                  >
-                    {item.name}
-                  </a>
+                  {item.href.startsWith("/") ? (
+                    <Link
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className="text-sm text-[#c0c0c0] hover:text-[#6CA3A2] transition-colors duration-200"
+                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    >
+                      {item.name}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
@@ -296,27 +316,27 @@ export function Footer() {
             &copy; {currentYear} OneReport. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a
-              href="#privacy"
+            <Link
+              href="/privacy-policy"
               className="text-sm text-[#999] hover:text-[#6CA3A2] transition-colors duration-200"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
               Privacy
-            </a>
-            <a
-              href="#terms"
+            </Link>
+            <Link
+              href="/terms"
               className="text-sm text-[#999] hover:text-[#6CA3A2] transition-colors duration-200"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
               Terms
-            </a>
-            <a
-              href="#cookies"
+            </Link>
+            <Link
+              href="/refund-policy"
               className="text-sm text-[#999] hover:text-[#6CA3A2] transition-colors duration-200"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
-              Cookies
-            </a>
+              Refund
+            </Link>
           </div>
         </motion.div>
       </div>

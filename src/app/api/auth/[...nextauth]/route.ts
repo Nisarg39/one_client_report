@@ -80,12 +80,32 @@ export const authOptions: NextAuthOptions = {
           // Set MongoDB ObjectId as the token ID (not NextAuth's account ID)
           token.id = dbUser._id.toString();
           token.createdAt = dbUser.createdAt.toISOString();
+          // Pass accountType, usageTier, and restrictions to token for session access
+          token.accountType = dbUser.accountType;
+          token.usageTier = dbUser.usageTier;
+          token.restrictions = dbUser.restrictions;
         } catch (error) {
           console.error('Error upserting user:', error);
         }
       }
 
-      // Token already has the MongoDB ID from initial sign-in, just return it
+      // Always refresh accountType, usageTier, and restrictions from database if token.id exists
+      // This ensures the session is updated when accountType changes during onboarding
+      if (token.id && !account) {
+        try {
+          await connectDB();
+          const dbUser = await UserModel.findById(token.id);
+          if (dbUser) {
+            token.accountType = dbUser.accountType;
+            token.usageTier = dbUser.usageTier;
+            token.restrictions = dbUser.restrictions;
+          }
+        } catch (error) {
+          console.error('Error refreshing user data in JWT:', error);
+          // Don't throw - allow request to continue with existing token data
+        }
+      }
+
       return token;
     },
 
@@ -96,6 +116,10 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         (session.user as any).createdAt = token.createdAt as string;
+        // Pass accountType, usageTier, and restrictions to session for UI access
+        (session.user as any).accountType = token.accountType;
+        (session.user as any).usageTier = token.usageTier;
+        (session.user as any).restrictions = token.restrictions;
       }
       return session;
     },

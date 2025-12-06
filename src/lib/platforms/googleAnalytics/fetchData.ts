@@ -135,13 +135,11 @@ export async function fetchGoogleAnalyticsData(
     let propertyName = connection.metadata?.propertyName;
 
     if (!propertyId) {
-      console.log('[GA Fetch] No property ID in metadata, auto-selecting first property...');
       try {
         const properties = await client.listProperties();
         if (properties.length > 0) {
           propertyId = properties[0].propertyId;
           propertyName = properties[0].displayName;
-          console.log(`[GA Fetch] Auto-selected property: ${propertyName} (${propertyId})`);
         } else {
           console.error('No GA properties found for this account');
           return null;

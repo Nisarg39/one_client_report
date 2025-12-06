@@ -16,7 +16,7 @@ interface ProgressIndicatorProps {
 export function ProgressIndicator({
   currentStep,
   totalSteps,
-  stepLabels = ['Welcome', 'Create Client', 'Connect Platforms', 'Tour'],
+  stepLabels = ['Welcome', 'Account Type', 'Create Client', 'Connect Platforms', 'Tour'],
 }: ProgressIndicatorProps) {
   return (
     <div className="w-full max-w-2xl mx-auto">

@@ -48,7 +48,7 @@ export function HeroSectionSkeuomorphic() {
                 textShadow: '0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1)'
               }}
             >
-              Generate Beautiful{" "}
+              Professionally Analysed{" "}
               <span className="block mt-1 sm:mt-2">
                 Client Reports in{" "}
                 <span

@@ -14,14 +14,18 @@ import type { Message } from '@/types/chat';
 import ClientModel from '@/models/Client';
 import ConversationModel from '@/models/Conversation';
 import PlatformConnectionModel from '@/models/PlatformConnection';
+import UserModel from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { saveMessage } from '@/app/actions/conversations/saveMessage';
 import { checkRateLimit, getTimeUntilReset } from '@/lib/rateLimit';
-import { fetchAllGoogleAnalyticsProperties } from '@/lib/platforms/googleAnalytics/fetchData';
-import { fetchLinkedInAdsData } from '@/lib/platforms/linkedin-ads/fetchData';
-import { fetchMetaAdsData } from '@/lib/platforms/meta-ads/fetchData';
-import { fetchGoogleAdsData } from '@/lib/platforms/google-ads/fetchData';
 import type { PlatformHealthIssue } from '@/types/chat';
+// Multi-agent system imports
+import { routeQuery, executeAgent, getAgentMetadata } from '@/lib/ai/agents/orchestrator';
+import type { AgentContext } from '@/lib/ai/agents/types';
+// Unified data fetcher (routes between real and mock data)
+import { fetchPlatformData } from '@/lib/platforms/dataFetcher';
+// Trial period and message limit validation
+import { checkTrialLimits } from '@/lib/utils/trialLimits';
 
 // Map platformId from PlatformConnection to the format expected by AI
 const platformIdToKey: Record<string, string> = {
@@ -48,12 +52,47 @@ export async function sendMessageStream(
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Verify authentication
-    const user = await requireAuth();
+    const authUser = await requireAuth();
 
-    // Check rate limit
-    const rateLimit = checkRateLimit(user.id);
+    // Fetch full user document to get accountType and restrictions
+    await connectDB();
+    const userDoc = await UserModel.findById(authUser.id);
+    if (!userDoc) {
+      throw new Error('User not found');
+    }
+
+    // Check trial period and daily message limit (7-day trial, 50 messages/day)
+    const trialCheck = await checkTrialLimits(authUser.id);
+    if (!trialCheck.allowed) {
+      const errorMessage = trialCheck.message || 'Trial period expired or daily limit reached.';
+      const redirectUrl = '/#pricing';
+      
+      // Return error stream with redirect information
+      return new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({ 
+                error: errorMessage,
+                redirect: redirectUrl,
+                reason: trialCheck.reason,
+                daysRemaining: trialCheck.daysRemaining,
+                messagesUsed: trialCheck.messagesUsed,
+                messagesLimit: trialCheck.messagesLimit,
+              })}\n\n`
+            )
+          );
+          controller.close();
+        },
+      });
+    }
+
+    // Check rate limit (tier-based: respects user's maxMessagesPerDay restriction)
+    const maxMessagesPerDay = userDoc.restrictions?.maxMessagesPerDay;
+    const rateLimit = checkRateLimit(authUser.id, maxMessagesPerDay);
     if (!rateLimit.allowed) {
-      const minutesUntilReset = Math.ceil(getTimeUntilReset(user.id) / 60000);
+      const minutesUntilReset = Math.ceil(getTimeUntilReset(authUser.id) / 60000);
       const errorMessage = `Rate limit exceeded. You can send ${rateLimit.remaining} more messages. Please try again in ${minutesUntilReset} minutes.`;
 
       // Return error stream
@@ -76,13 +115,13 @@ export async function sendMessageStream(
     if (clientId) {
       try {
         await connectDB();
-        const clientDoc = await ClientModel.findByClientId(clientId, user.id);
+        const clientDoc = await ClientModel.findByClientId(clientId, authUser.id);
 
         if (clientDoc) {
           // Get platform connections from PlatformConnection collection
           const connections = await (PlatformConnectionModel as any).findByClientId(clientId);
           const userConnections = connections.filter(
-            (conn: any) => conn.userId.toString() === user.id
+            (conn: any) => conn.userId.toString() === authUser.id
           );
 
           // Build platforms object from actual connections
@@ -105,177 +144,51 @@ export async function sendMessageStream(
             platforms,
           };
 
-          // Fetch real platform data from APIs
-          platformData = {};
+          // Check for expired tokens BEFORE fetching data (only for business mode with real APIs)
+          if (userDoc.restrictions?.allowRealAPIs && clientDoc.dataSource === 'real') {
+            for (const conn of userConnections) {
+              if (conn.status === 'active' && conn.isExpired()) {
+                const platformNames: Record<string, string> = {
+                  'google-analytics': 'Google Analytics',
+                  'google-ads': 'Google Ads',
+                  'meta-ads': 'Meta Ads',
+                  'linkedin-ads': 'LinkedIn Ads',
+                };
 
-          // Fetch Google Analytics data from ALL properties if connected
-          const gaConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'google-analytics' && conn.status === 'active'
-          );
-          if (gaConnection) {
-            try {
-              // Check if token is expired BEFORE fetching
-              if (gaConnection.isExpired()) {
                 platformHealthIssues.push({
-                  connectionId: gaConnection._id.toString(),
-                  platformId: 'google-analytics',
-                  platformName: 'Google Analytics',
+                  connectionId: conn._id.toString(),
+                  platformId: conn.platformId,
+                  platformName: platformNames[conn.platformId] || conn.platformId,
                   status: 'expired',
                   errorType: 'expired_token',
-                  expiresAt: gaConnection.expiresAt,
-                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const gaMultiData = await fetchAllGoogleAnalyticsProperties(
-                  gaConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (gaMultiData) {
-                  platformData.googleAnalyticsMulti = gaMultiData;
-                }
-              }
-            } catch (gaError: any) {
-              console.error('Error fetching Google Analytics data:', gaError);
-              // Only add to issues if not already added for expiration
-              if (!platformHealthIssues.some(i => i.platformId === 'google-analytics')) {
-                platformHealthIssues.push({
-                  connectionId: gaConnection._id.toString(),
-                  platformId: 'google-analytics',
-                  platformName: 'Google Analytics',
-                  status: 'error',
-                  error: gaError.message,
-                  errorType: gaError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                  expiresAt: conn.expiresAt,
+                  hasRefreshToken: !!conn.getDecryptedRefreshToken(),
                 });
               }
             }
           }
 
-          // Fetch LinkedIn Ads data if connected
-          const linkedInConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'linkedin-ads' && conn.status === 'active'
-          );
-          if (linkedInConnection) {
-            try {
-              if (linkedInConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: linkedInConnection._id.toString(),
-                  platformId: 'linkedin-ads',
-                  platformName: 'LinkedIn Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: linkedInConnection.expiresAt,
-                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const linkedInData = await fetchLinkedInAdsData(
-                  linkedInConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (linkedInData) {
-                  platformData.linkedInAds = linkedInData;
-                }
-              }
-            } catch (linkedInError: any) {
-              console.error('Error fetching LinkedIn Ads data:', linkedInError);
-              if (!platformHealthIssues.some(i => i.platformId === 'linkedin-ads')) {
-                platformHealthIssues.push({
-                  connectionId: linkedInConnection._id.toString(),
-                  platformId: 'linkedin-ads',
-                  platformName: 'LinkedIn Ads',
-                  status: 'error',
-                  error: linkedInError.message,
-                  errorType: linkedInError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
-                });
-              }
-            }
-          }
+          // Fetch platform data using unified fetcher (routes between real and mock)
+          try {
+            const platformDataResponse = await fetchPlatformData(
+              clientDoc,
+              userDoc,
+              userConnections,
+              dateRange
+            );
 
-          // Fetch Meta Ads data if connected
-          const metaConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'meta-ads' && conn.status === 'active'
-          );
-          if (metaConnection) {
-            try {
-              if (metaConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: metaConnection._id.toString(),
-                  platformId: 'meta-ads',
-                  platformName: 'Meta Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: metaConnection.expiresAt,
-                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const metaData = await fetchMetaAdsData(
-                  metaConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (metaData) {
-                  platformData.metaAds = metaData;
-                }
-              }
-            } catch (metaError: any) {
-              console.error('Error fetching Meta Ads data:', metaError);
-              if (!platformHealthIssues.some(i => i.platformId === 'meta-ads')) {
-                platformHealthIssues.push({
-                  connectionId: metaConnection._id.toString(),
-                  platformId: 'meta-ads',
-                  platformName: 'Meta Ads',
-                  status: 'error',
-                  error: metaError.message,
-                  errorType: metaError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
-                });
-              }
-            }
-          }
+            platformData = platformDataResponse.data;
 
-          // Fetch Google Ads data if connected
-          const googleAdsConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'google-ads' && conn.status === 'active'
-          );
-          if (googleAdsConnection) {
-            try {
-              if (googleAdsConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: googleAdsConnection._id.toString(),
-                  platformId: 'google-ads',
-                  platformName: 'Google Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: googleAdsConnection.expiresAt,
-                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const googleAdsData = await fetchGoogleAdsData(
-                  googleAdsConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (googleAdsData) {
-                  platformData.googleAds = googleAdsData;
-                }
-              }
-            } catch (googleAdsError: any) {
-              console.error('Error fetching Google Ads data:', googleAdsError);
-              if (!platformHealthIssues.some(i => i.platformId === 'google-ads')) {
-                platformHealthIssues.push({
-                  connectionId: googleAdsConnection._id.toString(),
-                  platformId: 'google-ads',
-                  platformName: 'Google Ads',
-                  status: 'error',
-                  error: googleAdsError.message,
-                  errorType: googleAdsError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
-                });
-              }
+            // Add mock data metadata if applicable
+            if (platformDataResponse.source !== 'real') {
+              platformData._source = platformDataResponse.source;
+              platformData.scenarioName = platformDataResponse.scenarioName;
+              platformData.scenarioId = platformDataResponse.scenarioId;
+              platformData.difficulty = platformDataResponse.difficulty;
             }
+          } catch (fetchError: any) {
+            console.error('Error fetching platform data:', fetchError);
+            platformData = {};
           }
         }
       } catch (error) {
@@ -302,8 +215,45 @@ export async function sendMessageStream(
       }
     }
 
-    // Build system prompt with context
-    const systemPrompt = buildSystemPrompt(client as any, platformData);
+    // MULTI-AGENT SYSTEM: Route query to appropriate agent
+    let systemPrompt: string;
+    let selectedAgentId: string | null = null;
+    let selectedAgentName: string | null = null;
+    
+    if (lastUserMessage?.content) {
+      try {
+        // Build agent context with accountType and restrictions
+        const agentContext: AgentContext = {
+          client: client as any,
+          platformData,
+          conversationHistory: messages,
+          query: lastUserMessage.content,
+          dateRange,
+          accountType: userDoc.accountType,
+          userRestrictions: {
+            allowedAgents: userDoc.restrictions?.allowedAgents || [],
+            aiModel: userDoc.restrictions?.aiModel,
+          },
+        };
+
+        // Route query to appropriate agent
+        const routeDecision = await routeQuery(lastUserMessage.content, agentContext);
+
+        // Execute the selected agent to get its system prompt
+        systemPrompt = executeAgent(routeDecision.primaryAgent, agentContext);
+
+        // Store agent metadata for sending to client
+        selectedAgentId = routeDecision.primaryAgent.id;
+        selectedAgentName = routeDecision.primaryAgent.name;
+      } catch (agentError) {
+        console.error('Error in agent routing, falling back to default prompt:', agentError);
+        // Fallback to default system prompt if agent routing fails
+        systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
+      }
+    } else {
+      // No user message, use default prompt
+      systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
+    }
 
     // Get AI provider
     const aiProvider = await getAIProvider();
@@ -334,6 +284,18 @@ export async function sendMessageStream(
               )
             );
             platformIssuesSent = true;
+          }
+
+          // Send agent metadata (which agent is responding)
+          if (selectedAgentId && selectedAgentName) {
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({ 
+                  agentId: selectedAgentId, 
+                  agentName: selectedAgentName 
+                })}\n\n`
+              )
+            );
           }
 
           // Send conversationId as the first message (so frontend knows it immediately)
@@ -414,7 +376,7 @@ export async function sendMessageStream(
                 await connectDB();
                 const conversation = await ConversationModel.findByConversationId(
                   actualConversationId,
-                  user.id
+                  authUser.id
                 );
 
                 if (conversation) {
@@ -482,15 +444,49 @@ export async function sendMessage(
   messages: Message[],
   clientId: string | null,
   dateRange?: { startDate?: string; endDate?: string }
-): Promise<{ content: string; conversationId?: string | null; error?: string }> {
+): Promise<{ 
+  content: string; 
+  conversationId?: string | null; 
+  error?: string;
+  redirect?: string;
+  reason?: 'trial_expired' | 'daily_limit_reached';
+  daysRemaining?: number;
+  messagesUsed?: number;
+  messagesLimit?: number;
+}> {
   try {
     // Verify authentication
-    const user = await requireAuth();
+    const authUser = await requireAuth();
 
-    // Check rate limit
-    const rateLimit = checkRateLimit(user.id);
+    // Fetch full user document to get accountType and restrictions
+    await connectDB();
+    const userDoc = await UserModel.findById(authUser.id);
+    if (!userDoc) {
+      throw new Error('User not found');
+    }
+
+    // Check trial period and daily message limit (7-day trial, 50 messages/day)
+    const trialCheck = await checkTrialLimits(authUser.id);
+    if (!trialCheck.allowed) {
+      const errorMessage = trialCheck.message || 'Trial period expired or daily limit reached.';
+      const redirectUrl = '/#pricing';
+      
+      return {
+        content: '',
+        error: errorMessage,
+        redirect: redirectUrl,
+        reason: trialCheck.reason,
+        daysRemaining: trialCheck.daysRemaining,
+        messagesUsed: trialCheck.messagesUsed,
+        messagesLimit: trialCheck.messagesLimit,
+      };
+    }
+
+    // Check rate limit (tier-based: respects user's maxMessagesPerDay restriction)
+    const maxMessagesPerDay = userDoc.restrictions?.maxMessagesPerDay;
+    const rateLimit = checkRateLimit(authUser.id, maxMessagesPerDay);
     if (!rateLimit.allowed) {
-      const minutesUntilReset = Math.ceil(getTimeUntilReset(user.id) / 60000);
+      const minutesUntilReset = Math.ceil(getTimeUntilReset(authUser.id) / 60000);
       return {
         content: '',
         error: `Rate limit exceeded. You can send ${rateLimit.remaining} more messages. Please try again in ${minutesUntilReset} minutes.`,
@@ -505,13 +501,13 @@ export async function sendMessage(
     if (clientId) {
       try {
         await connectDB();
-        const clientDoc = await ClientModel.findByClientId(clientId, user.id);
+        const clientDoc = await ClientModel.findByClientId(clientId, authUser.id);
 
         if (clientDoc) {
           // Get platform connections from PlatformConnection collection
           const connections = await (PlatformConnectionModel as any).findByClientId(clientId);
           const userConnections = connections.filter(
-            (conn: any) => conn.userId.toString() === user.id
+            (conn: any) => conn.userId.toString() === authUser.id
           );
 
           // Build platforms object from actual connections
@@ -533,177 +529,51 @@ export async function sendMessage(
             platforms,
           };
 
-          // Fetch real platform data from APIs
-          platformData = {};
+          // Check for expired tokens BEFORE fetching data (only for business mode with real APIs)
+          if (userDoc.restrictions?.allowRealAPIs && clientDoc.dataSource === 'real') {
+            for (const conn of userConnections) {
+              if (conn.status === 'active' && conn.isExpired()) {
+                const platformNames: Record<string, string> = {
+                  'google-analytics': 'Google Analytics',
+                  'google-ads': 'Google Ads',
+                  'meta-ads': 'Meta Ads',
+                  'linkedin-ads': 'LinkedIn Ads',
+                };
 
-          // Fetch Google Analytics data from ALL properties if connected
-          const gaConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'google-analytics' && conn.status === 'active'
-          );
-          if (gaConnection) {
-            try {
-              // Check if token is expired BEFORE fetching
-              if (gaConnection.isExpired()) {
                 platformHealthIssues.push({
-                  connectionId: gaConnection._id.toString(),
-                  platformId: 'google-analytics',
-                  platformName: 'Google Analytics',
+                  connectionId: conn._id.toString(),
+                  platformId: conn.platformId,
+                  platformName: platformNames[conn.platformId] || conn.platformId,
                   status: 'expired',
                   errorType: 'expired_token',
-                  expiresAt: gaConnection.expiresAt,
-                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const gaMultiData = await fetchAllGoogleAnalyticsProperties(
-                  gaConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (gaMultiData) {
-                  platformData.googleAnalyticsMulti = gaMultiData;
-                }
-              }
-            } catch (gaError: any) {
-              console.error('Error fetching Google Analytics data:', gaError);
-              // Only add to issues if not already added for expiration
-              if (!platformHealthIssues.some(i => i.platformId === 'google-analytics')) {
-                platformHealthIssues.push({
-                  connectionId: gaConnection._id.toString(),
-                  platformId: 'google-analytics',
-                  platformName: 'Google Analytics',
-                  status: 'error',
-                  error: gaError.message,
-                  errorType: gaError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!gaConnection.getDecryptedRefreshToken(),
+                  expiresAt: conn.expiresAt,
+                  hasRefreshToken: !!conn.getDecryptedRefreshToken(),
                 });
               }
             }
           }
 
-          // Fetch LinkedIn Ads data if connected
-          const linkedInConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'linkedin-ads' && conn.status === 'active'
-          );
-          if (linkedInConnection) {
-            try {
-              if (linkedInConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: linkedInConnection._id.toString(),
-                  platformId: 'linkedin-ads',
-                  platformName: 'LinkedIn Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: linkedInConnection.expiresAt,
-                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const linkedInData = await fetchLinkedInAdsData(
-                  linkedInConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (linkedInData) {
-                  platformData.linkedInAds = linkedInData;
-                }
-              }
-            } catch (linkedInError: any) {
-              console.error('Error fetching LinkedIn Ads data:', linkedInError);
-              if (!platformHealthIssues.some(i => i.platformId === 'linkedin-ads')) {
-                platformHealthIssues.push({
-                  connectionId: linkedInConnection._id.toString(),
-                  platformId: 'linkedin-ads',
-                  platformName: 'LinkedIn Ads',
-                  status: 'error',
-                  error: linkedInError.message,
-                  errorType: linkedInError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!linkedInConnection.getDecryptedRefreshToken(),
-                });
-              }
-            }
-          }
+          // Fetch platform data using unified fetcher (routes between real and mock)
+          try {
+            const platformDataResponse = await fetchPlatformData(
+              clientDoc,
+              userDoc,
+              userConnections,
+              dateRange
+            );
 
-          // Fetch Meta Ads data if connected
-          const metaConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'meta-ads' && conn.status === 'active'
-          );
-          if (metaConnection) {
-            try {
-              if (metaConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: metaConnection._id.toString(),
-                  platformId: 'meta-ads',
-                  platformName: 'Meta Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: metaConnection.expiresAt,
-                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const metaData = await fetchMetaAdsData(
-                  metaConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (metaData) {
-                  platformData.metaAds = metaData;
-                }
-              }
-            } catch (metaError: any) {
-              console.error('Error fetching Meta Ads data:', metaError);
-              if (!platformHealthIssues.some(i => i.platformId === 'meta-ads')) {
-                platformHealthIssues.push({
-                  connectionId: metaConnection._id.toString(),
-                  platformId: 'meta-ads',
-                  platformName: 'Meta Ads',
-                  status: 'error',
-                  error: metaError.message,
-                  errorType: metaError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!metaConnection.getDecryptedRefreshToken(),
-                });
-              }
-            }
-          }
+            platformData = platformDataResponse.data;
 
-          // Fetch Google Ads data if connected
-          const googleAdsConnection = userConnections.find(
-            (conn: any) => conn.platformId === 'google-ads' && conn.status === 'active'
-          );
-          if (googleAdsConnection) {
-            try {
-              if (googleAdsConnection.isExpired()) {
-                platformHealthIssues.push({
-                  connectionId: googleAdsConnection._id.toString(),
-                  platformId: 'google-ads',
-                  platformName: 'Google Ads',
-                  status: 'expired',
-                  errorType: 'expired_token',
-                  expiresAt: googleAdsConnection.expiresAt,
-                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
-                });
-              } else {
-                const googleAdsData = await fetchGoogleAdsData(
-                  googleAdsConnection,
-                  dateRange?.startDate,
-                  dateRange?.endDate
-                );
-                if (googleAdsData) {
-                  platformData.googleAds = googleAdsData;
-                }
-              }
-            } catch (googleAdsError: any) {
-              console.error('Error fetching Google Ads data:', googleAdsError);
-              if (!platformHealthIssues.some(i => i.platformId === 'google-ads')) {
-                platformHealthIssues.push({
-                  connectionId: googleAdsConnection._id.toString(),
-                  platformId: 'google-ads',
-                  platformName: 'Google Ads',
-                  status: 'error',
-                  error: googleAdsError.message,
-                  errorType: googleAdsError.message.includes('401') ? 'expired_token' : 'api_error',
-                  hasRefreshToken: !!googleAdsConnection.getDecryptedRefreshToken(),
-                });
-              }
+            // Add mock data metadata if applicable
+            if (platformDataResponse.source !== 'real') {
+              platformData._source = platformDataResponse.source;
+              platformData.scenarioName = platformDataResponse.scenarioName;
+              platformData.scenarioId = platformDataResponse.scenarioId;
+              platformData.difficulty = platformDataResponse.difficulty;
             }
+          } catch (fetchError: any) {
+            console.error('Error fetching platform data:', fetchError);
+            platformData = {};
           }
         }
       } catch (error) {
@@ -711,8 +581,8 @@ export async function sendMessage(
       }
     }
 
-    // Build system prompt
-    const systemPrompt = buildSystemPrompt(client as any, platformData);
+    // Build system prompt with accountType
+    const systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
 
     // Get AI provider
     const aiProvider = await getAIProvider();
@@ -756,7 +626,7 @@ export async function sendMessage(
           await connectDB();
           const conversation = await ConversationModel.findByConversationId(
             actualConversationId,
-            user.id
+            authUser.id
           );
 
           if (conversation) {

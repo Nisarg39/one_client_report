@@ -17,9 +17,10 @@ interface MessageListProps {
   messages: MessageType[];
   isTyping: boolean;
   onQuickReply: (message: string) => void;
+  accountType?: 'business' | 'education' | 'instructor';
 }
 
-export function MessageList({ messages, isTyping, onQuickReply }: MessageListProps) {
+export function MessageList({ messages, isTyping, onQuickReply, accountType }: MessageListProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +33,7 @@ export function MessageList({ messages, isTyping, onQuickReply }: MessageListPro
 
   // Show empty state if no messages
   if (messages.length === 0 && !isTyping) {
-    return <EmptyState onQuickReply={onQuickReply} />;
+    return <EmptyState onQuickReply={onQuickReply} accountType={accountType} />;
   }
 
   return (

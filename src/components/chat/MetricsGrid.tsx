@@ -710,20 +710,23 @@ function LinkedInAdsMetrics({ data }: { data: any }) {
   }
 
   const metrics = data.metrics;
+  const currency = metrics.currency || 'USD';
 
   return (
     <div className="space-y-4">
+      {/* Key Performance Metrics */}
       <h3
         className="text-xs font-medium text-[#999] uppercase tracking-wider px-1"
         style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
       >
-        Campaign Metrics
+        Key Performance Metrics
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <MetricCard
           label="Ad Spend"
           value={metrics.spend || 0}
           format="currency"
+          formatOptions={{ currency }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricCard
@@ -745,18 +748,229 @@ function LinkedInAdsMetrics({ data }: { data: any }) {
           icon={<Activity className="w-4 h-4" />}
         />
         <MetricCard
-          label="Leads"
-          value={metrics.leads || 0}
-          format="number"
-          icon={<Users className="w-4 h-4" />}
-        />
-        <MetricCard
           label="CPC"
           value={metrics.cpc || 0}
           format="currency"
+          formatOptions={{ currency }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
+        <MetricCard
+          label="Conversions"
+          value={metrics.conversions?.total || 0}
+          format="number"
+          icon={<Target className="w-4 h-4" />}
+        />
       </div>
+
+      {/* Engagement Metrics */}
+      {metrics.engagement && (
+        <DimensionalDataSection
+          title="Engagement Metrics"
+          icon={<Share2 className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Total Engagements"
+              value={metrics.engagement.totalEngagements || 0}
+              format="number"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Engagement Rate"
+              value={metrics.engagement.engagementRate || 0}
+              format="percentage"
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Likes"
+              value={metrics.engagement.likes || 0}
+              format="number"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Comments"
+              value={metrics.engagement.comments || 0}
+              format="number"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Shares"
+              value={metrics.engagement.shares || 0}
+              format="number"
+              icon={<Share2 className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Follows"
+              value={metrics.engagement.follows || 0}
+              format="number"
+              icon={<Users className="w-4 h-4" />}
+            />
+            {metrics.engagement.costPerEngagement > 0 && (
+              <MetricCard
+                label="Cost Per Engagement"
+                value={metrics.engagement.costPerEngagement}
+                format="currency"
+                formatOptions={{ currency }}
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+            )}
+          </div>
+        </DimensionalDataSection>
+      )}
+
+      {/* Conversion Metrics */}
+      {metrics.conversions && (
+        <DimensionalDataSection
+          title="Conversion Metrics"
+          icon={<Target className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Total Conversions"
+              value={metrics.conversions.total || 0}
+              format="number"
+              icon={<Target className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Post-Click Conversions"
+              value={metrics.conversions.postClick || 0}
+              format="number"
+              icon={<MousePointerClick className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Post-View Conversions"
+              value={metrics.conversions.postView || 0}
+              format="number"
+              icon={<Eye className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Landing Page Clicks"
+              value={metrics.conversions.landingPageClicks || 0}
+              format="number"
+              icon={<ExternalLink className="w-4 h-4" />}
+            />
+            {metrics.conversions.costPerConversion > 0 && (
+              <MetricCard
+                label="Cost Per Conversion"
+                value={metrics.conversions.costPerConversion}
+                format="currency"
+                formatOptions={{ currency }}
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+            )}
+          </div>
+        </DimensionalDataSection>
+      )}
+
+      {/* Lead Generation Metrics */}
+      {metrics.leads && (
+        <DimensionalDataSection
+          title="Lead Generation"
+          icon={<Users className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Total Leads"
+              value={metrics.leads.total || 0}
+              format="number"
+              icon={<Users className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Qualified Leads"
+              value={metrics.leads.qualified || 0}
+              format="number"
+              icon={<Users className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Form Opens"
+              value={metrics.leads.formOpens || 0}
+              format="number"
+              icon={<FileText className="w-4 h-4" />}
+            />
+            {metrics.leads.qualityRate > 0 && (
+              <MetricCard
+                label="Lead Quality Rate"
+                value={metrics.leads.qualityRate}
+                format="percentage"
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+            )}
+            {metrics.leads.costPerLead > 0 && (
+              <MetricCard
+                label="Cost Per Lead"
+                value={metrics.leads.costPerLead}
+                format="currency"
+                formatOptions={{ currency }}
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+            )}
+          </div>
+        </DimensionalDataSection>
+      )}
+
+      {/* Video Performance */}
+      {metrics.video && (metrics.video.starts > 0 || metrics.video.views > 0) && (
+        <DimensionalDataSection
+          title="Video Performance"
+          icon={<Activity className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Video Starts"
+              value={metrics.video.starts || 0}
+              format="number"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Video Views"
+              value={metrics.video.views || 0}
+              format="number"
+              icon={<Eye className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Video Completions"
+              value={metrics.video.completions || 0}
+              format="number"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Completion Rate"
+              value={metrics.video.completionRate || 0}
+              format="percentage"
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+          </div>
+        </DimensionalDataSection>
+      )}
+
+      {/* Reach & Awareness */}
+      {metrics.reach && (metrics.reach.uniqueMembers > 0 || metrics.reach.averageDwellTime > 0) && (
+        <DimensionalDataSection
+          title="Reach & Awareness"
+          icon={<Globe className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Unique Members Reached"
+              value={metrics.reach.uniqueMembers || 0}
+              format="number"
+              icon={<Users className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Avg. Dwell Time"
+              value={metrics.reach.averageDwellTime || 0}
+              format="decimal"
+              formatOptions={{ decimals: 1 }}
+              icon={<Clock className="w-4 h-4" />}
+            />
+          </div>
+        </DimensionalDataSection>
+      )}
     </div>
   );
 }

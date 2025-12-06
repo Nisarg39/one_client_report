@@ -46,6 +46,7 @@ import { ConversationFilters } from './ConversationFilters';
 import { ConversationContextMenu } from './ConversationContextMenu';
 import { RenameDialog } from './RenameDialog';
 import { DateRangeSelector } from './DateRangeSelector';
+import { Badge } from '@/components/ui/badge';
 
 export interface ChatSidebarProps {
   currentClient: ClientClient | null;
@@ -56,6 +57,7 @@ export interface ChatSidebarProps {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    accountType?: 'business' | 'education' | 'instructor';
   };
   // Phase 6.5: View mode props
   viewMode?: ViewMode;
@@ -220,6 +222,10 @@ export function ChatSidebar({
     onClientChange(clientId);
     setIsDropdownOpen(false);
   };
+
+  // Get accountType from user prop
+  const accountType = (user as any)?.accountType;
+  const isEducationMode = accountType === 'education';
 
   // Get connected platforms for current client
   const connectedPlatforms = currentClient
@@ -397,19 +403,34 @@ export function ChatSidebar({
 
                 {/* Client Name */}
                 <div className="flex-1 text-left min-w-0">
-                  <p
-                    className="text-sm font-medium text-[#f5f5f5] truncate"
-                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                  >
-                    {currentClient?.name || 'Select Client'}
-                  </p>
-                  {currentClient && (
+                  <div className="flex items-center gap-2">
+                    <p
+                      className="text-sm font-medium text-[#f5f5f5] truncate"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                    >
+                      {currentClient?.name || 'Select Client'}
+                    </p>
+                    {currentClient?.dataSource === 'mock' && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                        Practice
+                      </Badge>
+                    )}
+                  </div>
+                  {currentClient && !isEducationMode && (
                     <p
                       className="text-xs text-[#c0c0c0]"
                       style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
                     >
                       {getConnectedPlatformsCount(currentClient)} platform
                       {getConnectedPlatformsCount(currentClient) !== 1 ? 's' : ''}
+                    </p>
+                  )}
+                  {currentClient && isEducationMode && (
+                    <p
+                      className="text-xs text-[#c0c0c0]"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                    >
+                      Practice workspace
                     </p>
                   )}
                 </div>
@@ -472,19 +493,36 @@ export function ChatSidebar({
 
                               {/* Client Info */}
                               <div className="flex-1 text-left min-w-0">
-                                <p
-                                  className="text-sm font-medium text-[#f5f5f5] truncate"
-                                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                                >
-                                  {client.name}
-                                </p>
-                                <p
-                                  className="text-xs text-[#c0c0c0]"
-                                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                                >
-                                  {getConnectedPlatformsCount(client)} platform
-                                  {getConnectedPlatformsCount(client) !== 1 ? 's' : ''}
-                                </p>
+                                <div className="flex items-center gap-2">
+                                  <p
+                                    className="text-sm font-medium text-[#f5f5f5] truncate"
+                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                  >
+                                    {client.name}
+                                  </p>
+                                  {client.dataSource === 'mock' && (
+                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-purple-500/20 text-purple-300 border-purple-500/30">
+                                      Practice
+                                    </Badge>
+                                  )}
+                                </div>
+                                {!isEducationMode && (
+                                  <p
+                                    className="text-xs text-[#c0c0c0]"
+                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                  >
+                                    {getConnectedPlatformsCount(client)} platform
+                                    {getConnectedPlatformsCount(client) !== 1 ? 's' : ''}
+                                  </p>
+                                )}
+                                {isEducationMode && (
+                                  <p
+                                    className="text-xs text-[#c0c0c0]"
+                                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                                  >
+                                    Practice workspace
+                                  </p>
+                                )}
                               </div>
 
                               {/* Selected Check */}
@@ -502,8 +540,8 @@ export function ChatSidebar({
             </div>
           </div>
 
-          {/* Connected Platforms Section */}
-          {currentClient && connectedPlatforms.length > 0 && (
+          {/* Connected Platforms Section - Only show for business mode */}
+          {!isEducationMode && currentClient && connectedPlatforms.length > 0 && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <h3
@@ -539,8 +577,8 @@ export function ChatSidebar({
             </div>
           )}
 
-          {/* No Platforms Message */}
-          {currentClient && connectedPlatforms.length === 0 && (
+          {/* No Platforms Message - Only show for business mode */}
+          {!isEducationMode && currentClient && connectedPlatforms.length === 0 && (
             <div className="text-center py-4">
               <p
                 className="text-xs text-[#c0c0c0] mb-2"
@@ -558,8 +596,8 @@ export function ChatSidebar({
             </div>
           )}
 
-          {/* Add More Platforms Link */}
-          {currentClient && connectedPlatforms.length > 0 && connectedPlatforms.length < 4 && (
+          {/* Add More Platforms Link - Only show for business mode */}
+          {!isEducationMode && currentClient && connectedPlatforms.length > 0 && connectedPlatforms.length < 4 && (
             <button
               onClick={() => router.push('/settings/platforms')}
               className="w-full text-center text-xs text-[#6CA3A2] hover:text-[#5a9291] transition-colors py-2"
@@ -567,6 +605,21 @@ export function ChatSidebar({
             >
               + Connect more platforms
             </button>
+          )}
+
+          {/* Education Mode Info - Show for education mode */}
+          {isEducationMode && currentClient && (
+            <div className="text-center py-4">
+              <p
+                className="text-xs text-[#c0c0c0] mb-2"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                Practice workspace with simulated data
+              </p>
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-500/20 border border-purple-500/30">
+                <span className="text-[10px] text-purple-300 font-medium">Practice Mode</span>
+              </div>
+            </div>
           )}
 
           {/* Phase 6.5: Date Range Selector */}

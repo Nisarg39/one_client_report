@@ -13,7 +13,7 @@ export function Navbar() {
     { href: "#features", label: "Features" },
     { href: "#pricing", label: "Pricing" },
     { href: "#integrations", label: "Integrations" },
-    { href: "#about", label: "About" },
+    { href: "/about", label: "About" },
   ];
 
   return (
@@ -57,18 +57,34 @@ export function Navbar() {
 
             {/* Desktop Navigation Links + Sign In */}
             <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="px-3 lg:px-4 py-2 rounded-2xl text-sm lg:text-base font-medium text-[#c0c0c0] hover:text-[#6CA3A2] transition-all duration-200 hover:shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]"
-                  style={{
-                    textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const linkClassName = "px-3 lg:px-4 py-2 rounded-2xl text-sm lg:text-base font-medium text-[#c0c0c0] hover:text-[#6CA3A2] transition-all duration-200 hover:shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]";
+                const linkStyle = { textShadow: "0 1px 2px rgba(0,0,0,0.5)" };
+                
+                if (link.href.startsWith("/")) {
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={linkClassName}
+                      style={linkStyle}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                }
+                
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className={linkClassName}
+                    style={linkStyle}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
               <a
                 href="#login"
                 className="px-3 lg:px-4 py-2 rounded-2xl text-sm lg:text-base font-medium text-[#6CA3A2] hover:text-[#5a9493] transition-all duration-200 hover:shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]"
@@ -110,19 +126,36 @@ export function Navbar() {
             className="md:hidden overflow-hidden bg-[#1a1a1a] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)]"
           >
             <div className="px-4 pt-2 pb-4 space-y-1">
-              {navLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  className="block px-4 py-3 rounded-2xl text-base font-medium text-[#c0c0c0] hover:text-[#6CA3A2] hover:bg-[#151515] transition-all duration-200 shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] hover:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]"
-                  onClick={() => setIsMenuOpen(false)}
-                  style={{
-                    textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-                  }}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {navLinks.map((link) => {
+                const linkClassName = "block px-4 py-3 rounded-2xl text-base font-medium text-[#c0c0c0] hover:text-[#6CA3A2] hover:bg-[#151515] transition-all duration-200 shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] hover:shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]";
+                const linkStyle = { textShadow: "0 1px 2px rgba(0,0,0,0.5)" };
+                
+                if (link.href.startsWith("/")) {
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={linkClassName}
+                      onClick={() => setIsMenuOpen(false)}
+                      style={linkStyle}
+                    >
+                      {link.label}
+                    </Link>
+                  );
+                }
+                
+                return (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className={linkClassName}
+                    onClick={() => setIsMenuOpen(false)}
+                    style={linkStyle}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
               <div className="pt-4">
                 <a
                   href="#login"

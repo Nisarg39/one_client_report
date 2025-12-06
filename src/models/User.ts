@@ -25,6 +25,27 @@ export interface IUser extends Document {
   role: 'user' | 'admin';
   status: 'active' | 'inactive' | 'suspended';
 
+  // Hybrid Mode: Account type and restrictions
+  accountType: 'business' | 'education' | 'instructor';
+  usageTier: 'free' | 'pro' | 'enterprise' | 'student';
+
+  educationMetadata?: {
+    institution?: string;
+    studentId?: string;
+    enrollmentCode?: string;
+    instructorId?: mongoose.Types.ObjectId;
+    expiresAt?: Date;
+  };
+
+  restrictions: {
+    maxClients: number;
+    maxMessagesPerDay: number;
+    maxConversations: number;
+    allowRealAPIs: boolean;
+    allowedAgents: string[];
+    aiModel: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo';
+  };
+
   // Phase 6.6: Notification preferences
   notificationPreferences?: {
     email: {
@@ -96,6 +117,67 @@ const UserSchema = new Schema<IUser>(
       enum: ['active', 'inactive', 'suspended'],
       default: 'active',
     },
+    // Hybrid Mode: Account type and restrictions
+    accountType: {
+      type: String,
+      enum: ['business', 'education', 'instructor'],
+      default: 'business',
+      required: [true, 'Account type is required'],
+    },
+    usageTier: {
+      type: String,
+      enum: ['free', 'pro', 'enterprise', 'student'],
+      default: 'pro',
+      required: [true, 'Usage tier is required'],
+    },
+    educationMetadata: {
+      institution: String,
+      studentId: String,
+      enrollmentCode: String,
+      instructorId: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
+      expiresAt: Date,
+    },
+    restrictions: {
+      type: {
+        maxClients: {
+          type: Number,
+          default: 999999, // Unlimited for existing users
+        },
+        maxMessagesPerDay: {
+          type: Number,
+          default: 10000,
+        },
+        maxConversations: {
+          type: Number,
+          default: 999999,
+        },
+        allowRealAPIs: {
+          type: Boolean,
+          default: true,
+        },
+        allowedAgents: {
+          type: [String],
+          default: [], // Empty array = all agents allowed
+        },
+        aiModel: {
+          type: String,
+          enum: ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo'],
+          default: 'gpt-4-turbo',
+        },
+      },
+      required: true,
+      default: () => ({
+        maxClients: 999999,
+        maxMessagesPerDay: 10000,
+        maxConversations: 999999,
+        allowRealAPIs: true,
+        allowedAgents: [],
+        aiModel: 'gpt-4-turbo',
+      }),
+    },
     // Phase 6.6: Notification preferences
     notificationPreferences: {
       email: {
@@ -140,6 +222,8 @@ const UserSchema = new Schema<IUser>(
 UserSchema.index({ email: 1 });
 UserSchema.index({ providerId: 1 });
 UserSchema.index({ status: 1 });
+UserSchema.index({ accountType: 1 });
+UserSchema.index({ usageTier: 1 });
 
 /**
  * Instance Methods
@@ -166,6 +250,56 @@ UserSchema.methods.toAuthUser = function (): {
 /**
  * Static Methods
  */
+
+/**
+ * Get tier-specific restrictions
+ * Used during user creation/upgrade
+ */
+UserSchema.statics.getTierRestrictions = function(usageTier: string) {
+  const tierConfig: Record<string, any> = {
+    student: {
+      maxClients: 5,
+      maxMessagesPerDay: 50,
+      maxConversations: 999999, // Unlimited conversations
+      allowRealAPIs: false,
+      allowedAgents: [],
+      aiModel: 'gpt-3.5-turbo' as const,
+    },
+    free: {
+      maxClients: 5,
+      maxMessagesPerDay: 50,
+      maxConversations: 999999, // Unlimited conversations
+      allowRealAPIs: false,
+      allowedAgents: [],
+      aiModel: 'gpt-3.5-turbo' as const,
+    },
+    pro: {
+      maxClients: 10,
+      maxMessagesPerDay: 150, // 150 messages/day (trial enforces 50/day separately)
+      maxConversations: 999999,
+      allowRealAPIs: true,
+      allowedAgents: [],
+      aiModel: 'gpt-3.5-turbo' as const,
+    },
+    agency: {
+      maxClients: 25,
+      maxMessagesPerDay: 300, // 300 messages/day (trial enforces 50/day separately)
+      maxConversations: 999999,
+      allowRealAPIs: true,
+      allowedAgents: [],
+      aiModel: 'gpt-3.5-turbo' as const,
+    },
+    enterprise: {
+      maxClients: 999999,
+      maxMessagesPerDay: 999999,
+      maxConversations: 999999,
+      allowRealAPIs: true,
+      allowedAgents: [],
+      aiModel: 'gpt-4-turbo' as const,
+    },
+  };
+  return tierConfig[usageTier] || tierConfig.pro;
+};
 
 /**
  * Find user by email
@@ -223,6 +357,14 @@ UserSchema.statics.upsertFromOAuth = async function (profile: {
  * Model Interface (with static methods)
  */
 interface IUserModel extends Model<IUser> {
+  getTierRestrictions(usageTier: string): {
+    maxClients: number;
+    maxMessagesPerDay: number;
+    maxConversations: number;
+    allowRealAPIs: boolean;
+    allowedAgents: string[];
+    aiModel: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo';
+  };
   findByEmail(email: string): Promise<IUser | null>;
   findByProviderId(
     provider: string,

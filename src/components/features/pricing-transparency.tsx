@@ -6,43 +6,45 @@ import { Check, Lock, CreditCard, DollarSign, ArrowRight, Sparkles } from "lucid
 export function PricingTransparency() {
   const plans = [
     {
-      name: "Starter",
-      price: "$49",
-      period: "/month",
-      badge: "For Freelancers",
+      name: "Student",
+      price: "FREE",
+      period: "",
+      badge: "Free Forever",
       badgeColor: "from-[#6CA3A2] to-[#5A8D8C]",
-      description: "Perfect for freelancers managing 5-10 clients",
-      reports: "25 reports/month",
+      description: "Perfect for students learning marketing analytics",
+      reports: "5 clients • 50 messages/day",
       features: [
-        "25 client reports per month",
-        "Unlimited team members",
-        "AI-powered insights",
-        "5 platform integrations",
-        "White-label branding",
-        "Automated scheduling",
-        "Email support",
+        "5 practice clients",
+        "50 messages per day (forever)",
+        "Unlimited conversations",
+        "Mock data scenarios for learning",
+        "Specialized tutoring agent",
+        "Quiz mode",
+        "Educational mode",
+        "No trial expiry - truly free",
       ],
       highlighted: false,
       isEnterprise: false,
-      includesTrial: true,
+      includesTrial: false,
     },
     {
       name: "Professional",
-      price: "$99",
+      price: "₹299",
       period: "/month",
       badge: "RECOMMENDED",
       badgeColor: "from-[#FF8C42] to-[#E67A33]",
-      description: "Ideal for small agencies & teams with 10-25 clients",
-      reports: "75 reports/month",
-      includesPrevious: "Starter",
+      description: "Ideal for freelancers managing up to 10 clients",
+      reports: "10 clients • 150 messages/day",
+      includesPrevious: "Student",
       features: [
-        "Everything in Starter, plus:",
-        "75 reports/month (50 more)",
+        "Everything in Student, plus:",
+        "10 client workspaces",
+        "150 AI messages per day",
+        "7-day free trial (50 msg/day)",
+        "Real platform API connections",
         "Priority email support",
-        "Custom report templates",
-        "Advanced analytics dashboard",
-        "Team performance tracking",
-        "Export to PDF, Excel, PPT",
+        "JSON export",
+        "Forever chat history",
       ],
       highlighted: true,
       isEnterprise: false,
@@ -50,21 +52,22 @@ export function PricingTransparency() {
     },
     {
       name: "Agency",
-      price: "$199",
+      price: "₹999",
       period: "/month",
       badge: "Best Value",
       badgeColor: "from-[#6CA3A2] to-[#5A8D8C]",
-      description: "For growing agencies managing 25-50+ clients",
-      reports: "200 reports/month",
+      description: "For growing agencies managing up to 25 clients",
+      reports: "25 clients • 300 messages/day",
       includesPrevious: "Professional",
       features: [
         "Everything in Professional, plus:",
-        "200 reports/month (125 more)",
-        "Priority email & chat support",
-        "API access",
+        "25 client workspaces",
+        "300 AI messages per day",
+        "5 team members",
+        "7-day free trial (50 msg/day)",
+        "Large context support",
+        "Support for large AI models",
         "Dedicated account manager",
-        "Advanced AI recommendations",
-        "White-label custom domain",
       ],
       highlighted: false,
       isEnterprise: false,
@@ -77,13 +80,13 @@ export function PricingTransparency() {
       badge: "White Glove Service",
       badgeColor: "from-[#9333ea] to-[#7e22ce]",
       description: "For large agencies & enterprises with 100+ clients",
-      reports: "Custom volume (500+ reports)",
+      reports: "Unlimited clients • Unlimited messages",
       includesPrevious: "Agency",
       features: [
         "Everything in Agency, plus:",
-        "Custom volume (500+ reports)",
+        "Unlimited clients",
+        "Unlimited messages",
         "24/7 priority support (phone)",
-        "Priority platform integrations",
         "Custom onboarding & training",
         "SLA guarantees (99.9% uptime)",
         "Annual contract discounts",
@@ -101,7 +104,7 @@ export function PricingTransparency() {
   ];
 
   return (
-    <section className="relative bg-[#242424] py-16 sm:py-20 md:py-24">
+    <section id="pricing" className="relative bg-[#242424] py-16 sm:py-20 md:py-24">
       {/* Gradient transition to next section */}
       <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-64 bg-gradient-to-b from-[#242424] via-[#1e1e1e] to-[#1a1a1a] pointer-events-none" />
 
@@ -249,8 +252,8 @@ export function PricingTransparency() {
 
                 {/* Trial Note */}
                 {plan.includesTrial && (
-                  <p className="text-center text-xs text-[#999] mt-3">
-                    14-day free trial
+                  <p className="text-center text-xs text-[#999] mt-5">
+                    7-day free trial
                   </p>
                 )}
 
@@ -274,14 +277,15 @@ export function PricingTransparency() {
               <span
                 className="inline-block px-4 py-1 rounded-full bg-gradient-to-r from-[#FF8C42] to-[#E67A33] text-xs font-bold text-white shadow-[-4px_-4px_8px_rgba(255,140,66,0.2),4px_4px_8px_rgba(0,0,0,0.6)]"
               >
-                50-80% cheaper than Traditional Reporting Platforms
+                60-80% cheaper than Traditional Reporting Platforms
               </span>
             </div>
             <p className="text-sm text-[#c0c0c0] leading-relaxed">
               <span className="font-semibold text-[#f5f5f5]">Traditional reporting platforms</span> charge{" "}
-              <span className="text-[#FF8C42] font-bold">$12-20 per client</span>.
-              That&apos;s <span className="text-[#FF8C42] font-bold">$120-400/month</span> for 20 clients.{" "}
-              <span className="font-semibold text-[#6CA3A2]">Our Professional plan is just $99/month with 75 reports.</span>
+              <span className="text-[#FF8C42] font-bold">₹1,000-1,650 per client</span>.
+              That&apos;s <span className="text-[#FF8C42] font-bold">₹10,000-16,500/month</span> for 10 clients or{" "}
+              <span className="text-[#FF8C42] font-bold">₹25,000-41,250/month</span> for 25 clients.{" "}
+              <span className="font-semibold text-[#6CA3A2]">Our plans: ₹299/month (10 clients) or ₹999/month (25 clients).</span>
             </p>
           </div>
         </motion.div>

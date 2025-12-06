@@ -22,7 +22,15 @@ import { EditClientModal } from '@/components/chat/EditClientModal';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { PlatformHealthBanner } from '@/components/chat/PlatformHealthBanner';
 import { MetricsDashboardPanel } from '@/components/chat/MetricsDashboardPanel';
-import { ChartBar } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ChartBar, AlertCircle, ArrowRight, X } from 'lucide-react';
 import { useStreamingChat } from '@/lib/ai/useStreamingChat';
 import { generateSuggestions } from '@/lib/ai/suggestions';
 import type { Message, ClientClient, ConversationFilter, ExportFormat, ViewMode, DashboardSection, PlatformHealthIssue } from '@/types/chat';
@@ -101,6 +109,20 @@ export function ChatPageClient() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditClient, setShowEditClient] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientClient | null>(null);
+  // Pricing redirect dialog state
+  const [pricingRedirectDialog, setPricingRedirectDialog] = useState<{
+    isOpen: boolean;
+    message: string;
+    redirectUrl: string;
+    reason?: 'trial_expired' | 'daily_limit_reached';
+    daysRemaining?: number;
+    messagesUsed?: number;
+    messagesLimit?: number;
+  }>({
+    isOpen: false,
+    message: '',
+    redirectUrl: '',
+  });
 
   // Get current client
   const currentClient = clients.find((c) => c.id === currentClientId) || null;
@@ -131,6 +153,7 @@ export function ChatPageClient() {
             logo: client.logo,
             platforms: client.platforms || {}, // Use platform connection data from database
             status: client.status as 'active' | 'inactive' | 'archived',
+            dataSource: client.dataSource, // Include dataSource for Practice badge
             createdAt: client.createdAt,
             updatedAt: client.updatedAt,
           }));
@@ -259,11 +282,37 @@ export function ChatPageClient() {
             }
           }
         },
-        onError: (error) => {
-          console.error('AI Error:', error);
+        onError: (error, redirect, errorData) => {
           setTyping(false);
 
-          // Add error message
+          // Check if redirect is needed (trial expired or limit reached)
+          // These are expected business logic errors, not technical errors
+          if (redirect) {
+            // Show error message in chat
+            const errorMessage: Message = {
+              role: 'assistant',
+              content: error,
+              timestamp: new Date(),
+            };
+            addMessage(errorMessage);
+
+            // Show confirmation dialog instead of auto-redirecting
+            setPricingRedirectDialog({
+              isOpen: true,
+              message: error,
+              redirectUrl: redirect,
+              reason: errorData?.reason,
+              daysRemaining: errorData?.daysRemaining,
+              messagesUsed: errorData?.messagesUsed,
+              messagesLimit: errorData?.messagesLimit,
+            });
+            return;
+          }
+
+          // Only log actual technical errors (not business logic errors)
+          console.error('AI Error:', error);
+
+          // Regular error handling
           const errorMessage: Message = {
             role: 'assistant',
             content: error.includes('OPENAI_API_KEY')
@@ -294,6 +343,7 @@ export function ChatPageClient() {
     name: string;
     email?: string;
     logo?: string;
+    scenarioId?: string;
   }) => {
     try {
       const result = await createClient(data);
@@ -308,6 +358,7 @@ export function ChatPageClient() {
           logo: result.client.logo,
           platforms: {},
           status: result.client.status as 'active' | 'inactive' | 'archived',
+          dataSource: data.scenarioId ? 'mock' : 'real', // Add dataSource based on scenarioId
           createdAt: result.client.createdAt,
           updatedAt: result.client.updatedAt,
         };
@@ -890,6 +941,7 @@ export function ChatPageClient() {
                 messages={messages}
                 isTyping={isTyping}
                 onQuickReply={handleQuickReply}
+                accountType={(session?.user as any)?.accountType}
               />
             </div>
 
@@ -927,6 +979,7 @@ export function ChatPageClient() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSubmit={handleCreateClient}
+        accountType={(session?.user as any)?.accountType}
       />
 
       {/* Platform Configuration Modal */}
@@ -975,6 +1028,92 @@ export function ChatPageClient() {
         isVisible={metricsDashboard.isVisible}
         onToggle={toggleMetricsDashboard}
       />
+
+      {/* Pricing Redirect Confirmation Dialog */}
+      <Dialog
+        open={pricingRedirectDialog.isOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPricingRedirectDialog({
+              isOpen: false,
+              message: '',
+              redirectUrl: '',
+            });
+          }
+        }}
+      >
+        <DialogContent className="bg-[#1a1a1a] border-gray-800 rounded-2xl shadow-[-10px_-10px_30px_rgba(0,0,0,0.8),10px_10px_30px_rgba(0,0,0,0.4)] max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#6CA3A2] to-[#5a9493] rounded-full flex items-center justify-center shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)]">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
+              <DialogTitle className="text-xl font-semibold text-[#f5f5f5]" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
+                {pricingRedirectDialog.reason === 'trial_expired'
+                  ? 'Trial Period Ended'
+                  : 'Daily Limit Reached'}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-[#c0c0c0] mt-2">
+              {pricingRedirectDialog.message}
+            </DialogDescription>
+          </DialogHeader>
+
+          {pricingRedirectDialog.reason === 'daily_limit_reached' && (
+            <div className="bg-[#6CA3A2]/10 border border-[#6CA3A2]/30 rounded-xl px-4 py-3 mt-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#c0c0c0]">Messages used today:</span>
+                <span className="text-[#f5f5f5] font-medium">
+                  {pricingRedirectDialog.messagesUsed} / {pricingRedirectDialog.messagesLimit}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {pricingRedirectDialog.reason === 'trial_expired' && pricingRedirectDialog.daysRemaining !== undefined && (
+            <div className="bg-[#6CA3A2]/10 border border-[#6CA3A2]/30 rounded-xl px-4 py-3 mt-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#c0c0c0]">Trial period:</span>
+                <span className="text-[#f5f5f5] font-medium">
+                  {pricingRedirectDialog.daysRemaining === 0 ? 'Expired' : `${pricingRedirectDialog.daysRemaining} days remaining`}
+                </span>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex gap-3 mt-6">
+            <button
+              onClick={() => {
+                setPricingRedirectDialog({
+                  isOpen: false,
+                  message: '',
+                  redirectUrl: '',
+                });
+              }}
+              className="flex-1 px-4 py-2 bg-[#1a1a1a] hover:bg-[#252525] text-[#f5f5f5] rounded-2xl transition-colors shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)]"
+            >
+              Stay Here
+            </button>
+            <button
+              onClick={() => {
+                setPricingRedirectDialog({
+                  isOpen: false,
+                  message: '',
+                  redirectUrl: '',
+                });
+                
+                // Navigate to homepage with pricing hash
+                // Browser will automatically scroll to #pricing element on page load
+                window.location.href = pricingRedirectDialog.redirectUrl;
+              }}
+              className="flex-1 px-4 py-2 bg-gradient-to-br from-[#6CA3A2] to-[#5a9493] text-white rounded-2xl transition-all font-medium shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.4)] flex items-center justify-center gap-2"
+            >
+              View Pricing
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

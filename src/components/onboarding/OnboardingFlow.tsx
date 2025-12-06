@@ -10,12 +10,14 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { OnboardingLayout } from './OnboardingLayout';
 import { WelcomeStep } from './WelcomeStep';
+import { AccountTypeSelector } from './AccountTypeSelector';
 import { CreateClientStep, type ClientFormData } from './CreateClientStep';
 import { ConnectPlatformsStep } from './ConnectPlatformsStep';
 import { TourStep } from './TourStep';
 import { createClient } from '@/app/actions/clients/createClient';
+import { updateAccountType } from '@/app/actions/onboarding/updateAccountType';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export function OnboardingFlow() {
   const router = useRouter();
@@ -27,6 +29,11 @@ export function OnboardingFlow() {
   const [clientFormData, setClientFormData] = useState<ClientFormData | null>(null);
   const [isFormValid, setIsFormValid] = useState(false);
   const [connectedPlatformsCount, setConnectedPlatformsCount] = useState(0);
+  const [selectedAccountType, setSelectedAccountType] = useState<'business' | 'education' | 'instructor' | null>(null);
+
+  // Get accountType from session or selectedAccountType (fallback for during onboarding)
+  const accountType = (session?.user as any)?.accountType || selectedAccountType;
+  const isEducationMode = accountType === 'education';
 
   // Load progress from localStorage on mount
   useEffect(() => {
@@ -65,7 +72,13 @@ export function OnboardingFlow() {
   // Handle next step
   const handleNext = () => {
     if (currentStep < TOTAL_STEPS) {
-      const nextStep = currentStep + 1;
+      let nextStep = currentStep + 1;
+      
+      // Skip platform connection step (step 4) for education mode
+      if (nextStep === 4 && isEducationMode) {
+        nextStep = 5; // Skip directly to tour step
+      }
+      
       setCurrentStep(nextStep);
       saveProgress(nextStep);
     } else {
@@ -77,13 +90,19 @@ export function OnboardingFlow() {
   // Handle back step
   const handleBack = () => {
     if (currentStep > 1) {
-      const prevStep = currentStep - 1;
+      let prevStep = currentStep - 1;
+      
+      // Skip platform connection step (step 4) for education mode when going back
+      if (prevStep === 4 && isEducationMode) {
+        prevStep = 3; // Go back to create client step
+      }
+      
       setCurrentStep(prevStep);
       saveProgress(prevStep);
     }
   };
 
-  // Handle client creation (Step 2) - this is called from the layout Next button
+  // Handle client creation (Step 3) - this is called from the layout Next button
   const handleCreateClient = async () => {
     if (!clientFormData) return;
 
@@ -91,7 +110,18 @@ export function OnboardingFlow() {
     setError(null);
 
     try {
-      const result = await createClient(clientFormData);
+      // Include scenarioId for education mode
+      const clientData: any = {
+        name: clientFormData.name,
+        email: clientFormData.email,
+        logo: clientFormData.logo,
+      };
+      
+      if (isEducationMode && clientFormData.scenarioId) {
+        clientData.scenarioId = clientFormData.scenarioId;
+      }
+
+      const result = await createClient(clientData);
 
       if (!result.success) {
         setError(result.error || 'Failed to create client. Please try again.');
@@ -103,7 +133,12 @@ export function OnboardingFlow() {
       setCreatedClientId(result.client!.id);
 
       // Move to next step
-      const nextStep = currentStep + 1;
+      // For education mode, skip platform step (step 4) and go to tour (step 5)
+      let nextStep = currentStep + 1;
+      if (isEducationMode) {
+        nextStep = 5; // Skip to tour step
+      }
+      
       setCurrentStep(nextStep);
       saveProgress(nextStep, result.client!.id);
     } catch (error) {
@@ -118,6 +153,39 @@ export function OnboardingFlow() {
   const handleFormDataChange = (data: ClientFormData, isValid: boolean) => {
     setClientFormData(data);
     setIsFormValid(isValid);
+  };
+
+  // Handle account type selection (just sets the state, doesn't save yet)
+  const handleAccountTypeSelect = (type: 'business' | 'education' | 'instructor') => {
+    setSelectedAccountType(type);
+  };
+
+  // Save account type and move to next step
+  const handleSaveAccountType = async () => {
+    if (!selectedAccountType) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await updateAccountType(selectedAccountType);
+
+      if (!result.success) {
+        setError(result.error || 'Failed to update account type');
+        setIsLoading(false);
+        return;
+      }
+
+      // Move to next step
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      saveProgress(nextStep);
+    } catch (error) {
+      console.error('Error updating account type:', error);
+      setError('Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Complete onboarding
@@ -163,6 +231,9 @@ export function OnboardingFlow() {
         return <WelcomeStep userName={session?.user?.name || undefined} />;
 
       case 2:
+        return <AccountTypeSelector onSelect={handleAccountTypeSelect} />;
+
+      case 3:
         return (
           <CreateClientStep
             onChange={handleFormDataChange}
@@ -171,7 +242,17 @@ export function OnboardingFlow() {
           />
         );
 
-      case 3:
+      case 4:
+        // Skip platform connection for education mode
+        if (isEducationMode) {
+          // For education mode, skip directly to tour step
+          // This should not normally render, but handle gracefully
+          return (
+            <div className="text-center py-8">
+              <p className="text-[#c0c0c0]">Setting up your practice workspace...</p>
+            </div>
+          );
+        }
         return (
           <Suspense fallback={<div className="text-center text-[#999]">Loading platforms...</div>}>
             <ConnectPlatformsStep
@@ -181,7 +262,7 @@ export function OnboardingFlow() {
           </Suspense>
         );
 
-      case 4:
+      case 5:
         return <TourStep />;
 
       default:
@@ -195,9 +276,12 @@ export function OnboardingFlow() {
       return 'Start Using OneAssist';
     }
     if (currentStep === 2) {
-      return 'Create Client & Continue';
+      return 'Continue'; // Account type selection
     }
     if (currentStep === 3) {
+      return 'Create Client & Continue';
+    }
+    if (currentStep === 4) {
       // Show "Continue" if platforms are connected, otherwise "Skip for Now"
       return connectedPlatformsCount > 0 ? 'Continue' : 'Skip for Now';
     }
@@ -207,6 +291,9 @@ export function OnboardingFlow() {
   // Determine if next button should be disabled
   const isNextDisabled = () => {
     if (currentStep === 2) {
+      return !selectedAccountType; // Disabled until account type is selected
+    }
+    if (currentStep === 3) {
       return !isFormValid; // Disabled until form is valid
     }
     return false;
@@ -215,7 +302,18 @@ export function OnboardingFlow() {
   // Handle next button click
   const handleNextClick = () => {
     if (currentStep === 2) {
+      handleSaveAccountType();
+      return;
+    }
+    if (currentStep === 3) {
       handleCreateClient();
+      return;
+    }
+    if (currentStep === 4 && isEducationMode) {
+      // For education mode, skip platform step and go directly to tour
+      const nextStep = 5;
+      setCurrentStep(nextStep);
+      saveProgress(nextStep);
       return;
     }
     handleNext();

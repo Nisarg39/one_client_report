@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { BarChart3, Target, Share2, Briefcase, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { connectPlatform } from '@/app/actions/platforms/connectPlatform';
 import { getConnectedPlatforms } from '@/app/actions/platforms/getConnectedPlatforms';
@@ -60,6 +61,7 @@ const platforms: Platform[] = [
 ];
 
 export function ConnectPlatformsStep({ clientId, onConnectionsChange }: ConnectPlatformsStepProps) {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const [connectedPlatforms, setConnectedPlatforms] = useState<ConnectedPlatform[]>([]);
   const [loadingPlatform, setLoadingPlatform] = useState<string | null>(null);
@@ -67,6 +69,32 @@ export function ConnectPlatformsStep({ clientId, onConnectionsChange }: ConnectP
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoadingConnections, setIsLoadingConnections] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Get accountType from session
+  const accountType = (session?.user as any)?.accountType;
+  const isEducationMode = accountType === 'education';
+
+  // Don't render platform connection for education mode
+  if (isEducationMode) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-[#6CA3A2] to-[#5a9493] shadow-[-10px_-10px_24px_rgba(70,70,70,0.4),10px_10px_24px_rgba(0,0,0,0.8)] mb-4">
+            <BarChart3 className="w-8 h-8 text-white" />
+          </div>
+          <h2
+            className="text-3xl font-bold text-[#f5f5f5] mb-3"
+            style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
+          >
+            Practice Workspace Ready
+          </h2>
+          <p className="text-[#c0c0c0] max-w-2xl mx-auto">
+            Your practice workspace is set up with simulated data. No platform connections needed for learning.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Get success/error params
   const successParam = searchParams.get('success');

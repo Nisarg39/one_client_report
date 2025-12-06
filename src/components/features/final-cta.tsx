@@ -17,7 +17,7 @@ export function FinalCTA() {
 
   const trustSignals = [
     "No credit card required",
-    "14-day free trial",
+    "7-day free trial",
     "Cancel anytime",
     "30-day money-back guarantee",
   ];
@@ -50,13 +50,13 @@ export function FinalCTA() {
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-[#f5f5f5] leading-tight"
             style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
           >
-            Join 500+ Marketers Saving Time on Reports
+            Join 500+ Marketers Getting Instant AI Insights
           </h2>
           <p
             className="text-sm sm:text-base md:text-lg lg:text-xl text-[#c0c0c0] max-w-3xl mx-auto px-2 sm:px-0 leading-relaxed"
             style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
           >
-            Start your free trial today. Beautiful reports in 5 minutes, or your money back.
+            Start your 7-day free trial today. Chat with your data in minutes, or your money back.
           </p>
         </motion.div>
 

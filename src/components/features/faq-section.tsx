@@ -16,39 +16,39 @@ export function FAQSection() {
   const faqs: FAQItem[] = [
     {
       question: "How is OneReport different from Google Looker Studio?",
-      answer: "Google Looker Studio is powerful but requires technical knowledge to set up dashboards, connect data sources, and create visualizations. OneReport is designed for non-technical users - connect your accounts in one click, and we automatically generate beautiful reports with AI-written insights. No learning curve, no manual work.",
+      answer: "Google Looker Studio is powerful but requires technical knowledge to set up dashboards, connect data sources, and create visualizations. OneReport is an AI-powered chatbot - simply ask questions about your data in plain English and get instant, professionally analysed insights. No dashboards to build, no learning curve, no manual work.",
     },
     {
-      question: "Can I white-label the reports with my own branding?",
-      answer: "Yes! Every report includes your logo, brand colors, and custom domain (coming soon). Your clients will never see the OneReport brand - reports look like they came directly from your agency.",
+      question: "Can I export the insights and data?",
+      answer: "Yes! You can export your AI-generated insights and data analysis as JSON. This allows you to integrate the insights into your own reports, presentations, or share them with your team and clients in any format you prefer.",
     },
     {
       question: "What platforms do you integrate with?",
-      answer: "Currently, we integrate with the 5 most-used marketing platforms: Google Analytics, Google Ads, Meta Ads (Facebook), Instagram, and LinkedIn. We're adding Twitter (X), TikTok, Pinterest, and YouTube in Q1 2026. Unlike competitors with 80+ integrations you'll never use, we focus on what freelancers and small agencies actually need.",
+      answer: "Currently, we integrate with the 4 most-used marketing platforms: Google Analytics, Google Ads, Meta Ads (Facebook & Instagram), and LinkedIn Ads. We're adding Twitter (X), TikTok, Pinterest, and YouTube in Q1 2026. Unlike competitors with 80+ integrations you'll never use, we focus on what freelancers and small agencies actually need.",
     },
     {
       question: "Do I need technical skills or coding knowledge?",
-      answer: "Not at all. If you can use Gmail, you can use OneReport. Connect your accounts with one-click authorization (no API keys), choose a template, and you're done. Our AI handles all the data analysis and insight generation.",
+      answer: "Not at all. If you can use WhatsApp, you can use OneReport. Connect your accounts with one-click OAuth authorization (no API keys), create a client workspace, and start chatting. Just ask questions in plain English and our AI handles all the data analysis and insight generation instantly.",
     },
     {
-      question: "What if I have more than 25 clients or need more reports?",
-      answer: "Choose a plan that matches your needs. Our Starter plan includes 25 reports/month (perfect for 5-10 clients), Professional includes 75 reports/month (great for 10-25 clients), and Agency includes 200 reports/month (ideal for 25-50+ clients). All plans include unlimited clients - you only pay for the number of reports you generate. Upgrade or downgrade anytime.",
+      question: "What if I have more than 10 clients?",
+      answer: "Choose a plan that matches your needs. Our Student plan is FREE forever with 5 clients (perfect for learning). Professional includes 10 clients with real APIs (₹299/mo). Agency includes 25 clients (₹999/mo). Enterprise offers unlimited clients and messages (custom pricing). Upgrade or downgrade anytime.",
     },
     {
-      question: "How long does it take to create a report?",
-      answer: "About 5 minutes. Connect your accounts (30 seconds), choose a template (1 minute), let AI analyze your data (2 minutes automatically), then download or send (1 minute). Compare that to 6-10 hours with manual reporting.",
+      question: "How long does it take to get insights?",
+      answer: "Instant! Create a client workspace (1 minute), connect your platforms (30 seconds), and start asking questions. Our AI responds in real-time with professionally analysed insights. No waiting for reports to generate - chat with your data like you chat with a colleague.",
     },
     {
-      question: "Can I schedule reports to send automatically?",
-      answer: "Yes! Set up automated monthly reports that generate and email to your clients automatically. You can also create custom schedules (weekly, quarterly) for specific clients.",
+      question: "Can I share insights with my clients and team?",
+      answer: "Yes! Export your AI-generated insights as JSON and share them however you like. You can also screenshot chat conversations, copy insights to paste into emails or presentations, or walk clients through the data in real-time during calls.",
     },
     {
-      question: "What makes your AI insights different?",
-      answer: "Unlike other tools that just show charts and numbers, our AI explains what the data means in plain English. It identifies trends, suggests actions, and writes insights your clients can actually understand - no marketing jargon needed.",
+      question: "What makes your AI chatbot different?",
+      answer: "Unlike traditional reporting tools that just show charts and numbers, our AI chatbot lets you have a conversation with your data. Ask questions in plain English, get instant insights, drill down into specifics, and explore trends interactively. It's like having a data analyst available 24/7 who knows all your clients' metrics.",
     },
     {
       question: "Is there a free trial?",
-      answer: "Yes! 14-day free trial with full access to all features. No credit card required to start. If you love it, upgrade to a paid plan. If not, no harm done.",
+      answer: "Yes! We offer a FREE Student plan forever (5 practice clients, 50 messages/day with mock data - perfect for learning). For business users, Professional and Agency plans include a 7-day free trial with 50 messages/day. After trial, Professional gets 150 messages/day and Agency gets 300 messages/day. No credit card required to start.",
     },
     {
       question: "Can I cancel anytime?",
@@ -56,15 +56,15 @@ export function FAQSection() {
     },
     {
       question: "How is this so much cheaper than other reporting tools?",
-      answer: "We focus on what freelancers and small agencies actually need (5 key platforms, beautiful templates, AI insights) instead of building 80+ integrations that create feature bloat. We charge based on report volume, not per-client fees. Traditional reporting platforms charge $12-20 per client ($120-400/mo for 20 clients), while our Professional plan is just $99/month with 75 reports. This allows us to offer premium quality at 50-80% lower cost than traditional reporting platforms.",
+      answer: "We focus on what freelancers and small agencies actually need (4 key platforms, AI-powered chatbot interface, real-time analytics) instead of building 80+ integrations that create feature bloat. We use a hybrid pricing model (client workspaces + daily AI messages), not per-client fees. Traditional reporting platforms charge ₹1,000-1,650 per client (₹10,000-16,500/mo for 10 clients or ₹25,000-41,250/mo for 25 clients), while our plans are just ₹299/month for 10 clients (150 messages/day) or ₹999/month for 25 clients (300 messages/day). We also offer a FREE Student tier. This allows us to offer premium quality at 96-98% lower cost than traditional reporting platforms.",
     },
     {
       question: "Do you store historical data?",
       answer: "Yes! We store 12 months of historical data so you can create comparison reports and track trends over time. Enterprise plan includes unlimited historical data storage.",
     },
     {
-      question: "What if I need more than 200 reports per month?",
-      answer: "Our Enterprise plan is designed for high-volume agencies and large teams managing 100+ clients. With custom report volumes (500-2,000+ reports/month), priority platform integrations, 24/7 support, and SLA guarantees, we tailor the plan to your specific needs. Contact our sales team for a personalized quote - we're still 50-70% cheaper than traditional reporting platforms at enterprise scale.",
+      question: "What if I need unlimited clients and messages?",
+      answer: "Our Enterprise plan is designed for large agencies and teams managing 100+ clients. With unlimited client workspaces, unlimited AI messages, priority platform integrations, 24/7 phone support, custom onboarding, and SLA guarantees (99.9% uptime), we tailor the plan to your specific needs. Contact our sales team for a personalized quote - we're still 60-80% cheaper than traditional reporting platforms at enterprise scale.",
     },
   ];
 

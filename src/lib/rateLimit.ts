@@ -1,8 +1,8 @@
 /**
  * Rate Limiter
  *
- * Simple in-memory rate limiter for message sending
- * Limits users to 50 messages per hour
+ * Tier-based in-memory rate limiter for message sending
+ * Respects user's maxMessagesPerDay restriction from their account tier
  *
  * Production Note: For multi-instance deployments, replace with Redis-based rate limiting
  */
@@ -10,27 +10,55 @@
 interface RateLimitEntry {
   count: number;
   resetTime: number;
+  hourlyLimit: number; // Store the hourly limit for this user
 }
 
 // In-memory storage for rate limits
-// Key: userId, Value: { count, resetTime }
+// Key: userId, Value: { count, resetTime, hourlyLimit }
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
-// Configuration
-const MAX_MESSAGES_PER_HOUR = 50;
+// Default configuration (fallback if no restrictions provided)
+const DEFAULT_MAX_MESSAGES_PER_HOUR = 50;
 const WINDOW_SIZE_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 
 /**
+ * Calculate hourly limit from daily limit
+ * 
+ * @param maxMessagesPerDay - Daily message limit (optional)
+ * @returns Hourly message limit
+ */
+function calculateHourlyLimit(maxMessagesPerDay?: number): number {
+  if (!maxMessagesPerDay) {
+    // No restriction provided, use default
+    return DEFAULT_MAX_MESSAGES_PER_HOUR;
+  }
+  
+  // Calculate hourly limit: divide daily by 24, round up
+  // This ensures users can use their full daily quota if spread evenly
+  const hourlyLimit = Math.ceil(maxMessagesPerDay / 24);
+  
+  // Minimum 1 message per hour, even for very low daily limits
+  return Math.max(1, hourlyLimit);
+}
+
+/**
  * Check if a user has exceeded the rate limit
+ * 
+ * Tier-based: Respects user's maxMessagesPerDay restriction
  *
  * @param userId - User ID to check
+ * @param maxMessagesPerDay - Optional daily message limit from user restrictions
  * @returns Object with allowed status and remaining count
  */
-export function checkRateLimit(userId: string): {
+export function checkRateLimit(
+  userId: string,
+  maxMessagesPerDay?: number
+): {
   allowed: boolean;
   remaining: number;
   resetTime: number;
 } {
+  const hourlyLimit = calculateHourlyLimit(maxMessagesPerDay);
   const now = Date.now();
   const entry = rateLimitStore.get(userId);
 
@@ -40,17 +68,34 @@ export function checkRateLimit(userId: string): {
     rateLimitStore.set(userId, {
       count: 1,
       resetTime,
+      hourlyLimit,
     });
 
     return {
       allowed: true,
-      remaining: MAX_MESSAGES_PER_HOUR - 1,
+      remaining: hourlyLimit - 1,
+      resetTime,
+    };
+  }
+
+  // If hourly limit changed (e.g., user upgraded), reset the entry
+  if (entry.hourlyLimit !== hourlyLimit) {
+    const resetTime = now + WINDOW_SIZE_MS;
+    rateLimitStore.set(userId, {
+      count: 1,
+      resetTime,
+      hourlyLimit,
+    });
+
+    return {
+      allowed: true,
+      remaining: hourlyLimit - 1,
       resetTime,
     };
   }
 
   // Entry exists and is still valid
-  if (entry.count >= MAX_MESSAGES_PER_HOUR) {
+  if (entry.count >= entry.hourlyLimit) {
     return {
       allowed: false,
       remaining: 0,
@@ -64,7 +109,7 @@ export function checkRateLimit(userId: string): {
 
   return {
     allowed: true,
-    remaining: MAX_MESSAGES_PER_HOUR - entry.count,
+    remaining: entry.hourlyLimit - entry.count,
     resetTime: entry.resetTime,
   };
 }
@@ -73,17 +118,22 @@ export function checkRateLimit(userId: string): {
  * Get remaining messages for a user
  *
  * @param userId - User ID to check
+ * @param maxMessagesPerDay - Optional daily message limit from user restrictions
  * @returns Number of messages remaining
  */
-export function getRemainingMessages(userId: string): number {
+export function getRemainingMessages(
+  userId: string,
+  maxMessagesPerDay?: number
+): number {
+  const hourlyLimit = calculateHourlyLimit(maxMessagesPerDay);
   const now = Date.now();
   const entry = rateLimitStore.get(userId);
 
   if (!entry || now >= entry.resetTime) {
-    return MAX_MESSAGES_PER_HOUR;
+    return hourlyLimit;
   }
 
-  return Math.max(0, MAX_MESSAGES_PER_HOUR - entry.count);
+  return Math.max(0, entry.hourlyLimit - entry.count);
 }
 
 /**

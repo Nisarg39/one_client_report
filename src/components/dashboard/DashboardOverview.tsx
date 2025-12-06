@@ -17,7 +17,6 @@ import {
   Zap,
   BarChart3,
   Activity,
-  Coins,
   Clock,
   AlertTriangle,
   CheckCircle2,
@@ -368,7 +367,8 @@ export function DashboardOverview({
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Messages Sent This Month */}
                 <div>
                   <p className="text-2xl font-bold text-[#f5f5f5]" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
                     {dashboardStats.aiUsage.messagesThisMonth}
@@ -377,24 +377,32 @@ export function DashboardOverview({
                     Messages Sent
                   </p>
                 </div>
+
+                {/* Today's Message Usage */}
                 <div>
                   <p className="text-2xl font-bold text-[#f5f5f5]" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                    {dashboardStats.aiUsage.tokensUsed.total.toLocaleString()}
+                    {dashboardStats.aiUsage.messagesToday} / {dashboardStats.aiUsage.dailyLimit}
                   </p>
                   <p className="text-xs text-[#c0c0c0]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Tokens Used
+                    Today&apos;s Message Usage
                   </p>
-                </div>
-                <div>
-                  <div className="flex items-center gap-1">
-                    <Coins className="w-4 h-4 text-[#6CA3A2]" />
-                    <p className="text-xl font-bold text-[#6CA3A2]" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                      ${dashboardStats.aiUsage.estimatedCost.toFixed(4)}
-                    </p>
+
+                  {/* Progress Bar */}
+                  <div className="mt-2 w-full bg-[#2a2a2a] rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        (() => {
+                          const usagePercent = (dashboardStats.aiUsage.messagesToday / dashboardStats.aiUsage.dailyLimit) * 100;
+                          if (usagePercent >= 90) return 'bg-red-500';
+                          if (usagePercent >= 70) return 'bg-yellow-500';
+                          return 'bg-green-500';
+                        })()
+                      }`}
+                      style={{
+                        width: `${Math.min((dashboardStats.aiUsage.messagesToday / dashboardStats.aiUsage.dailyLimit) * 100, 100)}%`
+                      }}
+                    />
                   </div>
-                  <p className="text-xs text-[#c0c0c0]" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                    Estimated Cost
-                  </p>
                 </div>
               </div>
             </div>

@@ -118,8 +118,8 @@ export function ProblemStatement() {
               className="text-sm sm:text-base text-[#c0c0c0] mb-6 leading-relaxed"
               style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
             >
-              Enterprise tools cost $12-179 per client or $200-500/month flat rates.
-              For freelancers managing 10 clients, that&apos;s $2,000-5,000 per year just for reporting.
+              Traditional platforms charge ₹1,000-1,650 per client per month.
+              For freelancers managing 10 clients, that&apos;s ₹10,000-16,500/month (₹1.2-2 lakhs/year) just for reporting.
             </p>
 
             {/* Stat */}
@@ -127,10 +127,10 @@ export function ProblemStatement() {
               <div
                 className="text-2xl sm:text-3xl font-bold text-[#E74C3C]"
               >
-                $200-500/mo
+                ₹10,000-16,500/mo
               </div>
               <div className="text-xs sm:text-sm text-[#999] mt-1">
-                for reporting tools
+                for 10 clients on traditional tools
               </div>
             </div>
           </motion.div>
