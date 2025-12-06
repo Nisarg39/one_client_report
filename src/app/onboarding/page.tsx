@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   description: 'Get started with your AI-powered marketing analytics assistant',
 };
 
+// Force dynamic rendering - this page requires authentication and user-specific data
+export const dynamic = 'force-dynamic';
+
 export default async function OnboardingPage() {
   // 1. Check authentication
   const user = await getCurrentUser();

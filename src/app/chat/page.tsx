@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: 'Ask OneAssist about your marketing analytics data. Get instant insights from Google Analytics, Google Ads, Meta Ads, and LinkedIn Ads.',
 };
 
+// Force dynamic rendering - this page requires authentication and user-specific data
+export const dynamic = 'force-dynamic';
+
 export default async function ChatPage() {
   // Check authentication - redirect to sign-in if not authenticated
   const user = await getCurrentUser();
