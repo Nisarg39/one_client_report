@@ -1,18 +1,16 @@
 import type { Metadata } from "next";
-import { FeaturesHero } from "@/components/features/features-hero";
-import { AIChatbotFeatures } from "@/components/features/ai-chatbot-features";
-import { PlatformIntegrations } from "@/components/features/platform-integrations";
-import { OnboardingShowcase } from "@/components/features/onboarding-showcase";
-import { FeaturesCTA } from "@/components/features/features-cta";
-import { Footer } from "@/components/layout/footer";
+import { FeaturesPageClient } from "./features-page-client";
 
 export const metadata: Metadata = {
   title: "Features - OneReport | AI-Powered Client Reporting",
-  description: "Explore OneReport's features: AI chatbot, platform integrations, multi-client support, and more. See how we help agencies save time and money.",
+  description: "Explore OneReport's features: Education Mode for students and Professional Mode for businesses. AI chatbot, platform integrations, and more.",
   keywords: [
     "AI chatbot features",
     "marketing platform integrations",
-    "multi-client reporting",
+    "education mode",
+    "professional mode",
+    "student marketing analytics",
+    "business reporting",
     "Google Analytics integration",
     "Meta Ads integration",
     "automated client reporting",
@@ -23,21 +21,11 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Features - OneReport | AI-Powered Client Reporting",
-    description: "Explore OneReport's features: AI chatbot, platform integrations, multi-client support, and more.",
+    description: "Explore OneReport's features: Education Mode for students and Professional Mode for businesses.",
     url: "https://onereport.in/features",
   },
 };
 
 export default function FeaturesPage() {
-  return (
-    <>
-      <FeaturesHero />
-      <AIChatbotFeatures />
-      <PlatformIntegrations />
-      <OnboardingShowcase />
-      <FeaturesCTA />
-      <Footer />
-    </>
-  );
+  return <FeaturesPageClient />;
 }
-

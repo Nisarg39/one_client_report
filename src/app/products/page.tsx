@@ -97,6 +97,16 @@ export default function ProductsPage() {
                   <strong>Currency:</strong> Indian Rupees (INR)
                 </p>
               </div>
+
+              <div className="mt-8">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white font-semibold shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] transition-all duration-300"
+                  aria-label="Start free trial now for Student Plan"
+                >
+                  Start Free Trial Now
+                </Link>
+              </div>
             </section>
 
             {/* Professional Plan */}
@@ -148,6 +158,16 @@ export default function ProductsPage() {
                   <strong>Currency:</strong> Indian Rupees (INR)<br />
                   <strong>Free Trial:</strong> 7 days (50 messages per day)
                 </p>
+              </div>
+
+              <div className="mt-8">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white font-semibold shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] transition-all duration-300"
+                  aria-label="Start free trial now for Professional Plan"
+                >
+                  Start Free Trial Now
+                </Link>
               </div>
             </section>
 
@@ -201,6 +221,16 @@ export default function ProductsPage() {
                   <strong>Currency:</strong> Indian Rupees (INR)<br />
                   <strong>Free Trial:</strong> 7 days (50 messages per day)
                 </p>
+              </div>
+
+              <div className="mt-8">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white font-semibold shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] transition-all duration-300"
+                  aria-label="Start free trial now for Agency Plan"
+                >
+                  Start Free Trial Now
+                </Link>
               </div>
             </section>
 
@@ -261,6 +291,16 @@ export default function ProductsPage() {
                   </a>
                   {" "}for custom pricing
                 </p>
+              </div>
+
+              <div className="mt-8">
+                <Link
+                  href="/signup"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white font-semibold shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] transition-all duration-300"
+                  aria-label="Start free trial now for Enterprise Plan"
+                >
+                  Start Free Trial Now
+                </Link>
               </div>
             </section>
 

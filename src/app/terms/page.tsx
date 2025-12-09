@@ -35,8 +35,7 @@ export default function TermsPage() {
 
         {/* Content */}
         <div className="prose prose-invert max-w-none">
-          <div className="rounded-2xl bg-[#151515] p-6 sm:p-8 md:p-10 shadow-[-12px_-12px_24px_rgba(40,40,40,0.3),12px_12px_24px_rgba(0,0,0,0.6)]">
-            <div className="space-y-6 text-[#c0c0c0]">
+          <div className="space-y-6 text-[#c0c0c0]">
               <section>
                 <h2 className="text-xl sm:text-2xl font-bold text-[#f5f5f5] mb-4">
                   1. Acceptance of Terms
@@ -200,7 +199,6 @@ export default function TermsPage() {
                   {" "}page.
                 </p>
               </section>
-            </div>
           </div>
         </div>
       </div>

@@ -6,7 +6,10 @@ import { Sparkles } from "lucide-react";
 export function FeaturesHero() {
   return (
     <section className="relative bg-[#1a1a1a] pt-20 sm:pt-24 md:pt-28 pb-12 sm:pb-16 md:pb-20">
-      <div className="max-w-7xl mx-auto px-4">
+      {/* Gradient transition to next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-64 bg-gradient-to-b from-[#1a1a1a] via-[#1e1e1e] to-[#242424] pointer-events-none z-0" />
+
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 md:space-y-8">
           {/* Badge */}
           <motion.div
@@ -66,9 +69,8 @@ export function FeaturesHero() {
                 textShadow: '0 1px 2px rgba(0,0,0,0.5)'
               }}
             >
-              Discover powerful features designed to help agencies and freelancers
-              create professional reports in minutes, not hours. Built for simplicity,
-              powered by AI.
+              Choose your path: Learn marketing analytics with Education Mode, or
+              run your business with Professional Mode. Both powered by AI, built for simplicity.
             </p>
           </motion.div>
         </div>

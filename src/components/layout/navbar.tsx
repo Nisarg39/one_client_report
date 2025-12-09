@@ -86,15 +86,15 @@ export function Navbar() {
                   </a>
                 );
               })}
-              <a
-                href="#login"
+              <Link
+                href="/signin"
                 className="px-3 lg:px-4 py-2 rounded-2xl text-sm lg:text-base font-medium text-[#6CA3A2] hover:text-[#5a9493] transition-all duration-200 hover:shadow-[-4px_-4px_12px_rgba(70,70,70,0.3),4px_4px_12px_rgba(0,0,0,0.7)] focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]"
                 style={{
                   textShadow: "0 1px 2px rgba(0,0,0,0.5)",
                 }}
               >
                 Sign In
-              </a>
+              </Link>
             </div>
 
             {/* Mobile menu button */}
@@ -158,8 +158,8 @@ export function Navbar() {
                 );
               })}
               <div className="pt-4">
-                <a
-                  href="#login"
+                <Link
+                  href="/signin"
                   className="block px-4 py-3 rounded-2xl text-base font-medium text-center text-[#6CA3A2] bg-[#1a1a1a] shadow-[-6px_-6px_16px_rgba(70,70,70,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(70,70,70,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(60,60,60,0.4)] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#6CA3A2] focus:ring-offset-2 focus:ring-offset-[#1a1a1a]"
                   onClick={() => setIsMenuOpen(false)}
                   style={{
@@ -167,7 +167,7 @@ export function Navbar() {
                   }}
                 >
                   Sign In
-                </a>
+                </Link>
               </div>
             </div>
           </motion.div>

@@ -31,9 +31,9 @@ export function ProgressIndicator({
       </div>
 
       {/* Step dots with connecting line */}
-      <div className="relative flex items-center justify-between">
-        {/* Line container - spans between dot centers */}
-        <div className="absolute top-4 left-4 right-4 h-1 -translate-y-1/2">
+      <div className="relative flex items-start justify-between">
+        {/* Line container - positioned at circle center (16px from top for w-8 h-8 circle) */}
+        <div className="absolute top-[14px] left-4 right-4 h-1">
           {/* Background line */}
           <div className="absolute inset-0 rounded-full bg-[#1a1a1a] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5),inset_-2px_-2px_4px_rgba(60,60,60,0.3)]" />
 

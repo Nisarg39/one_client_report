@@ -43,9 +43,16 @@ export function AIChatbotFeatures() {
     },
   ];
 
+  // Split features into two groups for asymmetric layout
+  const leftColumn = features.slice(0, 3);
+  const rightColumn = features.slice(3, 6);
+
   return (
     <section className="relative bg-[#242424] py-16 sm:py-20 md:py-24">
-      <div className="max-w-7xl mx-auto px-4">
+      {/* Gradient transition to next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-64 bg-gradient-to-b from-[#242424] via-[#1e1e1e] to-[#1a1a1a] pointer-events-none z-0" />
+      
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -74,54 +81,113 @@ export function AIChatbotFeatures() {
           </p>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative p-6 sm:p-8 rounded-2xl bg-[#1a1a1a] shadow-[-8px_-8px_16px_rgba(70,70,70,0.3),8px_8px_16px_rgba(0,0,0,0.7)] hover:shadow-[-8px_-8px_16px_rgba(108,163,162,0.3),8px_8px_16px_rgba(0,0,0,0.7),0_0_20px_rgba(108,163,162,0.2)] transition-all duration-300 group"
-            >
-              {/* Highlight Badge */}
-              <div className="absolute top-4 right-4">
-                <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#242424] text-[#6CA3A2] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(50,50,50,0.3)]">
-                  {feature.highlight}
-                </span>
-              </div>
-
-              {/* Icon */}
-              <div className="mb-6">
-                <div
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#242424] flex items-center justify-center shadow-[-8px_-8px_16px_rgba(60,60,60,0.4),8px_8px_16px_rgba(0,0,0,0.8)] group-hover:shadow-[-8px_-8px_16px_rgba(108,163,162,0.3),8px_8px_16px_rgba(0,0,0,0.8),0_0_20px_rgba(108,163,162,0.3)] transition-shadow duration-300"
-                >
-                  <feature.icon
-                    className="w-7 h-7 sm:w-8 sm:h-8 text-[#6CA3A2]"
-                    aria-hidden="true"
-                  />
+        {/* Asymmetric Split Layout - Left column offset, right column aligned */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+          {/* Left Column - Offset with larger spacing */}
+          <div className="space-y-8 lg:pt-16">
+            {leftColumn.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className="relative group"
+              >
+                {/* Connecting line on desktop */}
+                {index < leftColumn.length - 1 && (
+                  <div className="hidden lg:block absolute left-8 top-20 w-0.5 h-8 bg-gradient-to-b from-[#6CA3A2] to-transparent opacity-30" />
+                )}
+                
+                <div className="flex gap-6 items-start">
+                  {/* Icon with connecting line */}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-8px_-8px_16px_rgba(60,60,60,0.4),8px_8px_16px_rgba(0,0,0,0.8)] group-hover:shadow-[-8px_-8px_16px_rgba(108,163,162,0.3),8px_8px_16px_rgba(0,0,0,0.8),0_0_20px_rgba(108,163,162,0.3)] transition-shadow duration-300">
+                      <feature.icon
+                        className="w-8 h-8 text-[#6CA3A2]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 pt-2">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3
+                        className="text-xl sm:text-2xl font-bold text-[#f5f5f5]"
+                        style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
+                      >
+                        {feature.title}
+                      </h3>
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#242424] text-[#6CA3A2] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(50,50,50,0.3)] ml-4 flex-shrink-0">
+                        {feature.highlight}
+                      </span>
+                    </div>
+                    <p
+                      className="text-sm sm:text-base text-[#c0c0c0] leading-relaxed"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                    >
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
+            ))}
+          </div>
 
-              {/* Content */}
-              <h3
-                className="text-xl sm:text-2xl font-bold text-[#f5f5f5] mb-3"
-                style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
+          {/* Right Column - Aligned normally */}
+          <div className="space-y-8">
+            {rightColumn.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className="relative group"
               >
-                {feature.title}
-              </h3>
-              <p
-                className="text-sm sm:text-base text-[#c0c0c0] leading-relaxed"
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-              >
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
+                {/* Connecting line on desktop */}
+                {index < rightColumn.length - 1 && (
+                  <div className="hidden lg:block absolute left-8 top-20 w-0.5 h-8 bg-gradient-to-b from-[#6CA3A2] to-transparent opacity-30" />
+                )}
+                
+                <div className="flex gap-6 items-start">
+                  {/* Icon */}
+                  <div className="relative flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-8px_-8px_16px_rgba(60,60,60,0.4),8px_8px_16px_rgba(0,0,0,0.8)] group-hover:shadow-[-8px_-8px_16px_rgba(108,163,162,0.3),8px_8px_16px_rgba(0,0,0,0.8),0_0_20px_rgba(108,163,162,0.3)] transition-shadow duration-300">
+                      <feature.icon
+                        className="w-8 h-8 text-[#6CA3A2]"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex-1 pt-2">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3
+                        className="text-xl sm:text-2xl font-bold text-[#f5f5f5]"
+                        style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
+                      >
+                        {feature.title}
+                      </h3>
+                      <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#242424] text-[#6CA3A2] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(50,50,50,0.3)] ml-4 flex-shrink-0">
+                        {feature.highlight}
+                      </span>
+                    </div>
+                    <p
+                      className="text-sm sm:text-base text-[#c0c0c0] leading-relaxed"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                    >
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
   );
 }
-
