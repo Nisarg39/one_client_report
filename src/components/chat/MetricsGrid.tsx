@@ -105,12 +105,14 @@ interface MetricsGridProps {
   platformType: PlatformType;
   platformData: any;
   isLoading?: boolean;
+  selectedPropertyId?: string | null;
 }
 
 export function MetricsGrid({
   platformType,
   platformData,
   isLoading = false,
+  selectedPropertyId = null,
 }: MetricsGridProps) {
   // Show loading skeletons
   if (isLoading) {
@@ -137,7 +139,12 @@ export function MetricsGrid({
   // Render metrics based on platform type
   switch (platformType) {
     case 'googleAnalytics':
-      return <GoogleAnalyticsMetrics data={platformData} />;
+      return (
+        <GoogleAnalyticsMetrics
+          data={platformData}
+          selectedPropertyId={selectedPropertyId}
+        />
+      );
     case 'googleAds':
       return <GoogleAdsMetrics data={platformData} />;
     case 'metaAds':
@@ -152,14 +159,37 @@ export function MetricsGrid({
 /**
  * Google Analytics metrics grid
  */
-function GoogleAnalyticsMetrics({ data }: { data: any }) {
+function GoogleAnalyticsMetrics({
+  data,
+  selectedPropertyId,
+}: {
+  data: any;
+  selectedPropertyId?: string | null;
+}) {
   // Data structure: { properties: [...], dateRange: string, selectedPropertyId: string }
   const properties = data?.properties || [];
 
-  // Find the selected property by ID, or use the first one as fallback
-  const selectedProperty = data?.selectedPropertyId
-    ? properties.find((p: any) => p.propertyId === data.selectedPropertyId)
-    : properties[0];
+  // Property selection logic with fallback chain:
+  // 1. Use selectedPropertyId prop if provided (from store)
+  // 2. Fallback to data.selectedPropertyId (from backend/settings)
+  // 3. Fallback to first property
+  let selectedProperty = null;
+
+  if (selectedPropertyId) {
+    selectedProperty = properties.find(
+      (p: any) => p.propertyId === selectedPropertyId
+    );
+  }
+
+  if (!selectedProperty && data?.selectedPropertyId) {
+    selectedProperty = properties.find(
+      (p: any) => p.propertyId === data.selectedPropertyId
+    );
+  }
+
+  if (!selectedProperty && properties.length > 0) {
+    selectedProperty = properties[0];
+  }
 
   if (!selectedProperty || !selectedProperty.metrics) {
     return (

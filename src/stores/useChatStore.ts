@@ -67,6 +67,7 @@ interface ChatStore {
   metricsDashboard: {
     isVisible: boolean;                 // Is metrics panel visible?
     selectedPlatform: PlatformType | null; // Currently selected platform tab
+    selectedPropertyId: string | null; // Selected GA property ID
     width: number;                      // Panel width in pixels (desktop)
     mode: 'split' | 'collapsed' | 'overlay'; // Layout mode
   };
@@ -111,6 +112,7 @@ interface ChatStore {
   toggleMetricsDashboard: () => void;
   setMetricsDashboardVisible: (visible: boolean) => void;
   setMetricsDashboardPlatform: (platform: PlatformType) => void;
+  setMetricsDashboardPropertyId: (propertyId: string | null) => void;
   setMetricsDashboardWidth: (width: number) => void;
   setPlatformData: (data: PlatformDataPayload) => void;
 }
@@ -145,6 +147,7 @@ export const useChatStore = create<ChatStore>()(
   metricsDashboard: {
     isVisible: false,
     selectedPlatform: null,
+    selectedPropertyId: null,
     width: 400, // Default panel width (px)
     mode: 'collapsed' as const,
   },
@@ -162,11 +165,15 @@ export const useChatStore = create<ChatStore>()(
 
   // Client Actions
   setCurrentClient: (clientId) =>
-    set({
+    set((state) => ({
       currentClientId: clientId,
       messages: [], // Clear messages when switching clients
       currentConversationId: null,
-    }),
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        selectedPropertyId: null, // Reset property selection when switching clients
+      },
+    })),
 
   setClients: (clients) => set({ clients }),
 
@@ -245,6 +252,16 @@ export const useChatStore = create<ChatStore>()(
       metricsDashboard: {
         ...state.metricsDashboard,
         selectedPlatform: platform,
+        // Reset property selection when switching away from Google Analytics
+        selectedPropertyId: platform === 'googleAnalytics' ? state.metricsDashboard.selectedPropertyId : null,
+      },
+    })),
+
+  setMetricsDashboardPropertyId: (propertyId) =>
+    set((state) => ({
+      metricsDashboard: {
+        ...state.metricsDashboard,
+        selectedPropertyId: propertyId,
       },
     })),
 
@@ -257,9 +274,40 @@ export const useChatStore = create<ChatStore>()(
     })),
 
   setPlatformData: (data) =>
-    set({
-      platformData: data,
-      platformDataTimestamp: Date.now(),
+    set((state) => {
+      // Handle Google Analytics property selection
+      let selectedPropertyId = state.metricsDashboard.selectedPropertyId;
+      const gaData = data.platforms?.googleAnalytics;
+
+      if (gaData && gaData.properties && Array.isArray(gaData.properties)) {
+        const propertyIds = gaData.properties.map((p: any) => p.propertyId);
+
+        // If current selectedPropertyId doesn't exist in new properties, reset it
+        if (selectedPropertyId && !propertyIds.includes(selectedPropertyId)) {
+          selectedPropertyId = null;
+        }
+
+        // If no property is selected, use the one from settings or first property
+        if (!selectedPropertyId) {
+          if (gaData.selectedPropertyId && propertyIds.includes(gaData.selectedPropertyId)) {
+            selectedPropertyId = gaData.selectedPropertyId;
+          } else if (propertyIds.length > 0) {
+            selectedPropertyId = propertyIds[0];
+          }
+        }
+      } else {
+        // No GA data or empty properties, reset selection
+        selectedPropertyId = null;
+      }
+
+      return {
+        platformData: data,
+        platformDataTimestamp: Date.now(),
+        metricsDashboard: {
+          ...state.metricsDashboard,
+          selectedPropertyId,
+        },
+      };
     }),
     }),
     {

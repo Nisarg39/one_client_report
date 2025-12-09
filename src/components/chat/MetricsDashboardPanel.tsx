@@ -12,6 +12,7 @@ import { X, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/stores/useChatStore';
 import { PlatformTabs } from './PlatformTabs';
 import { MetricsGrid } from './MetricsGrid';
+import { PropertySelector } from './PropertySelector';
 
 interface MetricsDashboardPanelProps {
   isVisible: boolean;
@@ -26,6 +27,7 @@ export function MetricsDashboardPanel({
     metricsDashboard,
     platformData,
     platformDataTimestamp,
+    setMetricsDashboardPropertyId,
   } = useChatStore();
 
   // Check if data is stale (>5 minutes old)
@@ -38,6 +40,15 @@ export function MetricsDashboardPanel({
     ? Object.entries(platformData.platforms)
         .map(([key]) => key as any)
     : [];
+
+  // Extract Google Analytics properties for property selector
+  const gaData = platformData?.platforms?.googleAnalytics;
+  const gaProperties =
+    gaData?.properties?.map((p: any) => ({
+      propertyId: p.propertyId,
+      propertyName: p.propertyName,
+    })) || [];
+  const isGoogleAnalyticsSelected = metricsDashboard.selectedPlatform === 'googleAnalytics';
 
   return (
     <AnimatePresence>
@@ -125,11 +136,25 @@ export function MetricsDashboardPanel({
                 {/* Platform tabs */}
                 <PlatformTabs platforms={connectedPlatforms} />
 
+                {/* Property Selector - Only for Google Analytics with multiple properties */}
+                {isGoogleAnalyticsSelected && gaProperties.length > 1 && (
+                  <PropertySelector
+                    properties={gaProperties}
+                    selectedPropertyId={metricsDashboard.selectedPropertyId}
+                    onSelect={(propertyId) => setMetricsDashboardPropertyId(propertyId)}
+                  />
+                )}
+
                 {/* Metrics content - Phase 2 implementation */}
                 {metricsDashboard.selectedPlatform ? (
                   <MetricsGrid
                     platformType={metricsDashboard.selectedPlatform}
                     platformData={platformData.platforms[metricsDashboard.selectedPlatform]}
+                    selectedPropertyId={
+                      isGoogleAnalyticsSelected
+                        ? metricsDashboard.selectedPropertyId
+                        : null
+                    }
                   />
                 ) : (
                   <div className="py-8 text-center">

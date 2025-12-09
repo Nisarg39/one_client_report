@@ -298,7 +298,7 @@ export async function fetchLinkedInAdsData(
           }
         }
 
-        // Get campaigns for this account
+        // Get campaigns for this account (optional - errors are silently caught)
         try {
           const campaigns = await client.getCampaigns(accountUrn);
 
@@ -337,7 +337,7 @@ export async function fetchLinkedInAdsData(
             }
           }
         } catch (campaignError: any) {
-          // Continue on campaign fetch errors
+          // Continue on campaign fetch errors (campaigns are optional)
         }
       } catch (analyticsError: any) {
         // Continue on analytics errors
