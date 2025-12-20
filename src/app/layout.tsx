@@ -21,20 +21,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OneReport - AI-Powered Client Reporting Software",
-  description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than Traditional Reporting Platforms. Free trial!",
+  title: "OneReport | Agentic AI Client Reporting & Marketing Intelligence",
+  description: "Scale your agency with OneReport. An AI-powered agentic reporting platform that turns marketing data into actionable growth strategies in minutes. 80% more efficient than traditional tools.",
   keywords: [
+    "agentic AI reporting",
     "client reporting software",
-    "marketing reporting tool",
-    "AI marketing reports",
-    "automated client reports",
-    "affordable reporting software",
-    "agency reporting",
-    "freelance marketing",
-    "white label reporting",
-    "client reporting software india",
-    "marketing agency tools india",
-    "agencyanalytics alternative india",
+    "marketing intelligence platform",
+    "AI marketing analytics",
+    "automated agency reports",
+    "OneReport AI",
+    "marketing automation india",
+    "data-driven growth strategies",
+    "affordable agency tools",
+    "white label reporting platform"
   ],
   authors: [{ name: "OneReport", url: "https://onereport.in" }],
   creator: "OneReport",
@@ -48,11 +47,8 @@ export const metadata: Metadata = {
     "ICBM": "18.5204, 73.8567",
   },
 
-  // Verification tags (add your verification codes after setting up accounts)
   verification: {
-    google: "eQ3KWk9WiqtTxeT7XORRa_7OoRIAkUpIOSlv6iDzdbE", // Google Search Console verification
-    // yandex: "", // Add if needed
-    // bing: "", // Add if needed
+    google: "eQ3KWk9WiqtTxeT7XORRa_7OoRIAkUpIOSlv6iDzdbE",
   },
   icons: {
     icon: [
@@ -62,10 +58,6 @@ export const metadata: Metadata = {
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
-    other: [
-      { rel: "android-chrome-192x192", url: "/android-chrome-192x192.png" },
-      { rel: "android-chrome-512x512", url: "/android-chrome-512x512.png" },
     ],
   },
   manifest: "/site.webmanifest",
@@ -79,24 +71,24 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    locale: "en_US",
+    locale: "en_IN",
     url: "https://onereport.in/",
     siteName: "OneReport",
-    title: "OneReport - AI-Powered Client Reporting Software",
-    description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than Traditional Reporting Platforms. Free trial!",
+    title: "OneReport | Agentic AI Client Reporting",
+    description: "The next generation of marketing intelligence. OneReport uses agentic AI to analyze, report, and strategize your client growth automatically.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "OneReport - AI-Powered Client Reporting Software",
+        alt: "OneReport Agentic AI Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OneReport - AI-Powered Client Reporting Software",
-    description: "AI-powered client reporting software for agencies. Create professional reports in 5 minutes. 50-80% cheaper than Traditional Reporting Platforms. Free trial!",
+    title: "OneReport | Agentic AI Reporting",
+    description: "Automate your client reporting and marketing strategy with OneReport's agentic AI. Built for modern agencies.",
     images: ["/twitter-image.jpg"],
     creator: "@onereport",
   },
@@ -112,7 +104,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark bg-[#1a1a1a] ">
+    <html lang="en-IN" className="dark bg-[#1a1a1a] ">
       <head>
         <OrganizationSchema />
         <GoogleAnalytics />

@@ -3,6 +3,8 @@ import { SocialProofBar } from "@/components/features/social-proof-bar";
 import { ProblemStatement } from "@/components/features/problem-statement";
 import { SolutionOverview } from "@/components/features/solution-overview";
 import { InteractiveChatbotDemo } from "@/components/features/interactive-chatbot-demo";
+import { AIProductivityVision } from "@/components/features/ai-productivity-vision";
+import { IndustrySolutions } from "@/components/features/industry-solutions";
 import { PricingTransparency } from "@/components/features/pricing-transparency";
 import { FAQSection } from "@/components/features/faq-section";
 import { FinalCTA } from "@/components/features/final-cta";
@@ -38,6 +40,8 @@ export default async function Home() {
       <ProblemStatement />
       <SolutionOverview />
       <InteractiveChatbotDemo />
+      <AIProductivityVision />
+      <IndustrySolutions />
       <PricingTransparency trialExpired={trialExpired} />
       <FAQSection />
       <FinalCTA />

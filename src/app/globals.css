@@ -322,6 +322,15 @@
     background-clip: text;
   }
 
+  /* Text Glow Effects */
+  .text-glow-teal {
+    text-shadow: 0 0 15px rgba(108, 163, 162, 0.5), 0 0 5px rgba(108, 163, 162, 0.2);
+  }
+
+  .text-glow-orange {
+    text-shadow: 0 0 15px rgba(255, 140, 66, 0.5), 0 0 5px rgba(255, 140, 66, 0.2);
+  }
+
   /* Diagonal teal gradient (bottom-left to top-right) */
   .bg-gradient-teal-diagonal {
     background: linear-gradient(135deg, rgb(18, 33, 46), rgb(48, 112, 130), rgb(108, 163, 162));

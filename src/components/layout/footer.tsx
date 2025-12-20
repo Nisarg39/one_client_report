@@ -9,28 +9,28 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   const navigation = {
+    solutions: [
+      { name: "E-commerce & D2C", href: "#solutions-ecommerce" },
+      { name: "SaaS & Tech", href: "#solutions-saas" },
+      { name: "Real Estate Lead Gen", href: "#solutions-realestate" },
+      { name: "Local Service Business", href: "#solutions-local" },
+      { name: "Educational Institutes", href: "#solutions-edtech" },
+    ],
     product: [
-      { name: "Features", href: "/features" },
-      { name: "Products", href: "/products" },
-      { name: "Pricing", href: "#pricing" },
+      { name: "AI Reports", href: "/features" },
       { name: "Integrations", href: "#integrations" },
+      { name: "Pricing", href: "#pricing" },
+      { name: "Live Demo", href: "#demo" },
     ],
     company: [
-      { name: "About", href: "/about" },
-      { name: "Blog", href: "#blog" },
-      { name: "Contact", href: "/contact" },
-    ],
-    resources: [
-      { name: "Help Center", href: "#help" },
-      { name: "Documentation", href: "#docs" },
-      { name: "Guides", href: "#guides" },
+      { name: "About OneReport", href: "/about" },
+      { name: "Data Security", href: "#security" },
+      { name: "Contact Support", href: "/contact" },
     ],
     legal: [
       { name: "Privacy Policy", href: "/privacy-policy" },
       { name: "Terms of Service", href: "/terms" },
       { name: "Refund Policy", href: "/refund-policy" },
-      { name: "Cancellation Policy", href: "/cancellation-policy" },
-      { name: "Shipping Policy", href: "/shipping-policy" },
     ],
   };
 
@@ -191,7 +191,7 @@ export function Footer() {
             </ul>
           </motion.div>
 
-          {/* Resources Links */}
+          {/* Solutions Links */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -203,10 +203,10 @@ export function Footer() {
               className="text-sm font-semibold text-[#f5f5f5] mb-4"
               style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
             >
-              Resources
+              Solutions
             </h3>
             <ul className="space-y-3">
-              {navigation.resources.map((item) => (
+              {navigation.solutions.map((item) => (
                 <li key={item.name}>
                   <a
                     href={item.href}

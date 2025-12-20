@@ -15,32 +15,32 @@ export function FAQSection() {
   const faqs: FAQItem[] = [
     {
       question: "How is OneReport different from Google Looker Studio?",
-      answer: "Google Looker Studio is powerful but requires technical knowledge to set up dashboards, connect data sources, and create visualizations. OneReport is an AI-powered chatbot - simply ask questions about your data in plain English and get instant, professionally analysed insights. No dashboards to build, no learning curve, no manual work.",
+      answer: "Google Looker Studio is powerful but requires technical knowledge to set up dashboards and visualizations. OneReport is designed for everyone—simply ask questions about your data in plain English and get instant, analysed insights. No dashboards to build, no steep learning curve, no manual work.",
     },
     {
-      question: "Can I export the insights and data?",
-      answer: "Yes! You can export your AI-generated insights and data analysis as JSON. This allows you to integrate the insights into your own reports, presentations, or share them with your team and clients in any format you prefer.",
+      question: "Can I white-label the reports with my own branding?",
+      answer: "Yes! Professional and Agency plans allow you to add your agency logo, brand colors, and professional typography. Your clients see a premium, branded experience that looks like it was custom-built by your team, enhancing your perceived value as a high-end service provider.",
     },
     {
       question: "What platforms do you integrate with?",
-      answer: "Currently, we integrate with the 4 most-used marketing platforms: Google Analytics, Google Ads, Meta Ads (Facebook & Instagram), and LinkedIn Ads. We're adding Twitter (X), TikTok, Pinterest, and YouTube in Q1 2026. Unlike competitors with 80+ integrations you'll never use, we focus on what freelancers and small agencies actually need.",
+      answer: "We focus on the four essential platforms that drive the most ROI: Google Analytics (GA4), Google Ads, Meta Ads (Facebook & Instagram), and LinkedIn Ads. We prioritize deep, high-quality AI analysis for these core channels rather than building 80+ integrations you'll never use.",
+    },
+    {
+      question: "Is there a free version for students?",
+      answer: "Absolutely. Our Student Plan is FREE forever. It includes all AI agents and features but works with pre-defined mock data scenarios. It's the perfect environment for learning marketing analytics and practicing client reporting without needing a live advertising budget.",
+    },
+    {
+      question: "What are the limits on the Professional and Agency plans?",
+      answer: "Both plans allow for unlimited campaigns across all supported platforms. Instead of charging per client, we differentiate by AI usage: Professional includes 150 AI messages/day (ideal for individuals), while Agency includes 300 messages/day and dedicated support for larger teams.",
     },
     {
       question: "Do I need technical skills or coding knowledge?",
-      answer: "Not at all. If you can use WhatsApp, you can use OneReport. Connect your accounts with one-click OAuth authorization (no API keys), create a client workspace, and start chatting. Just ask questions in plain English and our AI handles all the data analysis and insight generation instantly.",
-    },
-    {
-      question: "What if I have more than 10 clients?",
-      answer: "Choose a plan that matches your needs. Our Student plan is FREE forever with 5 clients (perfect for learning). Professional includes 10 clients with real APIs (₹299/mo). Agency includes 25 clients (₹999/mo). Enterprise offers unlimited clients and messages (custom pricing). Upgrade or downgrade anytime.",
-    },
-    {
-      question: "How is this so much cheaper than other reporting tools?",
-      answer: "We focus on what freelancers and small agencies actually need (4 key platforms, AI-powered chatbot interface, real-time analytics) instead of building 80+ integrations that create feature bloat. Traditional platforms charge ₹1,000-1,650 per client, while our plans are just ₹299/month for 10 clients or ₹999/month for 25 clients. This allows us to offer premium quality at 96-98% lower cost.",
+      answer: "Not at all. If you can use a chat interface, you can use OneReport. Connect your accounts with one-click OAuth authorization, and our AI handles all the data Interpretation and insight generation. It's designed specifically for marketers who want to focus on strategy, not spreadsheet formulas.",
     },
   ];
 
   return (
-    <section className="relative bg-[#1a1a1a] py-16 sm:py-20 overflow-hidden">
+    <section id="faq" className="relative bg-[#1a1a1a] py-16 sm:py-20 overflow-hidden">
       <FAQSchema faqs={faqs} />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">

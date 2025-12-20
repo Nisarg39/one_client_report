@@ -5,7 +5,8 @@ import { Clock, Users, Star, Shield } from "lucide-react";
 
 export function SocialProofBar() {
   return (
-    <section className="relative bg-[#1a1a1a] py-8 sm:py-12">
+    <section id="social-proof" className="relative bg-[#1a1a1a] py-8 sm:py-12">
+      <h2 className="sr-only">Platform Trust and Metrics</h2>
       <div className="max-w-7xl mx-auto px-4">
         {/* Desktop: 4 columns, Mobile: 2x2 grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">

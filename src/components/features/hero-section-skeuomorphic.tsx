@@ -9,7 +9,7 @@ export function HeroSectionSkeuomorphic() {
   const router = useRouter();
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-32 pb-24 bg-[#1a1a1a] overflow-hidden">
+    <section id="home" className="relative min-h-screen flex items-center justify-center pt-32 pb-24 bg-[#1a1a1a] overflow-hidden">
       {/* Background Atmosphere */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[800px] bg-gradient-radial from-[#6CA3A2]/10 via-transparent to-transparent blur-[120px] pointer-events-none" />
 
