@@ -38,14 +38,6 @@ export function EducationModeFeatures() {
       step: "Understand",
     },
     {
-      icon: Sparkles,
-      title: "Quiz Mode",
-      description: "Test your knowledge with interactive quizzes. Reinforce learning through practice questions and instant feedback.",
-      highlight: "Interactive learning",
-      color: "#FF8C42",
-      step: "Test",
-    },
-    {
       icon: Users,
       title: "Instructor Support",
       description: "Connect with instructors who can assign scenarios, track your progress, and provide personalized feedback on your analyses.",

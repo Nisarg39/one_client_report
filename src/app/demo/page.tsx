@@ -112,7 +112,7 @@ export default function DemoPage() {
             </h1>
           </Link>
           <button
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/signin")}
             className="relative overflow-hidden px-6 py-2.5 rounded-2xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white text-sm shadow-[-8px_-8px_16px_rgba(70,70,70,0.4),8px_8px_16px_rgba(0,0,0,0.8),inset_-2px_-2px_4px_rgba(0,0,0,0.3),inset_2px_2px_4px_rgba(255,140,66,0.3)] hover:shadow-[-6px_-6px_12px_rgba(70,70,70,0.4),6px_6px_12px_rgba(0,0,0,0.8)] transition-all duration-300"
             style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
           >

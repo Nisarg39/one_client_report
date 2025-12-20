@@ -7,6 +7,8 @@ import { OrganizationSchema } from "@/components/schema/organization-schema";
 import { KeyboardShortcuts } from "@/components/chat/KeyboardShortcuts";
 import { NextAuthSessionProvider } from "@/components/providers/SessionProvider";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
+import { Toaster } from "sonner";
+import { Toaster as RadixToaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -121,6 +123,8 @@ export default function RootLayout({
         <NextAuthSessionProvider>
           <ConditionalNavbar />
           {children}
+          <Toaster position="top-center" richColors />
+          <RadixToaster />
           <KeyboardShortcuts />
         </NextAuthSessionProvider>
       </body>

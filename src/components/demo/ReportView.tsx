@@ -395,7 +395,7 @@ export function ReportView({ currentClient, aggregatedData, isGenerating, select
           in minutes.
         </p>
         <button
-          onClick={() => router.push("/signup")}
+          onClick={() => router.push("/signin")}
           className="relative overflow-hidden px-8 py-3 rounded-2xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9)] transition-all duration-300"
           style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
         >

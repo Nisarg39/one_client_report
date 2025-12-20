@@ -1,15 +1,26 @@
-# Client Report Generator
+# OneAssist - Marketing Analytics Platform
 
-A simple, affordable client reporting tool that helps freelance marketers and small agencies generate professional marketing reports in 5 minutes instead of spending hours manually compiling data.
+A simple, affordable marketing analytics platform that helps freelancers, small businesses, and agencies centralize campaign data from multiple platforms (Google Analytics, Google Ads, Meta Ads, LinkedIn Ads) in a single workspace with AI-powered insights.
 
 ## Tech Stack
 
-- **Next.js 16** - React framework with App Router
+- **Next.js 14** - React framework with App Router
 - **TypeScript** - Type safety
-- **Tailwind CSS v4** - Utility-first CSS framework
+- **MongoDB** - Database with Mongoose ORM
+- **NextAuth.js** - OAuth authentication (Google, GitHub)
+- **OpenAI API** - AI-powered chat insights
+- **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Re-usable component library
-- **Aceternity UI** - Beautiful animated components
 - **Framer Motion** - Animation library
+
+## Key Features
+
+- **Single Workspace**: Auto-created workspace per user for simplified campaign management
+- **Multi-Platform Integration**: Connect Google Analytics, Google Ads, Meta Ads, LinkedIn Ads
+- **AI Chatbot**: Streaming chat interface with context-aware campaign insights
+- **Tier-Based Pricing**: Student (FREE), Professional (₹299/mo), Agency (₹999/mo), Enterprise (Custom)
+- **Educational Mode**: Mock data scenarios and tutoring agent for students
+- **Real-Time Metrics**: Dashboard with aggregated campaign performance data
 
 ## Getting Started
 
@@ -33,19 +44,33 @@ You can start editing the page by modifying `src/app/page.tsx`. The page auto-up
 
 ```
 src/
-├── app/              # Next.js app router pages
-│   ├── api/         # API routes
-│   └── page.tsx     # Home page
+├── app/                    # Next.js App Router
+│   ├── actions/           # Server actions
+│   │   ├── chat/          # Chat-related actions
+│   │   └── subscription/  # Subscription management
+│   ├── api/               # API routes
+│   │   ├── auth/          # NextAuth endpoints
+│   │   ├── platforms/     # Platform OAuth callbacks
+│   │   └── payu/          # Payment gateway
+│   ├── chat/              # Chat page
+│   ├── dashboard/         # Dashboard page
+│   └── subscribe/         # Subscription pages
 ├── components/
-│   ├── ui/          # shadcn/ui components
-│   ├── aceternity/  # Aceternity UI components
-│   ├── features/    # Feature-specific components
-│   └── layout/      # Layout components
+│   ├── ui/                # shadcn/ui components
+│   ├── chat/              # Chat UI components
+│   ├── dashboard/         # Dashboard components
+│   ├── features/          # Marketing/landing page components
+│   ├── payment/           # Payment components
+│   └── subscription/      # Subscription management
 ├── lib/
-│   ├── api/         # API client functions
-│   ├── types/       # TypeScript type definitions
-│   └── utils.ts     # Utility functions
-└── hooks/           # Custom React hooks
+│   ├── ai/                # AI chatbot logic, agents, system prompts
+│   ├── platforms/         # Platform data fetchers (GA, Google Ads, Meta, LinkedIn)
+│   ├── auth/              # NextAuth configuration
+│   ├── payu/              # Payment gateway integration
+│   └── utils/             # Utility functions (trial limits, subscription limits)
+├── models/                # Mongoose models (User, Client, Conversation, Subscription)
+├── types/                 # TypeScript type definitions
+└── scripts/               # Utility scripts, migrations, testing
 ```
 
 ## Available Scripts

@@ -26,14 +26,26 @@ export function MessageList({ messages, isTyping, onQuickReply, accountType }: M
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (containerRef.current) {
+      const container = containerRef.current;
+      // Use setTimeout to ensure DOM has updated
+      const timeoutId = setTimeout(() => {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: messages.length <= 2 ? 'auto' : 'smooth'
+        });
+      }, 100);
+      return () => clearTimeout(timeoutId);
     }
-  }, [messages, isTyping]);
+  }, [messages.length, isTyping]);
 
   // Show empty state if no messages
   if (messages.length === 0 && !isTyping) {
-    return <EmptyState onQuickReply={onQuickReply} accountType={accountType} />;
+    return (
+      <div className="h-full flex items-center justify-center">
+        <EmptyState onQuickReply={onQuickReply} accountType={accountType} />
+      </div>
+    );
   }
 
   return (
@@ -41,34 +53,34 @@ export function MessageList({ messages, isTyping, onQuickReply, accountType }: M
       ref={containerRef}
       role="log"
       aria-label="Chat messages"
-      aria-live="polite"
-      aria-atomic="false"
-      className="h-full overflow-y-auto px-4 py-6 space-y-4"
+      className="h-full overflow-y-auto"
       style={{
         scrollbarWidth: 'thin',
-        scrollbarColor: '#6CA3A2 #1a1a1a',
+        scrollbarColor: '#6CA3A2 transparent',
       }}
     >
-      {/* Messages */}
-      {messages.map((message, index) => (
-        <Message
-          key={`${message.timestamp}-${index}`}
-          message={message}
-          index={index}
-          onQuickReply={onQuickReply}
-          isTyping={isTyping}
-        />
-      ))}
+      <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
+        {/* Messages */}
+        {messages.map((message, index) => (
+          <Message
+            key={`${message.timestamp}-${index}`}
+            message={message}
+            index={index}
+            onQuickReply={onQuickReply}
+            isTyping={isTyping}
+          />
+        ))}
 
-      {/* Typing Indicator */}
-      {isTyping && (
-        <div className="flex">
-          <TypingIndicator />
-        </div>
-      )}
+        {/* Typing Indicator */}
+        {isTyping && (
+          <div className="flex pt-2">
+            <TypingIndicator />
+          </div>
+        )}
 
-      {/* Scroll anchor */}
-      <div ref={messagesEndRef} />
+        {/* Scroll anchor */}
+        <div ref={messagesEndRef} className="h-4 w-full" />
+      </div>
     </div>
   );
 }

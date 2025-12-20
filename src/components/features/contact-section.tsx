@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Mail, MessageSquare, Send, Phone, CheckCircle, XCircle, Clock, FileText, Check } from "lucide-react";
+import { Mail, MessageSquare, Send, Phone, CheckCircle, XCircle, Clock, FileText, Check, Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -29,8 +29,8 @@ export function ContactSection() {
     {
       icon: Mail,
       label: "Email",
-      value: "hello@onereport.com",
-      href: "mailto:hello@onereport.com",
+      value: "shah.nisarg39@gmail.com",
+      href: "mailto:shah.nisarg39@gmail.com",
     },
     {
       icon: Phone,
@@ -109,6 +109,7 @@ export function ContactSection() {
 
   return (
     <motion.section
+      id="get-in-touch"
       initial={{ opacity: 1 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true, margin: "-100px" }}
@@ -128,16 +129,18 @@ export function ContactSection() {
           transition={{ duration: shouldReduceMotion ? 0 : 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#151515] border border-white/5 shadow-neu-inset mb-6">
+            <Mail className="w-3 h-3 text-[#6CA3A2]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#666]">COMM_LINK_v1.0</span>
+          </div>
           <h2
             id="contact-heading"
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#f5f5f5] mb-4"
-            style={{ textShadow: "0 2px 4px rgba(0,0,0,0.6)" }}
+            className="text-4xl sm:text-5xl md:text-7xl font-black text-[#f5f5f5] mb-4 uppercase tracking-tighter"
           >
-            Get in Touch
+            Get in <span className="text-[#6CA3A2] italic">Touch</span>
           </h2>
           <p
-            className="text-base sm:text-lg md:text-xl text-[#c0c0c0] max-w-2xl mx-auto"
-            style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+            className="text-xs sm:text-sm text-[#555] max-w-xl mx-auto font-black uppercase tracking-[0.2em] leading-relaxed"
           >
             Have questions? We&apos;d love to hear from you. Send us a message and
             we&apos;ll respond as soon as possible.
@@ -154,19 +157,21 @@ export function ContactSection() {
               duration: shouldReduceMotion ? 0 : 0.5,
               delay: shouldReduceMotion ? 0 : 0.2,
             }}
-            className="lg:col-span-2"
+            className="lg:col-span-2 h-full"
           >
-            <div className="rounded-2xl sm:rounded-3xl bg-[#151515] p-6 sm:p-8 md:p-10 shadow-[-12px_-12px_24px_rgba(40,40,40,0.3),12px_12px_24px_rgba(0,0,0,0.6)]">
-              <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
+            <div className="rounded-2xl sm:rounded-3xl bg-[#151515] p-6 sm:p-8 md:p-10 shadow-neu-raised border border-white/5 relative overflow-hidden group h-full flex flex-col">
+              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-100 transition-opacity">
+                <FileText className="w-4 h-4 text-[#444]" />
+              </div>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-neu-inset border border-white/5">
                   <MessageSquare
-                    className="w-6 h-6 text-[#6CA3A2]"
+                    className="w-5 h-5 text-[#6CA3A2]"
                     aria-hidden="true"
                   />
                 </div>
                 <h3
-                  className="text-xl sm:text-2xl font-bold text-[#f5f5f5]"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                  className="text-xl sm:text-2xl font-black text-[#f5f5f5] uppercase tracking-tighter"
                 >
                   Send us a Message
                 </h3>
@@ -178,11 +183,10 @@ export function ContactSection() {
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`p-4 rounded-xl flex items-start gap-3 ${
-                      submitStatus.type === "success"
-                        ? "bg-green-900/20 border border-green-800/30"
-                        : "bg-red-900/20 border border-red-800/30"
-                    }`}
+                    className={`p-4 rounded-xl flex items-start gap-3 ${submitStatus.type === "success"
+                      ? "bg-green-900/20 border border-green-800/30"
+                      : "bg-red-900/20 border border-red-800/30"
+                      }`}
                   >
                     {submitStatus.type === "success" ? (
                       <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -190,11 +194,10 @@ export function ContactSection() {
                       <XCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                     )}
                     <p
-                      className={`text-sm ${
-                        submitStatus.type === "success"
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
+                      className={`text-sm ${submitStatus.type === "success"
+                        ? "text-green-400"
+                        : "text-red-400"
+                        }`}
                     >
                       {submitStatus.message}
                     </p>
@@ -202,13 +205,12 @@ export function ContactSection() {
                 )}
 
                 {/* Name Field */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label
                     htmlFor="name"
-                    className="text-sm sm:text-base text-[#c0c0c0] font-medium"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#555]"
                   >
-                    Your Name
+                    Your Name_
                   </Label>
                   <Input
                     id="name"
@@ -218,26 +220,23 @@ export function ContactSection() {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    className={`h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
-                      fieldErrors.name ? "border-red-500/50" : ""
-                    }`}
+                    className={`h-12 rounded-xl bg-[#1a1a1a] border-white/5 text-[#f5f5f5] placeholder:text-[#333] shadow-neu-inset font-black uppercase tracking-widest text-xs focus-visible:ring-1 focus-visible:ring-[#6CA3A2]/30 transition-all ${fieldErrors.name ? "border-red-900/50" : ""
+                      }`}
                   />
                   {fieldErrors.name && (
-                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
-                      <XCircle className="w-4 h-4" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-500/80 flex items-center gap-1.5 mt-1 border-l-2 border-red-500/30 pl-3">
                       {fieldErrors.name}
                     </p>
                   )}
                 </div>
 
                 {/* Email Field */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label
                     htmlFor="email"
-                    className="text-sm sm:text-base text-[#c0c0c0] font-medium"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#555]"
                   >
-                    Email Address
+                    Email Address_
                   </Label>
                   <Input
                     id="email"
@@ -247,26 +246,23 @@ export function ContactSection() {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    className={`h-12 rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
-                      fieldErrors.email ? "border-red-500/50" : ""
-                    }`}
+                    className={`h-12 rounded-xl bg-[#1a1a1a] border-white/5 text-[#f5f5f5] placeholder:text-[#333] shadow-neu-inset font-black uppercase tracking-widest text-xs focus-visible:ring-1 focus-visible:ring-[#6CA3A2]/30 transition-all ${fieldErrors.email ? "border-red-900/50" : ""
+                      }`}
                   />
                   {fieldErrors.email && (
-                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
-                      <XCircle className="w-4 h-4" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-500/80 flex items-center gap-1.5 mt-1 border-l-2 border-red-500/30 pl-3">
                       {fieldErrors.email}
                     </p>
                   )}
                 </div>
 
                 {/* Message Field */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label
                     htmlFor="message"
-                    className="text-sm sm:text-base text-[#c0c0c0] font-medium"
-                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#555]"
                   >
-                    Your Message
+                    Your Message_
                   </Label>
                   <Textarea
                     id="message"
@@ -276,13 +272,11 @@ export function ContactSection() {
                     onChange={handleInputChange}
                     required
                     rows={6}
-                    className={`rounded-xl bg-[#1a1a1a] border-[#2a2a2a] text-[#f5f5f5] placeholder:text-[#666] shadow-[inset_6px_6px_12px_rgba(0,0,0,0.6),inset_-6px_-6px_12px_rgba(40,40,40,0.2)] focus-visible:ring-2 focus-visible:ring-[#6CA3A2] focus-visible:border-[#6CA3A2] transition-all ${
-                      fieldErrors.message ? "border-red-500/50" : ""
-                    }`}
+                    className={`rounded-xl bg-[#1a1a1a] border-white/5 text-[#f5f5f5] placeholder:text-[#333] shadow-neu-inset font-black uppercase tracking-widest text-xs focus-visible:ring-1 focus-visible:ring-[#6CA3A2]/30 transition-all ${fieldErrors.message ? "border-red-900/50" : ""
+                      }`}
                   />
                   {fieldErrors.message && (
-                    <p className="text-sm text-red-400 flex items-center gap-1 mt-1">
-                      <XCircle className="w-4 h-4" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-500/80 flex items-center gap-1.5 mt-1 border-l-2 border-red-500/30 pl-3">
                       {fieldErrors.message}
                     </p>
                   )}
@@ -290,7 +284,7 @@ export function ContactSection() {
 
                 {/* Terms & Conditions Agreement */}
                 <div className="space-y-2">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-4">
                     <button
                       type="button"
                       onClick={() => {
@@ -303,18 +297,17 @@ export function ContactSection() {
                           });
                         }
                       }}
-                      className={`mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200 cursor-pointer ${
-                        agreedToTerms
-                          ? "bg-[#6CA3A2] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3),inset_-2px_-2px_4px_rgba(108,163,162,0.3)]"
-                          : "bg-[#1a1a1a] border-2 border-[#2a2a2a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(40,40,40,0.2)] hover:border-[#6CA3A2]/50"
-                      }`}
+                      className={`w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-300 cursor-pointer ${agreedToTerms
+                        ? "bg-[#6CA3A2] shadow-neu-inset border-[#6CA3A2]"
+                        : "bg-[#1a1a1a] border border-[#6CA3A2]/40 shadow-neu-raised hover:border-[#6CA3A2]/60"
+                        }`}
                       aria-label={agreedToTerms ? "Uncheck agreement" : "Check agreement"}
                       aria-pressed={agreedToTerms}
                     >
                       {agreedToTerms && (
                         <Check
-                          className="w-4 h-4 text-white"
-                          strokeWidth={3}
+                          className="w-3.5 h-3.5 text-white"
+                          strokeWidth={4}
                           aria-hidden="true"
                         />
                       )}
@@ -339,15 +332,14 @@ export function ContactSection() {
                     />
                     <Label
                       htmlFor="terms-agreement"
-                      className="text-sm text-[#c0c0c0] leading-relaxed cursor-pointer flex-1"
-                      style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+                      className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-[#666] leading-relaxed cursor-pointer flex-1"
                     >
                       I agree to the{" "}
                       <Link
                         href="/privacy-policy"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors"
+                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors italic"
                       >
                         Privacy Policy
                       </Link>{" "}
@@ -356,7 +348,7 @@ export function ContactSection() {
                         href="/terms"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors"
+                        className="text-[#6CA3A2] hover:text-[#7db3b2] underline transition-colors italic"
                       >
                         Terms & Conditions
                       </Link>
@@ -374,40 +366,20 @@ export function ContactSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting || !agreedToTerms}
-                  className="w-full sm:w-auto relative overflow-hidden text-base px-8 md:px-10 h-12 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300 focus:ring-2 focus:ring-[#FF8C42] focus:ring-offset-2 focus:ring-offset-[#151515] focus:outline-none"
+                  className="w-full sm:w-auto relative overflow-hidden text-[11px] px-10 h-14 rounded-2xl font-black uppercase tracking-[0.2em] group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-neu-raised transition-all duration-300 hover:shadow-neu-raised-sm active:scale-95 disabled:opacity-40 disabled:grayscale disabled:scale-100 flex items-center justify-center"
                   aria-label={isSubmitting ? "Sending message..." : "Send message"}
-                  style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}
                 >
-                  <span className="relative flex items-center justify-center">
+                  <span className="relative flex items-center justify-center gap-3">
                     {isSubmitting ? (
                       <>
-                        <svg
-                          className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Sending...
+                        <Activity className="animate-pulse w-5 h-5" />
+                        Transmitting...
                       </>
                     ) : (
                       <>
                         Send Message
                         <Send
-                          className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                          className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1"
                           aria-hidden="true"
                         />
                       </>
@@ -427,113 +399,91 @@ export function ContactSection() {
               duration: shouldReduceMotion ? 0 : 0.5,
               delay: shouldReduceMotion ? 0 : 0.3,
             }}
-            className="space-y-6"
+            className="lg:col-span-1 h-full"
           >
-            {/* Contact Info Cards */}
-            {contactInfo.map((info, index) => {
-              const Icon = info.icon;
-              const content = (
-                <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)] hover:shadow-[-6px_-6px_12px_rgba(40,40,40,0.3),6px_6px_12px_rgba(0,0,0,0.6)] transition-all duration-300">
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
-                      <Icon
-                        className="w-5 h-5 text-[#6CA3A2]"
-                        aria-hidden="true"
-                      />
+            <div className="rounded-2xl sm:rounded-3xl bg-[#151515] p-6 sm:p-8 shadow-neu-raised border border-white/5 relative overflow-hidden flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center gap-4 mb-10">
+                <div className="w-12 h-12 rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-neu-inset border border-white/5">
+                  <Activity className="w-5 h-5 text-[#6CA3A2]" />
+                </div>
+                <h3 className="text-xl font-black text-[#f5f5f5] uppercase tracking-tighter">
+                  Contact Hub
+                </h3>
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-8 mb-10">
+                {contactInfo.map((info, index) => {
+                  const Icon = info.icon;
+                  return (
+                    <div key={index} className="flex items-start gap-4 group">
+                      <div className="w-10 h-10 rounded-lg bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 shadow-neu-inset border border-white/5 group-hover:shadow-neu-raised transition-all">
+                        <Icon className="w-4 h-4 text-[#6CA3A2]" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-[9px] font-black text-[#444] mb-1 tracking-widest uppercase">
+                          {info.label}_
+                        </h4>
+                        {info.href ? (
+                          <a href={info.href} className="text-sm text-[#6CA3A2] font-black italic tracking-tighter hover:text-[#7db3b2] transition-colors">
+                            {info.value}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-white font-black tracking-tighter">
+                            {info.value}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h4
-                        className="text-sm font-semibold text-[#c0c0c0] mb-1"
-                        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                      >
-                        {info.label}
-                      </h4>
-                      <p
-                        className="text-base sm:text-lg text-[#f5f5f5] font-medium"
-                        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                      >
-                        {info.value}
-                      </p>
+                  );
+                })}
+              </div>
+
+              {/* Protocol Section Divider */}
+              <div className="flex items-center gap-4 mb-8">
+                <div className="text-[10px] font-black text-[#333] uppercase tracking-[0.4em] whitespace-nowrap">Service Protocols</div>
+                <div className="h-px bg-white/5 flex-grow" />
+              </div>
+
+              {/* Response Protocols */}
+              <div className="grid grid-cols-1 gap-4 mb-10">
+                {[
+                  { label: "24-Hour Response", desc: "all inquiries synced", icon: Clock },
+                  { label: "Free Consultation", desc: "expert sync available", icon: MessageSquare },
+                  { label: "WhatsApp Support", desc: "instant node updates", icon: Send }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-[#1a1a1a]/50 border border-white/5 shadow-neu-inset">
+                    <item.icon className="w-4 h-4 text-[#6CA3A2] opacity-50" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">{item.label}</span>
+                      <span className="text-[8px] font-bold text-[#444] uppercase tracking-[0.2em] mt-1">{item.desc}</span>
                     </div>
                   </div>
-                </div>
-              );
+                ))}
+              </div>
 
-              return info.href ? (
-                <a
-                  key={index}
-                  href={info.href}
-                  className="block"
-                  aria-label={`${info.label}: ${info.value}`}
-                >
-                  {content}
-                </a>
-              ) : (
-                <div key={index}>{content}</div>
-              );
-            })}
+              {/* Legal Info Divider */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="text-[10px] font-black text-[#333] uppercase tracking-[0.4em] whitespace-nowrap">Identity & Nexus</div>
+                <div className="h-px bg-white/5 flex-grow" />
+              </div>
 
-            {/* Response Time & Support */}
-            <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
-                  <Clock
-                    className="w-6 h-6 text-[#6CA3A2]"
-                    aria-hidden="true"
-                  />
+              {/* Legal Information */}
+              <div className="mt-auto">
+                <div className="p-4 rounded-xl bg-black/20 border border-white/5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-3 opacity-[0.03]">
+                    <FileText className="w-12 h-12" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-[#555] uppercase tracking-widest leading-relaxed">
+                      Operated by Nisarg Manojkumar Shah
+                    </span>
+                    <span className="text-[9px] font-bold text-[#333] uppercase tracking-[0.1em] mt-2 leading-relaxed">
+                      314/25, Netaji Nagar, Wanowrie, Pune - 411040, Maharashtra, India
+                    </span>
+                  </div>
                 </div>
-                <h4
-                  className="text-lg font-bold text-[#f5f5f5]"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                >
-                  Quick Response Guarantee
-                </h4>
-              </div>
-              <div className="space-y-3 text-sm text-[#c0c0c0]">
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
-                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                    <span className="text-[#f5f5f5] font-semibold">24-hour response</span> to all inquiries
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
-                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                    <span className="text-[#f5f5f5] font-semibold">Free consultation</span> call available
-                  </p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] mt-1.5 flex-shrink-0" />
-                  <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                    <span className="text-[#f5f5f5] font-semibold">WhatsApp support</span> for instant updates
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Legal Information */}
-            <div className="p-6 rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)]">
-                  <FileText
-                    className="w-6 h-6 text-[#6CA3A2]"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h4
-                  className="text-lg font-bold text-[#f5f5f5]"
-                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
-                >
-                  Legal Information
-                </h4>
-              </div>
-              <div className="space-y-3 text-sm text-[#c0c0c0]">
-                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                  This website is operated by Nisarg Manojkumar Shah
-                </p>
-                <p style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}>
-                  314/25, Netaji Nagar, Wanowrie, Pune - 411040, Maharashtra, India
-                </p>
               </div>
             </div>
           </motion.div>

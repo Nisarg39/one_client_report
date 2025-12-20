@@ -17,6 +17,15 @@ declare module 'next-auth' {
       name: string;
       email: string;
       image?: string | null;
+      accountType?: 'business' | 'education' | 'instructor';
+      usageTier?: 'free' | 'student' | 'pro' | 'agency' | 'enterprise';
+      subscriptionStatus?: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+      subscriptionEndDate?: string | null;
+      trialStartDate?: string | null;
+      trialEndDate?: string | null;
+      restrictions?: any;
+      phone?: string;
+      createdAt?: string;
     };
   }
 
@@ -28,6 +37,14 @@ declare module 'next-auth' {
     name: string;
     email: string;
     image?: string | null;
+    accountType?: 'business' | 'education' | 'instructor';
+    usageTier?: 'free' | 'student' | 'pro' | 'agency' | 'enterprise';
+    subscriptionStatus?: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+    subscriptionEndDate?: Date | string | null;
+    trialStartDate?: Date | string | null;
+    trialEndDate?: Date | string | null;
+    restrictions?: any;
+    phone?: string;
   }
 }
 
@@ -37,5 +54,14 @@ declare module 'next-auth/jwt' {
    */
   interface JWT {
     id: string;
+    createdAt?: string;
+    accountType?: 'business' | 'education' | 'instructor';
+    usageTier?: 'free' | 'student' | 'pro' | 'agency' | 'enterprise';
+    subscriptionStatus?: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+    subscriptionEndDate?: string | null;
+    trialStartDate?: string | null;
+    trialEndDate?: string | null;
+    restrictions?: any;
+    phone?: string;
   }
 }

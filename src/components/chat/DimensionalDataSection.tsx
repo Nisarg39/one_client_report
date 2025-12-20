@@ -27,28 +27,31 @@ export function DimensionalDataSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
-    <div className="rounded-xl bg-[#1a1a1a] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)]">
+    <div className="rounded-2xl bg-[#151515] shadow-neu-inset border border-white/5 overflow-hidden">
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-[#202020] transition-colors rounded-xl"
+        className="w-full px-5 py-4 flex items-center justify-between hover:bg-[#151515] transition-all group"
         aria-expanded={isExpanded}
         aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${title}`}
       >
-        <div className="flex items-center gap-2">
-          {icon && <div className="text-[#6CA3A2]">{icon}</div>}
+        <div className="flex items-center gap-3">
+          {icon && (
+            <div className="text-[#6CA3A2] opacity-40 group-hover:opacity-100 transition-opacity">
+              {icon}
+            </div>
+          )}
           <h3
-            className="text-sm font-medium text-[#c0c0c0]"
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+            className="text-[11px] font-black text-[#888] group-hover:text-white uppercase tracking-[0.2em] italic transition-colors"
           >
             {title}
           </h3>
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3, ease: 'anticipate' }}
         >
-          <ChevronDown className="w-4 h-4 text-[#808080]" />
+          <ChevronDown className={`w-4 h-4 transition-colors ${isExpanded ? 'text-[#6CA3A2]' : 'text-[#444]'}`} />
         </motion.div>
       </button>
 

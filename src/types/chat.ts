@@ -210,7 +210,6 @@ export interface AIProvider {
  * Rate limit info
  */
 export interface RateLimit {
-  hourly: number;
   daily: number;
   lastReset: Date;
 }

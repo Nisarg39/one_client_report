@@ -7,7 +7,7 @@ export function OrganizationSchema() {
     "url": "https://onereport.in",
     "logo": "https://onereport.in/og-logo.png",
     "description": "AI-Powered Client Reporting Software for Freelancers and Marketing Agencies in India",
-    "email": "hello@onereport.com",
+    "email": "shah.nisarg39@gmail.com",
     "telephone": "+91-8888215802",
     "foundingDate": "2024",
     "address": {
@@ -32,7 +32,7 @@ export function OrganizationSchema() {
       },
       {
         "@type": "ContactPoint",
-        "email": "hello@onereport.com",
+        "email": "shah.nisarg39@gmail.com",
         "contactType": "customer support",
         "areaServed": "Worldwide",
         "availableLanguage": "English"

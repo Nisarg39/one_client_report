@@ -838,12 +838,12 @@ export function ChatPageClient() {
         const updatedClients = clients.map((c) =>
           c.id === clientId
             ? {
-                ...c,
-                name: result.client!.name,
-                email: result.client!.email,
-                logo: result.client!.logo,
-                updatedAt: result.client!.updatedAt,
-              }
+              ...c,
+              name: result.client!.name,
+              email: result.client!.email,
+              logo: result.client!.logo,
+              updatedAt: result.client!.updatedAt,
+            }
             : c
         );
         setClients(updatedClients);
@@ -863,7 +863,11 @@ export function ChatPageClient() {
   }
 
   return (
-    <div className="h-screen bg-[#1a1a1a] flex overflow-hidden">
+    <div className="h-screen bg-[#1a1a1a] flex overflow-hidden relative">
+      {/* Global Background Glows */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#6CA3A2]/5 blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#FF8C42]/5 blur-[120px] rounded-full pointer-events-none z-0" />
+
       {/* Left Sidebar */}
       <ChatSidebar
         currentClient={currentClient}
@@ -1099,7 +1103,7 @@ export function ChatPageClient() {
                   message: '',
                   redirectUrl: '',
                 });
-                
+
                 // Navigate to homepage with pricing hash
                 // Browser will automatically scroll to #pricing element on page load
                 window.location.href = pricingRedirectDialog.redirectUrl;

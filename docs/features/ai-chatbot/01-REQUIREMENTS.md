@@ -43,25 +43,39 @@ Answer questions about all the integrated platforms' data using AI.
 The chatbot should work like typical AI assistants (Claude, ChatGPT) where users can type questions and get AI-generated answers about their marketing data.
 ```
 
-**Multi-Client Support (Agency/Freelancer Workflow):**
+**Single Workspace Architecture (Current - Phase 1):**
 ```
-✅ CRITICAL FEATURE: Users (agencies/freelancers) can manage multiple clients
+✅ SIMPLIFIED MODEL: All users have ONE auto-created workspace
 
 User Workflow:
-1. User creates clients (e.g., "Acme Corp", "TechStart Inc", "Local Shop")
-2. Each client has independent platform configurations
-3. User selects client from dropdown in chat interface
-4. Chat history is isolated per client
-5. AI responses show data for selected client only
+1. User signs up → workspace automatically created as "{User Name}'s Workspace"
+2. User connects multiple platform accounts to their single workspace
+3. All campaigns/accounts visible in one unified view
+4. AI can answer questions about ANY connected campaign
+5. User specifies campaigns by name in queries
 
 Example:
-- Agency user manages 10 clients
-- Client A has Google Analytics + Google Ads connected
-- Client B has Meta Ads + LinkedIn Ads connected
-- When user selects Client A → AI shows Client A's data & history
-- When user switches to Client B → AI shows Client B's data & history
+- Freelancer manages campaigns for multiple clients
+- All Google Analytics properties, Meta ad accounts, Google Ads accounts connected
+- Workspace contains ALL campaigns in one place
+- User asks: "What's the CPA for Campaign X?" → AI finds and analyzes it
+- User can compare across all campaigns: "Which campaign has best ROI?"
 
-This allows agencies to serve multiple clients from a single account.
+This simplifies UX and allows unlimited campaigns in one workspace.
+```
+
+**Multi-Workspace Support (Future - Phase 2 for Agency+):**
+```
+⏸️ PLANNED FEATURE: Agency/Enterprise plans will support multiple workspaces
+
+Future Workflow:
+1. Agency Plan: Create 3-5 workspaces (e.g., "E-commerce Clients", "SaaS Clients")
+2. Enterprise Plan: Unlimited workspaces
+3. Each workspace = isolated campaign group
+4. Workspace selector shown only for Agency/Enterprise tiers
+5. Professional/Student plans: Single workspace only
+
+This maintains simplicity for most users while offering power users client isolation.
 ```
 
 **Secondary Use Cases:**

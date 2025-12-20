@@ -16,6 +16,7 @@ export interface IUser extends Document {
   email: string;
   emailVerified?: Date | null;
   image?: string | null;
+  phone?: string;
 
   // OAuth provider data (OAuth-only authentication)
   provider: 'google' | 'github';
@@ -27,7 +28,7 @@ export interface IUser extends Document {
 
   // Hybrid Mode: Account type and restrictions
   accountType: 'business' | 'education' | 'instructor';
-  usageTier: 'free' | 'pro' | 'enterprise' | 'student';
+  usageTier: 'free' | 'pro' | 'agency' | 'enterprise' | 'student';
 
   educationMetadata?: {
     institution?: string;
@@ -45,6 +46,16 @@ export interface IUser extends Document {
     allowedAgents: string[];
     aiModel: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo';
   };
+
+  // Payment & Subscription
+  currentSubscriptionId?: mongoose.Types.ObjectId;
+  subscriptionStatus: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+  subscriptionEndDate?: Date;
+
+  // Trial Tracking
+  trialStartDate?: Date;
+  trialEndDate?: Date;
+  hasUsedTrial: boolean;
 
   // Phase 6.6: Notification preferences
   notificationPreferences?: {
@@ -99,6 +110,11 @@ const UserSchema = new Schema<IUser>(
       type: String,
       default: null,
     },
+    phone: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     provider: {
       type: String,
       enum: ['google', 'github'],
@@ -126,7 +142,7 @@ const UserSchema = new Schema<IUser>(
     },
     usageTier: {
       type: String,
-      enum: ['free', 'pro', 'enterprise', 'student'],
+      enum: ['free', 'pro', 'agency', 'enterprise', 'student'],
       default: 'pro',
       required: [true, 'Usage tier is required'],
     },
@@ -178,6 +194,30 @@ const UserSchema = new Schema<IUser>(
         aiModel: 'gpt-4-turbo',
       }),
     },
+    // Payment & Subscription
+    currentSubscriptionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Subscription',
+    },
+    subscriptionStatus: {
+      type: String,
+      enum: ['none', 'trial', 'active', 'expired', 'cancelled'],
+      default: 'trial', // New users start in trial
+    },
+    subscriptionEndDate: {
+      type: Date,
+    },
+    // Trial Tracking
+    trialStartDate: {
+      type: Date,
+    },
+    trialEndDate: {
+      type: Date,
+    },
+    hasUsedTrial: {
+      type: Boolean,
+      default: false,
+    },
     // Phase 6.6: Notification preferences
     notificationPreferences: {
       email: {
@@ -219,11 +259,13 @@ const UserSchema = new Schema<IUser>(
 /**
  * Indexes for performance
  */
-UserSchema.index({ email: 1 });
+// UserSchema.index({ email: 1 }); // Redundant as email is unique: true
 UserSchema.index({ providerId: 1 });
 UserSchema.index({ status: 1 });
 UserSchema.index({ accountType: 1 });
 UserSchema.index({ usageTier: 1 });
+UserSchema.index({ subscriptionStatus: 1 });
+UserSchema.index({ subscriptionEndDate: 1 });
 
 /**
  * Instance Methods
@@ -255,7 +297,7 @@ UserSchema.methods.toAuthUser = function (): {
  * Get tier-specific restrictions
  * Used during user creation/upgrade
  */
-UserSchema.statics.getTierRestrictions = function(usageTier: string) {
+UserSchema.statics.getTierRestrictions = function (usageTier: string) {
   const tierConfig: Record<string, any> = {
     student: {
       maxClients: 5,
@@ -342,7 +384,7 @@ UserSchema.statics.upsertFromOAuth = async function (profile: {
   }
 
   // Create new user
-  return this.create({
+  const newUser = await this.create({
     email: profile.email,
     name: profile.name,
     image: profile.image,
@@ -351,6 +393,34 @@ UserSchema.statics.upsertFromOAuth = async function (profile: {
     providerId: profile.providerId,
     status: 'active',
   });
+
+  // ⭐ AUTO-CREATE DEFAULT WORKSPACE
+  // Automatically create a workspace for the new user so they never have to manually create one
+  try {
+    const ClientModel = require('./Client').default;
+    await ClientModel.create({
+      userId: newUser._id,
+      name: `${profile.name}'s Workspace`,
+      email: profile.email,
+      website: '',
+      industry: '',
+      platforms: {
+        googleAnalytics: { connected: false },
+        googleAds: { connected: false },
+        metaAds: { connected: false },
+        linkedInAds: { connected: false },
+      },
+      status: 'active',
+      dataSource: 'real', // Default to real data; will be set to 'mock' for students
+    });
+    console.log(`✅ Auto-created workspace for new user: ${profile.email}`);
+  } catch (error) {
+    console.error('❌ Failed to create default workspace:', error);
+    // Don't fail user creation if workspace creation fails
+    // User can create workspace manually later if needed
+  }
+
+  return newUser;
 };
 
 /**

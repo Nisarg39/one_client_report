@@ -60,10 +60,11 @@ export function ChatInput({
   const canSend = message.trim().length > 0 && !disabled;
 
   return (
-    <div className="border-t border-gray-800/50 bg-[#1a1a1a] p-4">
-      <div className="flex items-end gap-3">
+    <div className="p-6 bg-[#1a1a1a] relative z-20">
+      {/* Input container with floating effect */}
+      <div className="max-w-4xl mx-auto flex items-end gap-4 p-2 bg-[#1a1a1a] rounded-[2rem] shadow-neu-raised border border-white/5">
         {/* Textarea */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative pl-2">
           <textarea
             ref={textareaRef}
             name="message"
@@ -75,19 +76,17 @@ export function ChatInput({
             rows={1}
             aria-label="Chat message"
             aria-describedby="chat-input-helper"
-            className="w-full px-4 py-3 pr-12 bg-[#1a1a1a] text-[#f5f5f5] placeholder-[#c0c0c0] rounded-2xl resize-none focus:outline-none focus:shadow-[0_0_0_2px_rgba(108,163,162,0.5)] disabled:opacity-50 disabled:cursor-not-allowed shadow-[inset_4px_4px_12px_rgba(0,0,0,0.7),inset_-4px_-4px_12px_rgba(60,60,60,0.2)] transition-shadow"
+            className="w-full px-5 py-2.5 bg-[#1a1a1a] text-[#f5f5f5] placeholder-[#666666] rounded-2xl resize-none focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed shadow-neu-inset transition-shadow border border-white/5"
             style={{
               minHeight: '48px',
-              maxHeight: '120px',
-              textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+              maxHeight: '160px',
             }}
           />
 
-          {/* Character count (optional, shows when > 1900 chars) */}
+          {/* Character count */}
           {message.length > 1900 && (
             <div
-              className="absolute bottom-2 right-2 text-xs text-[#c0c0c0]"
-              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              className="absolute bottom-4 right-4 text-[10px] font-bold text-[#6CA3A2] uppercase tracking-widest"
               aria-live="polite"
               aria-atomic="true"
             >
@@ -100,16 +99,15 @@ export function ChatInput({
         <motion.button
           onClick={handleSend}
           disabled={!canSend}
-          whileHover={canSend ? { scale: 1.05 } : {}}
-          whileTap={canSend ? { scale: 0.95 } : {}}
-          className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-            canSend
-              ? 'bg-gradient-to-br from-[#FF8C42] to-[#E67A33] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8),inset_-2px_-2px_6px_rgba(0,0,0,0.2),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(179,87,28,0.6),inset_-6px_-6px_12px_rgba(255,140,66,0.2)] cursor-pointer'
-              : 'bg-[#1a1a1a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.2)] cursor-not-allowed opacity-50'
-          }`}
+          whileHover={canSend ? { scale: 1.02, translateY: -2 } : {}}
+          whileTap={canSend ? { scale: 0.98 } : {}}
+          className={`flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${canSend
+            ? 'bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-neu-raised cursor-pointer border-t border-white/20'
+            : 'bg-[#1a1a1a] shadow-neu-inset text-[#444444] cursor-not-allowed opacity-50 border border-white/5'
+            }`}
           aria-label="Send message"
         >
-          <Send className="w-5 h-5 text-white" />
+          <Send className={`w-5 h-5 ${canSend ? 'text-white' : 'text-[#444444]'}`} />
         </motion.button>
       </div>
 

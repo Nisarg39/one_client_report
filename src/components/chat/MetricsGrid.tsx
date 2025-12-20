@@ -211,8 +211,7 @@ function GoogleAnalyticsMetrics({
     <div className="space-y-4">
       {/* Key Metrics */}
       <h3
-        className="text-xs font-medium text-[#999] uppercase tracking-wider px-1"
-        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+        className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
       >
         Key Metrics
       </h3>
@@ -327,10 +326,9 @@ function GoogleAnalyticsMetrics({
             {dimensions.countries && dimensions.countries.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Top Countries
+                  Regional Distribution
                 </h4>
                 <DataTable
                   rows={dimensions.countries.map((country: any) => ({
@@ -353,10 +351,9 @@ function GoogleAnalyticsMetrics({
             {selectedProperty.topCities && selectedProperty.topCities.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Top Cities
+                  Node Density
                 </h4>
                 <DataTable
                   rows={selectedProperty.topCities.map((city: any) => ({
@@ -379,10 +376,9 @@ function GoogleAnalyticsMetrics({
             {selectedProperty.topRegions && selectedProperty.topRegions.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Top Regions
+                  Zone Analysis
                 </h4>
                 <DataTable
                   rows={selectedProperty.topRegions.map((region: any) => ({
@@ -416,10 +412,9 @@ function GoogleAnalyticsMetrics({
             {dimensions.topPages && dimensions.topPages.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Most Viewed Pages
+                  Path Velocity
                 </h4>
                 <DataTable
                   rows={dimensions.topPages.map((page: any) => ({
@@ -502,10 +497,9 @@ function GoogleAnalyticsMetrics({
             {dimensions.devices && dimensions.devices.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Device Breakdown
+                  Hardware Ecosystem
                 </h4>
                 <DataTable
                   rows={dimensions.devices.map((device: any) => ({
@@ -528,10 +522,9 @@ function GoogleAnalyticsMetrics({
             {selectedProperty.browserBreakdown && selectedProperty.browserBreakdown.length > 0 && (
               <div>
                 <h4
-                  className="text-xs font-medium text-[#808080] mb-2 px-1"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
                 >
-                  Browser Breakdown
+                  Engine Breakdown
                 </h4>
                 <DataTable
                   rows={selectedProperty.browserBreakdown.map((browser: any) => ({
@@ -587,8 +580,7 @@ function GoogleAdsMetrics({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <h3
-        className="text-xs font-medium text-[#999] uppercase tracking-wider px-1"
-        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+        className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
       >
         Campaign Metrics
       </h3>
@@ -665,8 +657,7 @@ function MetaAdsMetrics({ data }: { data: any }) {
   return (
     <div className="space-y-4">
       <h3
-        className="text-xs font-medium text-[#999] uppercase tracking-wider px-1"
-        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+        className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
       >
         Campaign Metrics
       </h3>
@@ -708,7 +699,203 @@ function MetaAdsMetrics({ data }: { data: any }) {
           formatOptions={{ decimals: 2 }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
+        <MetricCard
+          label="Purchases"
+          value={metrics.purchases || 0}
+          format="number"
+          icon={<Target className="w-4 h-4" />}
+        />
+        <MetricCard
+          label="Cost per Purchase"
+          value={metrics.cost_per_purchase || 0}
+          format="currency"
+          icon={<TrendingUp className="w-4 h-4" />}
+        />
+        <MetricCard
+          label="Leads"
+          value={metrics.leads || 0}
+          format="number"
+          icon={<Users className="w-4 h-4" />}
+        />
+        <MetricCard
+          label="Cost per Lead"
+          value={metrics.cost_per_lead || 0}
+          format="currency"
+          icon={<TrendingUp className="w-4 h-4" />}
+        />
+        <MetricCard
+          label="Video Views (100%)"
+          value={metrics.video_p100_watched_actions || 0}
+          format="number"
+          icon={<Eye className="w-4 h-4" />}
+        />
+        <MetricCard
+          label="Inline Link Clicks"
+          value={metrics.inline_link_clicks || 0}
+          format="number"
+          icon={<Link className="w-4 h-4" />}
+        />
       </div>
+
+      {/* Enhanced Conversion Funnel Metrics */}
+      {(metrics.registrations > 0 || metrics.add_to_carts > 0 || metrics.checkouts > 0 || metrics.content_views > 0) && (
+        <>
+          <h3
+            className="text-xs font-medium text-[#999] uppercase tracking-wider px-1 mt-4"
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+          >
+            Conversion Funnel
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {metrics.content_views > 0 && (
+              <MetricCard
+                label="Content Views"
+                value={metrics.content_views || 0}
+                format="number"
+                icon={<Eye className="w-4 h-4" />}
+              />
+            )}
+            {metrics.add_to_carts > 0 && (
+              <>
+                <MetricCard
+                  label="Add to Cart"
+                  value={metrics.add_to_carts || 0}
+                  format="number"
+                  icon={<Target className="w-4 h-4" />}
+                />
+                <MetricCard
+                  label="Cost per Add to Cart"
+                  value={metrics.cost_per_add_to_cart || 0}
+                  format="currency"
+                  icon={<TrendingUp className="w-4 h-4" />}
+                />
+              </>
+            )}
+            {metrics.checkouts > 0 && (
+              <MetricCard
+                label="Initiated Checkouts"
+                value={metrics.checkouts || 0}
+                format="number"
+                icon={<Target className="w-4 h-4" />}
+              />
+            )}
+            {metrics.registrations > 0 && (
+              <>
+                <MetricCard
+                  label="Registrations"
+                  value={metrics.registrations || 0}
+                  format="number"
+                  icon={<Users className="w-4 h-4" />}
+                />
+                <MetricCard
+                  label="Cost per Registration"
+                  value={metrics.cost_per_registration || 0}
+                  format="currency"
+                  icon={<TrendingUp className="w-4 h-4" />}
+                />
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Demographics */}
+      {data.demographics && data.demographics.length > 0 && (
+        <DimensionalDataSection
+          title="Demographics"
+          icon={<Users className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <DataTable
+            rows={data.demographics.map((row: any) => ({
+              icon: <Users className="w-4 h-4" />,
+              label: `${row.age} • ${row.gender}`,
+              value: formatNumber(row.impressions || 0),
+              progressBar: {
+                value: row.impressions || 0,
+                max: Math.max(...data.demographics.map((d: any) => d.impressions)) || 1,
+                color: '#6CA3A2',
+              },
+              secondaryValue: row.clicks ? `${row.clicks} clicks` : undefined,
+            }))}
+            compact
+            emptyMessage="No demographic data available"
+          />
+        </DimensionalDataSection>
+      )}
+
+      {/* Geography */}
+      {data.geography && data.geography.length > 0 && (
+        <DimensionalDataSection
+          title="Geography"
+          icon={<MapPin className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <DataTable
+            rows={data.geography.map((row: any) => ({
+              icon: <MapPin className="w-4 h-4" />,
+              label: `${row.region}, ${row.country}`,
+              value: formatNumber(row.impressions || 0),
+              progressBar: {
+                value: row.impressions || 0,
+                max: Math.max(...data.geography.map((d: any) => d.impressions)) || 1,
+                color: '#6CA3A2',
+              },
+            }))}
+            compact
+            emptyMessage="No geographic data available"
+          />
+        </DimensionalDataSection>
+      )}
+
+      {/* Publisher Platforms */}
+      {data.publisher_platforms && data.publisher_platforms.length > 0 && (
+        <DimensionalDataSection
+          title="Platforms"
+          icon={<Share2 className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <DataTable
+            rows={data.publisher_platforms.map((row: any) => ({
+              icon: <Monitor className="w-4 h-4" />,
+              label: row.publisher_platform,
+              value: formatNumber(row.spend || 0),
+              progressBar: {
+                value: row.spend || 0,
+                max: Math.max(...data.publisher_platforms.map((d: any) => d.spend)) || 1,
+                color: '#6CA3A2',
+              },
+              secondaryValue: `$${row.spend?.toFixed(2)}`,
+            }))}
+            compact
+            emptyMessage="No platform data available"
+          />
+        </DimensionalDataSection>
+      )}
+
+      {/* Devices */}
+      {data.devices && data.devices.length > 0 && (
+        <DimensionalDataSection
+          title="Devices"
+          icon={<Smartphone className="w-4 h-4" />}
+          defaultExpanded={false}
+        >
+          <DataTable
+            rows={data.devices.map((row: any) => ({
+              icon: <Smartphone className="w-4 h-4" />,
+              label: row.device_platform,
+              value: formatNumber(row.impressions || 0),
+              progressBar: {
+                value: row.impressions || 0,
+                max: Math.max(...data.devices.map((d: any) => d.impressions)) || 1,
+                color: '#6CA3A2',
+              },
+            }))}
+            compact
+            emptyMessage="No device data available"
+          />
+        </DimensionalDataSection>
+      )}
     </div>
   );
 }

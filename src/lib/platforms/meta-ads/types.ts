@@ -16,7 +16,6 @@ export const META_CONFIG: PlatformConfig = {
   oauthScopes: [
     'ads_read',
     'ads_management',
-    'read_insights',
     'business_management',
   ],
   apiVersion: 'v18.0',
@@ -32,7 +31,8 @@ export interface MetaInsightsRequest {
   fields: string[];
   level?: 'account' | 'campaign' | 'adset' | 'ad';
   limit?: number;
-  filtering?: any[];
+  filtering?: Array<{ field: string; operator: string; value: any }>;
+  breakdowns?: string[];
 }
 
 /**
@@ -96,6 +96,16 @@ export const META_METRIC_MAP: Record<string, string> = {
   // Link clicks
   link_clicks: 'link_clicks',
   outbound_clicks: 'outbound_clicks',
+  inline_link_clicks: 'inline_link_clicks',
+
+  // Video
+  video_p25_watched_actions: 'video_p25_watched_actions',
+  video_p50_watched_actions: 'video_p50_watched_actions',
+  video_p100_watched_actions: 'video_p100_watched_actions',
+
+  // Actions & Cost
+  actions: 'actions',
+  cost_per_action_type: 'cost_per_action_type',
 };
 
 /**
@@ -131,10 +141,16 @@ export const AVAILABLE_META_METRICS: MetricDefinition[] = [
   { id: 'conversions', name: 'Conversions', description: 'Total conversions', category: 'Conversions' },
   { id: 'cost_per_conversion', name: 'Cost per Conversion', description: 'Average cost per conversion', category: 'Cost' },
   { id: 'roas', name: 'ROAS', description: 'Return on ad spend', category: 'Conversions' },
+  { id: 'purchases', name: 'Purchases', description: 'Total purchases', category: 'Conversions' },
+  { id: 'leads', name: 'Leads', description: 'Total leads', category: 'Conversions' },
+  { id: 'cost_per_purchase', name: 'Cost per Purchase', description: 'Average cost per purchase', category: 'Cost' },
+  { id: 'cost_per_lead', name: 'Cost per Lead', description: 'Average cost per lead', category: 'Cost' },
 
   // Engagement
   { id: 'link_clicks', name: 'Link Clicks', description: 'Clicks on links', category: 'Engagement' },
+  { id: 'inline_link_clicks', name: 'Link Clicks (Inline)', description: 'Clicks on links to destination', category: 'Engagement' },
   { id: 'video_views', name: 'Video Views', description: 'Video views', category: 'Engagement' },
+  { id: 'video_p100_watched_actions', name: 'Video 100% Watched', description: 'Video played to 100%', category: 'Engagement' },
 ];
 
 /**

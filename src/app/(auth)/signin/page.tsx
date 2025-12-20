@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirect to chat if already signed in
+  useEffect(() => {
+    if (status === "authenticated" && session?.user) {
+      router.replace("/chat");
+    }
+  }, [status, session, router]);
 
   const handleOAuthClick = async (provider: "google" | "github") => {
     try {
@@ -21,6 +31,23 @@ export default function SignInPage() {
       setIsLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="w-full max-w-2xl flex items-center justify-center py-20">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#6CA3A2] border-t-transparent" />
+          <p className="text-[#999] text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the sign-in form if already authenticated (will redirect)
+  if (status === "authenticated") {
+    return null;
+  }
 
   return (
     <div className="w-full max-w-2xl space-y-8">

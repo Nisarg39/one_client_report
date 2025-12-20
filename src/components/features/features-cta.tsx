@@ -57,7 +57,7 @@ export function FeaturesCTA() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
             {/* Primary Button */}
             <button
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push('/signin')}
               className="w-full sm:w-auto relative overflow-hidden text-sm sm:text-base px-6 sm:px-8 md:px-10 h-11 sm:h-14 rounded-3xl font-semibold group bg-gradient-to-br from-[#FF8C42] to-[#E67A33] text-white shadow-[-10px_-10px_24px_rgba(70,70,70,0.5),10px_10px_24px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.3)] hover:shadow-[-8px_-8px_20px_rgba(70,70,70,0.5),8px_8px_20px_rgba(0,0,0,0.9),inset_-2px_-2px_6px_rgba(0,0,0,0.3),inset_2px_2px_6px_rgba(255,140,66,0.4)] active:shadow-[inset_8px_8px_16px_rgba(179,87,28,0.7),inset_-8px_-8px_16px_rgba(255,140,66,0.2)] transition-all duration-300 focus:ring-2 focus:ring-[#FF8C42] focus:ring-offset-2 focus:ring-offset-[#1a1a1a] focus:outline-none"
               aria-label="Start your free trial now"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}

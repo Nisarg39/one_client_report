@@ -48,19 +48,16 @@ const ConversationSchema = new Schema<Conversation>(
       type: String,
       required: true,
       unique: true,
-      index: true, // Index for fast lookups
     },
     userId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true, // Index for querying user's conversations
     },
     clientId: {
       type: Schema.Types.ObjectId,
       ref: 'Client',
       required: true,
-      index: true, // Index for querying client's conversations
     },
     messages: {
       type: [MessageSchema],

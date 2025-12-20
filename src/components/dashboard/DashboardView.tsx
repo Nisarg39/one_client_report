@@ -24,6 +24,10 @@ export interface DashboardViewProps {
     email?: string | null;
     image?: string | null;
     accountType?: 'business' | 'education' | 'instructor';
+    usageTier?: 'free' | 'student' | 'pro' | 'agency' | 'enterprise';
+    subscriptionStatus?: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+    subscriptionEndDate?: string | null;
+    trialEndDate?: string | null;
   };
   userStats?: {
     totalClients: number;

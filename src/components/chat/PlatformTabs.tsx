@@ -6,6 +6,8 @@
 
 'use client';
 
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useChatStore, type PlatformType } from '@/stores/useChatStore';
 import { BarChart3, TrendingUp, Share2, Briefcase } from 'lucide-react';
 
@@ -45,10 +47,12 @@ export function PlatformTabs({ platforms }: PlatformTabsProps) {
   const { metricsDashboard, setMetricsDashboardPlatform } = useChatStore();
 
   // Set default platform if none selected
-  if (!metricsDashboard.selectedPlatform && platforms.length > 0) {
-    const firstPlatform = platforms[0] as PlatformType;
-    setMetricsDashboardPlatform(firstPlatform);
-  }
+  useEffect(() => {
+    if (!metricsDashboard.selectedPlatform && platforms.length > 0) {
+      const firstPlatform = platforms[0] as PlatformType;
+      setMetricsDashboardPlatform(firstPlatform);
+    }
+  }, [metricsDashboard.selectedPlatform, platforms, setMetricsDashboardPlatform]);
 
   const selectedPlatform = metricsDashboard.selectedPlatform;
 
@@ -57,14 +61,20 @@ export function PlatformTabs({ platforms }: PlatformTabsProps) {
   };
 
   return (
-    <div className="space-y-2">
-      <h3
-        className="text-xs font-medium text-[#999] uppercase tracking-wider px-1"
-        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-      >
-        Platforms
-      </h3>
-      <div className="grid grid-cols-2 gap-2">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between px-1">
+        <h3
+          className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic"
+        >
+          Select Platform
+        </h3>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2] animate-pulse" />
+          <span className="text-[8px] font-black text-[#6CA3A2] uppercase tracking-widest">Live</span>
+        </div>
+      </div>
+
+      <div className="bg-[#1c1c1c] p-1.5 rounded-2xl border border-white/10 shadow-neu-inset grid grid-cols-2 gap-2">
         {platforms.map((platform) => {
           const config = PLATFORM_CONFIG[platform];
           if (!config) return null;
@@ -76,22 +86,35 @@ export function PlatformTabs({ platforms }: PlatformTabsProps) {
             <button
               key={platform}
               onClick={() => handlePlatformSelect(platform)}
-              className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isSelected
-                  ? 'bg-[#1a1a1a] text-[#e0e0e0] shadow-[inset_-3px_-3px_8px_rgba(60,60,60,0.4),inset_3px_3px_8px_rgba(0,0,0,0.8)] border-b-2'
-                  : 'bg-[#1a1a1a] text-[#c0c0c0] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)]'
-              }`}
-              style={{
-                textShadow: '0 1px 2px rgba(0,0,0,0.5)',
-                ...(isSelected && {
-                  borderBottomColor: config.color,
-                }),
-              }}
+              className={`relative group flex items-center gap-2.5 px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-tighter transition-all duration-300 ${isSelected
+                ? 'bg-[#0f0f0f] text-white shadow-neu-inset border border-white/5 italic'
+                : 'bg-transparent text-[#444] hover:text-[#777]'
+                }`}
             >
-              <div style={{ color: isSelected ? config.color : '#999' }}>
+              {isSelected && (
+                <motion.div
+                  layoutId="activeTabGlow"
+                  className="absolute inset-0 rounded-xl opacity-20 blur-md pointer-events-none"
+                  style={{ backgroundColor: config.color }}
+                />
+              )}
+
+              <div
+                className={`transition-colors duration-300 ${isSelected ? '' : 'grayscale opacity-40'}`}
+                style={{ color: isSelected ? config.color : '#444' }}
+              >
                 <Icon className="w-4 h-4" />
               </div>
-              <span className="truncate">{config.label}</span>
+
+              <span className="truncate relative z-10">{config.label}</span>
+
+              {isSelected && (
+                <motion.div
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ backgroundColor: config.color }}
+                />
+              )}
             </button>
           );
         })}

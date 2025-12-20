@@ -38,7 +38,7 @@ export function MetricsDashboardPanel({
   // Show tabs for ALL connected platforms, even if data is null
   const connectedPlatforms = platformData
     ? Object.entries(platformData.platforms)
-        .map(([key]) => key as any)
+      .map(([key]) => key as any)
     : [];
 
   // Extract Google Analytics properties for property selector
@@ -54,30 +54,35 @@ export function MetricsDashboardPanel({
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          className="fixed right-0 top-0 bottom-0 bg-[#1a1a1a] border-l border-[#333] overflow-hidden flex flex-col"
+          initial={{ x: '100%', opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: '100%', opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="fixed right-0 top-0 bottom-0 bg-[#1a1a1a] border-l border-[#222] overflow-hidden flex flex-col"
           style={{
             width: `${metricsDashboard.width}px`,
             zIndex: 40,
           }}
         >
           {/* Header */}
-          <div className="flex-shrink-0 px-4 py-3 border-b border-[#333] flex items-center justify-between">
-            <h2
-              className="text-lg font-semibold text-[#e0e0e0]"
-              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-            >
-              Platform Metrics
-            </h2>
+          <div className="flex-shrink-0 px-6 py-5 border-b border-[#222] flex items-center justify-between bg-[#1a1a1a]">
+            <div>
+              <h2
+                className="text-lg font-black text-white uppercase tracking-tighter italic leading-none"
+              >
+                Platform Metrics
+              </h2>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="w-1 h-1 rounded-full bg-[#6CA3A2] animate-pulse shadow-[0_0_4px_#6CA3A2]" />
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#555]">Live Dashboard</p>
+              </div>
+            </div>
             <button
               onClick={onToggle}
-              className="p-2 rounded-lg hover:bg-[#252525] transition-colors"
+              className="w-10 h-10 rounded-xl bg-[#1c1c1c] shadow-neu-raised flex items-center justify-center border border-white/10 hover:bg-[#222] transition-colors group"
               aria-label="Close metrics panel"
             >
-              <X className="w-5 h-5 text-[#999]" />
+              <X className="w-5 h-5 text-[#444] group-hover:text-[#666]" />
             </button>
           </div>
 
@@ -85,51 +90,54 @@ export function MetricsDashboardPanel({
           <div className="flex-1 overflow-y-auto">
             {!platformData ? (
               // No data state
-              <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-[#252525] flex items-center justify-center mb-4 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]">
-                  <Loader2 className="w-8 h-8 text-[#6CA3A2] animate-spin" />
+              <div className="flex flex-col items-center justify-center h-full px-6 text-center space-y-6">
+                <div className="relative w-20 h-20">
+                  <div className="absolute inset-0 rounded-full border-4 border-[#222]" />
+                  <div className="absolute inset-0 rounded-full border-4 border-t-[#6CA3A2] animate-spin border-transparent shadow-[0_0_15px_rgba(108,163,162,0.4)]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-[#6CA3A2] animate-pulse" />
+                  </div>
                 </div>
-                <h3
-                  className="text-base font-medium text-[#c0c0c0] mb-2"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  No metrics data yet
-                </h3>
-                <p
-                  className="text-sm text-[#808080]"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  Send a message to load platform metrics
-                </p>
+                <div className="space-y-2">
+                  <h3
+                    className="text-base font-black text-white uppercase tracking-tighter italic"
+                  >
+                    Metrics Initializing
+                  </h3>
+                  <p
+                    className="text-[11px] text-[#444] font-bold italic"
+                  >
+                    Send a message to load platform metrics
+                  </p>
+                </div>
               </div>
             ) : connectedPlatforms.length === 0 ? (
               // No connected platforms state
-              <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-[#252525] flex items-center justify-center mb-4 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]">
-                  <span className="text-2xl">📊</span>
+              <div className="flex flex-col items-center justify-center h-full px-6 text-center space-y-6">
+                <div className="w-20 h-20 rounded-3xl bg-[#1c1c1c] shadow-neu-raised flex items-center justify-center border border-white/10">
+                  <span className="text-3xl grayscale opacity-20">📊</span>
                 </div>
-                <h3
-                  className="text-base font-medium text-[#c0c0c0] mb-2"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  No platforms connected
-                </h3>
-                <p
-                  className="text-sm text-[#808080] mb-4"
-                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                >
-                  Connect a platform to see metrics here
-                </p>
+                <div className="space-y-2">
+                  <h3
+                    className="text-base font-black text-white uppercase tracking-tighter italic"
+                  >
+                    No Active Uplinks
+                  </h3>
+                  <p
+                    className="text-[11px] text-[#444] font-bold italic"
+                  >
+                    Connect a platform to see metrics here
+                  </p>
+                </div>
               </div>
             ) : (
               // Has data - show platform tabs and content
               <div className="p-4 space-y-4">
                 {/* Stale data indicator */}
                 {isStale && (
-                  <div className="px-3 py-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-400">
-                    <p style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                      ⚠️ Data may be outdated. Send a new message to refresh.
-                    </p>
+                  <div className="px-3 py-2 bg-amber-500/5 border border-amber-500/10 rounded-xl text-[10px] text-amber-500/60 font-black uppercase tracking-widest italic flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Data may be outdated
                   </div>
                 )}
 
@@ -172,13 +180,11 @@ export function MetricsDashboardPanel({
 
           {/* Footer with last updated timestamp */}
           {platformDataTimestamp && (
-            <div className="flex-shrink-0 px-4 py-2 border-t border-[#333]">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-[#222] bg-[#151515]">
               <p
-                className="text-xs text-[#808080] text-center"
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                className="text-[9px] font-black text-[#444] text-center uppercase tracking-[0.3em] italic"
               >
-                Last updated:{' '}
-                {new Date(platformDataTimestamp).toLocaleTimeString()}
+                DATA_SYNCED // {new Date(platformDataTimestamp).toLocaleTimeString()}
               </p>
             </div>
           )}

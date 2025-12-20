@@ -84,6 +84,11 @@ export const authOptions: NextAuthOptions = {
           token.accountType = dbUser.accountType;
           token.usageTier = dbUser.usageTier;
           token.restrictions = dbUser.restrictions;
+          token.phone = dbUser.phone;
+          token.subscriptionStatus = dbUser.subscriptionStatus;
+          token.subscriptionEndDate = dbUser.subscriptionEndDate?.toISOString() || null;
+          token.trialStartDate = dbUser.trialStartDate?.toISOString() || null;
+          token.trialEndDate = dbUser.trialEndDate?.toISOString() || null;
         } catch (error) {
           console.error('Error upserting user:', error);
         }
@@ -99,6 +104,11 @@ export const authOptions: NextAuthOptions = {
             token.accountType = dbUser.accountType;
             token.usageTier = dbUser.usageTier;
             token.restrictions = dbUser.restrictions;
+            token.phone = dbUser.phone;
+            token.subscriptionStatus = dbUser.subscriptionStatus;
+            token.subscriptionEndDate = dbUser.subscriptionEndDate?.toISOString() || null;
+            token.trialStartDate = dbUser.trialStartDate?.toISOString() || null;
+            token.trialEndDate = dbUser.trialEndDate?.toISOString() || null;
           }
         } catch (error) {
           console.error('Error refreshing user data in JWT:', error);
@@ -120,6 +130,11 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).accountType = token.accountType;
         (session.user as any).usageTier = token.usageTier;
         (session.user as any).restrictions = token.restrictions;
+        (session.user as any).phone = token.phone;
+        (session.user as any).subscriptionStatus = token.subscriptionStatus;
+        (session.user as any).subscriptionEndDate = token.subscriptionEndDate;
+        (session.user as any).trialStartDate = token.trialStartDate;
+        (session.user as any).trialEndDate = token.trialEndDate;
       }
       return session;
     },

@@ -83,8 +83,38 @@ export async function checkTrialLimits(userId: string): Promise<TrialLimitCheck>
       daysRemaining = 999;
       isInTrialPeriod = false;
       dailyMessageLimit = TRIAL_CONFIG.DAILY_MESSAGE_LIMIT; // 50 messages/day forever
-    } else if (user.usageTier === 'pro' || user.usageTier === 'enterprise') {
-      // Check if trial period has expired for paid tiers
+    } else if (user.subscriptionStatus === 'active') {
+      // ✅ ACTIVE SUBSCRIPTION: 
+      // Users with active subscriptions get full access based on their tier limits
+      // We check if the subscription has expired by date
+      if (user.subscriptionEndDate && new Date() > new Date(user.subscriptionEndDate)) {
+        // Subscription expired (date passed)
+        return {
+          allowed: false,
+          reason: 'trial_expired', // Using same reason code for frontend consistency
+          message: 'Your subscription has expired. Please renew to continue.',
+          daysRemaining: 0
+        };
+      }
+
+      // Active and valid date
+      daysRemaining = 30; // Just a placeholder, actual date check handles it
+      isInTrialPeriod = false;
+
+      // Set limits based on active tier
+      if (user.usageTier === 'agency') {
+        dailyMessageLimit = 300;
+      } else if (user.usageTier === 'enterprise') {
+        dailyMessageLimit = 999999;
+      } else {
+        // Professional default
+        dailyMessageLimit = 150;
+      }
+
+    } else if (user.usageTier === 'pro' || user.usageTier === 'enterprise' || user.usageTier === 'agency') {
+      // ⚠️ NO ACTIVE SUBSCRIPTION (Trial Mode or Expired Trial)
+
+      // Check if trial period has expired
       if (daysSinceCreation >= trialPeriodDays) {
         // Trial expired - require payment/upgrade
         return {
@@ -100,10 +130,10 @@ export async function checkTrialLimits(userId: string): Promise<TrialLimitCheck>
       isInTrialPeriod = true;
       dailyMessageLimit = TRIAL_CONFIG.DAILY_MESSAGE_LIMIT; // 50 messages/day during trial
     } else {
-      // Enterprise or other paid tiers after trial - no message limit
+      // Fallback
       daysRemaining = 0;
       isInTrialPeriod = false;
-      dailyMessageLimit = 999999; // Effectively unlimited
+      dailyMessageLimit = 50;
     }
 
     // Check daily message limit

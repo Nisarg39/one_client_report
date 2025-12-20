@@ -42,44 +42,47 @@ export function DataTable({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       {rows.map((row, index) => (
         <div
           key={index}
           className={`
             flex items-center justify-between gap-3
-            ${compact ? 'py-2' : 'py-3'}
-            px-3 rounded-lg
+            ${compact ? 'py-1.5 px-3' : 'py-3 px-4'}
+            rounded-xl
             bg-[#151515]
+            border border-white/10
+            shadow-neu-inset
+            hover:shadow-neu-raised
             hover:bg-[#1a1a1a]
-            transition-colors
-            shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3)]
+            transition-all duration-300
+            group
           `}
         >
           {/* Left: Icon + Label */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
             {row.icon && (
-              <div className="flex-shrink-0 text-[#6CA3A2]">{row.icon}</div>
+              <div className="flex-shrink-0 text-[#6CA3A2] opacity-40 group-hover:opacity-100 transition-opacity">
+                {row.icon}
+              </div>
             )}
             <span
-              className="text-sm text-[#c0c0c0] truncate"
-              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              className="text-[11px] font-black text-[#666] group-hover:text-white uppercase tracking-tighter italic truncate transition-colors"
             >
               {row.label}
             </span>
           </div>
 
           {/* Right: Value + Progress Bar */}
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-4 flex-shrink-0">
             <span
-              className="text-sm font-medium text-[#e0e0e0] min-w-[3rem] text-right"
-              style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              className="text-xs font-black text-white italic tracking-tighter text-right"
             >
               {row.value}
             </span>
 
             {row.progressBar && (
-              <div className="w-24 hidden sm:block">
+              <div className="w-20 hidden sm:block">
                 <ProgressBar
                   value={row.progressBar.value}
                   max={row.progressBar.max}
@@ -91,8 +94,7 @@ export function DataTable({
 
             {row.secondaryValue && (
               <span
-                className="text-xs text-[#808080] min-w-[2rem] text-right"
-                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                className="text-[9px] font-black text-[#444] min-w-[2rem] text-right uppercase tracking-widest italic"
               >
                 {row.secondaryValue}
               </span>

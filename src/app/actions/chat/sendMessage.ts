@@ -17,7 +17,6 @@ import PlatformConnectionModel from '@/models/PlatformConnection';
 import UserModel from '@/models/User';
 import { connectDB } from '@/lib/db';
 import { saveMessage } from '@/app/actions/conversations/saveMessage';
-import { checkRateLimit, getTimeUntilReset } from '@/lib/rateLimit';
 import type { PlatformHealthIssue } from '@/types/chat';
 // Multi-agent system imports
 import { routeQuery, executeAgent, getAgentMetadata } from '@/lib/ai/agents/orchestrator';
@@ -26,6 +25,7 @@ import type { AgentContext } from '@/lib/ai/agents/types';
 import { fetchPlatformData } from '@/lib/platforms/dataFetcher';
 // Trial period and message limit validation
 import { checkTrialLimits } from '@/lib/utils/trialLimits';
+import { checkSubscriptionLimits } from '@/lib/utils/subscriptionLimits';
 
 // Map platformId from PlatformConnection to the format expected by AI
 const platformIdToKey: Record<string, string> = {
@@ -54,6 +54,27 @@ export async function sendMessageStream(
     // Verify authentication
     const authUser = await requireAuth();
 
+    // Check subscription status first (Access Control)
+    const subCheck = await checkSubscriptionLimits(authUser.id);
+    if (!subCheck.allowed) {
+      const redirectUrl = '/#pricing';
+      return new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(
+            encoder.encode(
+              `data: ${JSON.stringify({
+                error: subCheck.message,
+                redirect: redirectUrl,
+                reason: subCheck.reason,
+              })}\n\n`
+            )
+          );
+          controller.close();
+        },
+      });
+    }
+
     // Fetch full user document to get accountType and restrictions
     await connectDB();
     const userDoc = await UserModel.findById(authUser.id);
@@ -66,14 +87,14 @@ export async function sendMessageStream(
     if (!trialCheck.allowed) {
       const errorMessage = trialCheck.message || 'Trial period expired or daily limit reached.';
       const redirectUrl = '/#pricing';
-      
+
       // Return error stream with redirect information
       return new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ 
+              `data: ${JSON.stringify({
                 error: errorMessage,
                 redirect: redirectUrl,
                 reason: trialCheck.reason,
@@ -82,25 +103,6 @@ export async function sendMessageStream(
                 messagesLimit: trialCheck.messagesLimit,
               })}\n\n`
             )
-          );
-          controller.close();
-        },
-      });
-    }
-
-    // Check rate limit (tier-based: respects user's maxMessagesPerDay restriction)
-    const maxMessagesPerDay = userDoc.restrictions?.maxMessagesPerDay;
-    const rateLimit = checkRateLimit(authUser.id, maxMessagesPerDay);
-    if (!rateLimit.allowed) {
-      const minutesUntilReset = Math.ceil(getTimeUntilReset(authUser.id) / 60000);
-      const errorMessage = `Rate limit exceeded. You can send ${rateLimit.remaining} more messages. Please try again in ${minutesUntilReset} minutes.`;
-
-      // Return error stream
-      return new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ error: errorMessage })}\n\n`)
           );
           controller.close();
         },
@@ -219,7 +221,7 @@ export async function sendMessageStream(
     let systemPrompt: string;
     let selectedAgentId: string | null = null;
     let selectedAgentName: string | null = null;
-    
+
     if (lastUserMessage?.content) {
       try {
         // Build agent context with accountType and restrictions
@@ -290,9 +292,9 @@ export async function sendMessageStream(
           if (selectedAgentId && selectedAgentName) {
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ 
-                  agentId: selectedAgentId, 
-                  agentName: selectedAgentName 
+                `data: ${JSON.stringify({
+                  agentId: selectedAgentId,
+                  agentName: selectedAgentName
                 })}\n\n`
               )
             );
@@ -444,12 +446,12 @@ export async function sendMessage(
   messages: Message[],
   clientId: string | null,
   dateRange?: { startDate?: string; endDate?: string }
-): Promise<{ 
-  content: string; 
-  conversationId?: string | null; 
+): Promise<{
+  content: string;
+  conversationId?: string | null;
   error?: string;
   redirect?: string;
-  reason?: 'trial_expired' | 'daily_limit_reached';
+  reason?: 'trial_expired' | 'daily_limit_reached' | 'subscription_expired' | 'no_subscription';
   daysRemaining?: number;
   messagesUsed?: number;
   messagesLimit?: number;
@@ -457,6 +459,17 @@ export async function sendMessage(
   try {
     // Verify authentication
     const authUser = await requireAuth();
+
+    // Check subscription status first
+    const subCheck = await checkSubscriptionLimits(authUser.id);
+    if (!subCheck.allowed) {
+      return {
+        content: '',
+        error: subCheck.message,
+        redirect: '/#pricing',
+        reason: subCheck.reason,
+      };
+    }
 
     // Fetch full user document to get accountType and restrictions
     await connectDB();
@@ -470,7 +483,7 @@ export async function sendMessage(
     if (!trialCheck.allowed) {
       const errorMessage = trialCheck.message || 'Trial period expired or daily limit reached.';
       const redirectUrl = '/#pricing';
-      
+
       return {
         content: '',
         error: errorMessage,
@@ -479,17 +492,6 @@ export async function sendMessage(
         daysRemaining: trialCheck.daysRemaining,
         messagesUsed: trialCheck.messagesUsed,
         messagesLimit: trialCheck.messagesLimit,
-      };
-    }
-
-    // Check rate limit (tier-based: respects user's maxMessagesPerDay restriction)
-    const maxMessagesPerDay = userDoc.restrictions?.maxMessagesPerDay;
-    const rateLimit = checkRateLimit(authUser.id, maxMessagesPerDay);
-    if (!rateLimit.allowed) {
-      const minutesUntilReset = Math.ceil(getTimeUntilReset(authUser.id) / 60000);
-      return {
-        content: '',
-        error: `Rate limit exceeded. You can send ${rateLimit.remaining} more messages. Please try again in ${minutesUntilReset} minutes.`,
       };
     }
 

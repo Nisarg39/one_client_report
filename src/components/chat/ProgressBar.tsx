@@ -29,25 +29,26 @@ export function ProgressBar({
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       {/* Bar Container */}
-      <div className="flex-1 h-2 bg-[#0f0f0f] rounded-full overflow-hidden shadow-[inset_2px_2px_4px_rgba(0,0,0,0.6)]">
+      <div className="flex-1 h-1.5 bg-[#0d0d0d] rounded-full overflow-hidden border border-white/5 shadow-neu-inset">
         {/* Fill */}
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="h-full rounded-full"
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full rounded-full relative"
           style={{
-            background: `linear-gradient(90deg, ${color}, ${color}dd)`,
-            boxShadow: `0 0 8px ${color}40`,
+            background: `linear-gradient(90deg, ${color}, #fff2)`,
+            boxShadow: `0 0 10px ${color}30`,
           }}
-        />
+        >
+          <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
+        </motion.div>
       </div>
 
       {/* Percentage Label */}
       {showPercentage && (
         <span
-          className="text-xs font-medium text-[#999] min-w-[3rem] text-right"
-          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+          className="text-[10px] font-black text-[#555] italic min-w-[2rem] text-right tracking-tighter"
         >
           {percentage}%
         </span>

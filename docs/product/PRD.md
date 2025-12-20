@@ -292,10 +292,10 @@ Three clear tiers optimized for individuals and teams
 No hidden fees: All core features included in each tier
 Annual discount: 2 months free with annual billing (17% savings)
 
-**NEW PRICING MODEL (AI Chatbot Hybrid - Clients + Messages):**
+**NEW PRICING MODEL (Single Workspace + Message Limits):**
 
 **STUDENT PLAN - FREE (Forever)**
-- 5 client workspaces
+- 1 workspace with unlimited practice campaigns
 - 50 AI messages per day (forever)
 - Unlimited conversations
 - Mock data scenarios for learning
@@ -306,48 +306,70 @@ Annual discount: 2 months free with annual billing (17% savings)
 - Perfect for: Students learning marketing analytics
 
 **PROFESSIONAL PLAN - ₹299/month (RECOMMENDED)**
-- 10 client workspaces
+- 1 workspace with unlimited real campaigns
 - 150 AI messages per day (50/day during trial)
 - Unlimited conversations
 - 7-day free trial
-- Real platform API connections
+- Real platform API connections (Google Analytics, Google Ads, Meta Ads, LinkedIn Ads)
 - All 5 AI agents (GPT-3.5 Turbo)
 - Priority email support
-- PDF exports
-- 1-year chat history
-- Perfect for: Freelancers managing 5-10 clients
+- JSON exports
+- Forever chat history
+- Perfect for: Freelancers managing multiple campaigns
 
 **AGENCY PLAN - ₹999/month**
-- 25 client workspaces
+- 1 workspace with unlimited campaigns at scale*
 - 300 AI messages per day (50/day during trial)
 - Unlimited conversations
 - 7-day free trial
 - Real platform API connections
 - All 5 AI agents (GPT-3.5 Turbo)
+- 5 team members (future)
+- Multi-workspace support (future - 3-5 workspaces)
 - Priority email & chat support
-- API access
 - Dedicated account manager
-- White-label custom domain
+- Advanced reporting templates
 - Forever chat history
-- Perfect for: Growing agencies managing 15-25 clients
+- Perfect for: Growing agencies with high volume needs
+
+*Future: Agency plans will support 3-5 workspaces for organizing different client groups
 
 **ENTERPRISE PLAN - Custom Pricing (Starting ₹25,000+/month)**
-- Unlimited client workspaces
+- Unlimited workspaces
+- Unlimited campaigns
 - Unlimited AI messages
 - Unlimited conversations
+- Unlimited team members
 - No trial (custom onboarding)
 - Real platform APIs + custom integrations
-- All agents + custom agent development
+- All agents (GPT-4 Turbo) + custom agent development
 - 24/7 priority support (phone, email, chat)
 - Custom onboarding & training
 - SLA guarantees (99.9% uptime)
 - Annual contract discounts
-- White-label branding
-- Priority platform integration requests
-- Perfect for: Large agencies & enterprises with 100+ clients
+- White-label custom domain
+- API access for custom integrations
+- Dedicated infrastructure (if required)
+- Perfect for: Large agencies & enterprises at scale
 
-Pricing Comparison:
-SolutionFor 5 ClientsFor 10 ClientsFor 25 ClientsFor 100+ ClientsAgencyAnalytics₹5,000-8,300/mo₹10,000-16,600/mo₹25,000-41,500/mo₹100,000-166,000/moDashThis₹8,300-12,000/mo₹12,450-24,000/mo₹24,000-41,500/mo₹83,000+/moReportGarden₹12,450/mo₹20,750/mo₹41,500/mo₹83,000+/moOneReport (New)FREE (Student)₹299/mo₹999/mo₹25,000+/mo (custom)
+**Workspace Architecture:**
+
+**Current (Phase 1): Single Workspace Model**
+- All users get 1 auto-created workspace
+- Unlimited campaigns/accounts per workspace
+- Pricing differentiated by daily message limits
+- Professional/Student/Free users: 1 workspace only
+- Agency/Enterprise users: 1 workspace (multi-workspace coming in Phase 2)
+
+**Future (Phase 2): Multi-Workspace for Agency+**
+- Agency Plan: 3-5 workspaces for grouping clients
+- Enterprise Plan: Unlimited workspaces
+- Each workspace = isolated campaign group
+- Current "Client" model supports this architecture
+- No code changes needed, just UI visibility toggle
+
+Pricing Comparison (Message-Based Model):
+SolutionStudent PlanProfessional PlanAgency PlanEnterprise PlanAgencyAnalytics₹5,000-8,300/mo₹10,000-16,600/mo₹25,000-41,500/mo₹100,000-166,000/moDashThis₹8,300-12,000/mo₹12,450-24,000/mo₹24,000-41,500/mo₹83,000+/moReportGarden₹12,450/mo₹20,750/mo₹41,500/mo₹83,000+/moOneAssist (New)FREE (50 msg/day)₹299/mo (150 msg/day)₹999/mo (300 msg/day)₹25,000+/mo (unlimited)
 
 **ENTERPRISE CUSTOM PRICING STRATEGY:**
 

@@ -524,6 +524,67 @@ export function buildPlatformDataContext(platformData: any): string {
           context += `- ${campaign.name} (${campaign.status}, ${campaign.objective}): ${campaign.impressions.toLocaleString()} impressions, ${campaign.clicks.toLocaleString()} clicks, $${campaign.spend.toFixed(2)} spend\n`;
         });
       }
+
+      // Enhanced Conversions
+      if (meta.metrics.registrations > 0 || meta.metrics.add_to_carts > 0 || meta.metrics.checkouts > 0 || meta.metrics.content_views > 0) {
+        context += '\n**Conversion Funnel:**\n';
+        if (meta.metrics.content_views > 0) {
+          context += `- Content Views: ${meta.metrics.content_views.toLocaleString()}\n`;
+        }
+        if (meta.metrics.add_to_carts > 0) {
+          context += `- Add to Carts: ${meta.metrics.add_to_carts.toLocaleString()} (Cost: $${meta.metrics.cost_per_add_to_cart.toFixed(2)})\n`;
+        }
+        if (meta.metrics.checkouts > 0) {
+          context += `- Initiated Checkouts: ${meta.metrics.checkouts.toLocaleString()}\n`;
+        }
+        if (meta.metrics.registrations > 0) {
+          context += `- Registrations: ${meta.metrics.registrations.toLocaleString()} (Cost: $${meta.metrics.cost_per_registration.toFixed(2)})\n`;
+        }
+        if (meta.metrics.purchases > 0) {
+          context += `- Purchases: ${meta.metrics.purchases.toLocaleString()} (Cost: $${meta.metrics.cost_per_purchase.toFixed(2)})\n`;
+        }
+      }
+    }
+
+    // Demographics breakdown
+    if (meta.demographics && meta.demographics.length > 0) {
+      context += '\n**Audience Demographics:**\n';
+      const topDemographics = meta.demographics
+        .sort((a: any, b: any) => b.spend - a.spend)
+        .slice(0, 5);
+
+      topDemographics.forEach((demo: any) => {
+        const ctr = demo.impressions > 0 ? ((demo.clicks / demo.impressions) * 100).toFixed(2) : '0.00';
+        context += `- Age ${demo.age}, ${demo.gender}: ${demo.impressions.toLocaleString()} impressions, ${demo.clicks.toLocaleString()} clicks, $${demo.spend.toFixed(2)} spend, ${ctr}% CTR\n`;
+      });
+    }
+
+    // Geographic breakdown
+    if (meta.geography && meta.geography.length > 0) {
+      context += '\n**Top Geographic Markets:**\n';
+      const topGeos = meta.geography
+        .sort((a: any, b: any) => b.spend - a.spend)
+        .slice(0, 5);
+
+      topGeos.forEach((geo: any) => {
+        context += `- ${geo.country}${geo.region && geo.region !== 'Unknown' ? ` (${geo.region})` : ''}: ${geo.impressions.toLocaleString()} impressions, $${geo.spend.toFixed(2)} spend\n`;
+      });
+    }
+
+    // Device breakdown
+    if (meta.devices && meta.devices.length > 0) {
+      context += '\n**Device Performance:**\n';
+      meta.devices.forEach((device: any) => {
+        context += `- ${device.device_platform}: ${device.impressions.toLocaleString()} impressions, ${device.clicks.toLocaleString()} clicks, $${device.spend.toFixed(2)} spend\n`;
+      });
+    }
+
+    // Publisher platform breakdown
+    if (meta.publisher_platforms && meta.publisher_platforms.length > 0) {
+      context += '\n**Publisher Platform Performance:**\n';
+      meta.publisher_platforms.forEach((platform: any) => {
+        context += `- ${platform.publisher_platform}: ${platform.impressions.toLocaleString()} impressions, $${platform.spend.toFixed(2)} spend\n`;
+      });
     }
   }
 

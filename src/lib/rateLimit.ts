@@ -58,6 +58,15 @@ export function checkRateLimit(
   remaining: number;
   resetTime: number;
 } {
+  // Skip rate limiting in development mode
+  if (process.env.NODE_ENV === 'development') {
+    return {
+      allowed: true,
+      remaining: 999999,
+      resetTime: Date.now() + WINDOW_SIZE_MS,
+    };
+  }
+
   const hourlyLimit = calculateHourlyLimit(maxMessagesPerDay);
   const now = Date.now();
   const entry = rateLimitStore.get(userId);

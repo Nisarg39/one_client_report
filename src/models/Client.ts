@@ -141,7 +141,6 @@ const ClientSchema = new Schema<IClient, IClientModel, IClientMethods>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
-      index: true,
     },
     name: {
       type: String,

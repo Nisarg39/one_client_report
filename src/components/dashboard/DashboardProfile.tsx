@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User, Mail, Calendar, Edit2, Users, MessageSquare, Zap, Briefcase, GraduationCap, School } from 'lucide-react';
+import { User, Mail, Calendar, Edit2, Users, MessageSquare, Zap, Briefcase, GraduationCap, School, Crown, CreditCard } from 'lucide-react';
 
 export interface DashboardProfileProps {
   user?: {
@@ -17,6 +17,10 @@ export interface DashboardProfileProps {
     image?: string | null;
     createdAt?: string;
     accountType?: 'business' | 'education' | 'instructor';
+    usageTier?: 'free' | 'student' | 'pro' | 'agency' | 'enterprise';
+    subscriptionStatus?: 'none' | 'trial' | 'active' | 'expired' | 'cancelled';
+    subscriptionEndDate?: string | null;
+    trialEndDate?: string | null;
   };
   stats?: {
     totalClients: number;
@@ -30,9 +34,9 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
   // Format member since date
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('en-US', {
-        month: 'long',
-        year: 'numeric',
-      })
+      month: 'long',
+      year: 'numeric',
+    })
     : 'Unknown';
 
   // Get account type display info
@@ -285,6 +289,101 @@ export function DashboardProfile({ user, stats, onEditProfile }: DashboardProfil
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Subscription Info */}
+      <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
+        <div className="flex items-center justify-between mb-4">
+          <h3
+            className="text-lg font-semibold text-[#f5f5f5]"
+            style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}
+          >
+            Subscription Plan
+          </h3>
+          <button
+            onClick={() => window.open('/dashboard/subscription', '_blank')}
+            className="text-xs text-[#6CA3A2] hover:text-[#5a9291] underline decoration-[#6CA3A2]/30 hover:decoration-[#5a9291]/50 transition-colors"
+          >
+            Manage Subscription
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-xs text-[#808080] mb-1 uppercase tracking-wider">
+              Current Plan
+            </label>
+            <div className="flex items-center gap-2">
+              <div className={`p-1.5 ${
+                user?.usageTier === 'student' ? 'bg-blue-500/20' :
+                user?.subscriptionStatus === 'active' ? 'bg-amber-500/20' :
+                user?.subscriptionStatus === 'cancelled' ? 'bg-yellow-500/20' :
+                  'bg-purple-500/20'
+                } rounded-lg`}>
+                <Crown className={`w-4 h-4 ${
+                  user?.usageTier === 'student' ? 'text-blue-400' :
+                  user?.subscriptionStatus === 'active' ? 'text-amber-400' :
+                  user?.subscriptionStatus === 'cancelled' ? 'text-yellow-400' :
+                    'text-purple-400'
+                  }`} />
+              </div>
+              <p
+                className="text-[#f5f5f5]"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {user?.usageTier === 'student' ? 'Student Plan' :
+                  user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'cancelled' ? `${user?.usageTier?.toUpperCase() || 'PRO'} Plan` :
+                    user?.subscriptionStatus === 'trial' ? 'Free Trial' :
+                      'No Active Plan'}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-[#808080] mb-1 uppercase tracking-wider">
+              Status
+            </label>
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                user?.subscriptionStatus === 'active' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' :
+                user?.subscriptionStatus === 'cancelled' ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]' :
+                user?.subscriptionStatus === 'trial' ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)]' :
+                  'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'
+                }`} />
+              <p
+                className="text-[#f5f5f5]"
+                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+              >
+                {user?.subscriptionStatus === 'active' ? 'Active' :
+                  user?.subscriptionStatus === 'cancelled' ? 'Cancelled - Active until end date' :
+                  user?.subscriptionStatus === 'trial' ? 'Trial Period' :
+                    'Expired / Inactive'}
+              </p>
+            </div>
+          </div>
+
+          {(user?.subscriptionEndDate || user?.trialEndDate) && (
+            <div>
+              <label className="block text-xs text-[#808080] mb-1 uppercase tracking-wider">
+                {user?.subscriptionStatus === 'trial' ? 'Trial Ends' :
+                  user?.subscriptionStatus === 'cancelled' ? 'Expires On' : 'Renews On'}
+              </label>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#808080]" />
+                <p
+                  className="text-[#f5f5f5]"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+                >
+                  {new Date((user?.subscriptionStatus === 'trial' ? user?.trialEndDate : user?.subscriptionEndDate) || new Date()).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

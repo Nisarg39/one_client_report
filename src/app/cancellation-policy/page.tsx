@@ -56,10 +56,10 @@ export default function CancellationPolicyPage() {
                   <li>Through your account settings on the Service dashboard</li>
                   <li>By contacting our support team via email at{" "}
                     <a
-                      href="mailto:hello@onereport.com"
+                      href="mailto:shah.nisarg39@gmail.com"
                       className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                     >
-                      hello@onereport.com
+                      shah.nisarg39@gmail.com
                     </a>
                   </li>
                   <li>By calling us at{" "}
@@ -204,10 +204,10 @@ export default function CancellationPolicyPage() {
                 <p className="leading-relaxed">
                   If you have any questions about this Cancellation Policy or need assistance with canceling your subscription, please contact us at{" "}
                   <a
-                    href="mailto:hello@onereport.com"
+                    href="mailto:shah.nisarg39@gmail.com"
                     className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                   >
-                    hello@onereport.com
+                    shah.nisarg39@gmail.com
                   </a>
                   {" "}or call us at{" "}
                   <a

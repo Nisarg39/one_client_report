@@ -7,6 +7,7 @@
 'use client';
 
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
   formatMetric,
   calculatePercentageChange,
@@ -52,40 +53,50 @@ export function MetricCard({
     trendDirection === 'up'
       ? TrendingUp
       : trendDirection === 'down'
-      ? TrendingDown
-      : Minus;
+        ? TrendingDown
+        : Minus;
 
   return (
-    <div
-      className="p-4 rounded-xl bg-[#1a1a1a] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] transition-all"
-      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
+    <motion.div
+      whileHover={{ scale: 1.005 }}
+      className="p-4 rounded-2xl bg-[#151515] shadow-neu-inset border border-white/5 transition-all group relative overflow-hidden"
     >
+      <div className="absolute inset-0 bg-gradient-to-br from-[#6CA3A2]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
       {/* Header with icon and label */}
-      <div className="flex items-center gap-2 mb-2">
-        {icon && <div className="text-[#6CA3A2]">{icon}</div>}
-        <span className="text-xs font-medium text-[#999] uppercase tracking-wide">
+      <div className="flex items-center gap-2 mb-3 opacity-60">
+        {icon && (
+          <div className="text-[#6CA3A2]">
+            {/* Clone icon to apply specific size if it's a lucide icon */}
+            {icon}
+          </div>
+        )}
+        <span className="text-[9px] font-black text-[#888] uppercase tracking-[0.2em] italic">
           {label}
         </span>
       </div>
 
       {/* Value and trend */}
-      <div className="flex items-end justify-between">
-        <div className="text-2xl font-bold text-[#e0e0e0]">
+      <div className="flex items-end justify-between relative z-10">
+        <div className="text-xl sm:text-2xl font-black text-white italic tracking-tighter leading-none">
           {formattedValue}
         </div>
 
         {/* Trend indicator */}
         {change !== null && (
           <div
-            className="flex items-center gap-1 text-sm font-medium"
+            className="flex items-center gap-1 text-[10px] font-black italic"
             style={{ color: trendColor }}
           >
-            <TrendIcon className="w-4 h-4" />
+            <TrendIcon className="w-3 h-3" />
             <span>{formatPercentageChange(change)}</span>
           </div>
         )}
       </div>
-    </div>
+
+      {/* Subtle indicator bar at the bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#6CA3A2]/10 group-hover:bg-[#6CA3A2]/30 transition-colors" />
+    </motion.div>
   );
 }
 
@@ -95,15 +106,12 @@ export function MetricCard({
 export function MetricCardSkeleton() {
   return (
     <div
-      className="p-4 rounded-xl bg-[#1a1a1a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)] animate-pulse"
+      className="p-4 rounded-2xl bg-[#1c1c1c] shadow-neu-inset border border-white/5 animate-pulse"
     >
-      {/* Label skeleton */}
-      <div className="h-3 w-20 bg-[#2a2a2a] rounded mb-3" />
-
-      {/* Value skeleton */}
+      <div className="h-2 w-16 bg-[#1a1a1a] rounded mb-4" />
       <div className="flex items-end justify-between">
-        <div className="h-8 w-24 bg-[#2a2a2a] rounded" />
-        <div className="h-5 w-16 bg-[#2a2a2a] rounded" />
+        <div className="h-8 w-24 bg-[#1a1a1a] rounded" />
+        <div className="h-4 w-12 bg-[#1a1a1a] rounded" />
       </div>
     </div>
   );

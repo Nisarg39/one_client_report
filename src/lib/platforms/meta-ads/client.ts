@@ -54,6 +54,11 @@ export class MetaAdsClient {
       params.append('filtering', JSON.stringify(request.filtering));
     }
 
+    // Add breakdowns if provided
+    if (request.breakdowns && request.breakdowns.length > 0) {
+      params.append('breakdowns', request.breakdowns.join(','));
+    }
+
     const url = `https://graph.facebook.com/${this.apiVersion}/${accountId}/insights?${params}`;
 
     const response = await fetch(url);
@@ -61,8 +66,7 @@ export class MetaAdsClient {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(
-        `Meta API error (${response.status}): ${
-          error.error?.message || response.statusText
+        `Meta API error (${response.status}): ${error.error?.message || response.statusText
         }`
       );
     }

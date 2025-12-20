@@ -153,10 +153,10 @@ export default function PrivacyPolicyPage() {
                 <p className="leading-relaxed mt-4">
                   To exercise these rights, please contact us at{" "}
                   <a
-                    href="mailto:hello@onereport.com"
+                    href="mailto:shah.nisarg39@gmail.com"
                     className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                   >
-                    hello@onereport.com
+                    shah.nisarg39@gmail.com
                   </a>
                   .
                 </p>
@@ -205,10 +205,10 @@ export default function PrivacyPolicyPage() {
                 <p className="leading-relaxed">
                   If you have any questions about this Privacy Policy, please contact us at{" "}
                   <a
-                    href="mailto:hello@onereport.com"
+                    href="mailto:shah.nisarg39@gmail.com"
                     className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                   >
-                    hello@onereport.com
+                    shah.nisarg39@gmail.com
                   </a>
                   {" "}or call us at{" "}
                   <a

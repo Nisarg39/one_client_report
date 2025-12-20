@@ -47,49 +47,52 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
         components={{
           // Paragraphs
           p: ({ children }) => (
-            <p className="mb-3 last:mb-0 leading-relaxed text-gray-100">
+            <p className="mb-4 last:mb-0 leading-relaxed text-[#c0c0c0] font-medium">
               {children}
             </p>
           ),
 
           // Headings
           h1: ({ children }) => (
-            <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0 text-white">
+            <h1 className="text-2xl font-black mb-4 mt-6 first:mt-0 text-[#f5f5f5] uppercase tracking-tighter italic">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-lg font-bold mb-3 mt-4 first:mt-0 text-white">
+            <h2 className="text-xl font-black mb-3 mt-5 first:mt-0 text-[#f5f5f5] uppercase tracking-tight">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-base font-semibold mb-2 mt-3 first:mt-0 text-white">
+            <h3 className="text-lg font-black mb-2 mt-4 first:mt-0 text-[#f5f5f5] uppercase tracking-wide">
               {children}
             </h3>
           ),
 
           // Lists
           ul: ({ children }) => (
-            <ul className="list-disc pl-5 mb-3 space-y-1 text-gray-100">
+            <ul className="list-none pl-0 mb-4 space-y-2 text-[#c0c0c0]">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal pl-5 mb-3 space-y-1 text-gray-100">
+            <ol className="list-decimal pl-5 mb-4 space-y-2 text-[#c0c0c0]">
               {children}
             </ol>
           ),
           li: ({ children }) => (
-            <li className="leading-relaxed">{children}</li>
+            <li className="leading-relaxed flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#6CA3A2]/40 mt-2 shrink-0" />
+              <span>{children}</span>
+            </li>
           ),
 
           // Emphasis
           strong: ({ children }) => (
-            <strong className="font-semibold text-white">{children}</strong>
+            <strong className="font-bold text-[#f5f5f5]">{children}</strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-gray-200">{children}</em>
+            <em className="italic text-[#e5e5e5]">{children}</em>
           ),
 
           // Links
@@ -98,7 +101,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#6CA3A2] hover:text-[#5a9291] underline transition-colors"
+              className="text-[#6CA3A2] hover:text-[#5a9291] font-bold underline decoration-[#6CA3A2]/30 transition-all underline-offset-4"
             >
               {children}
             </a>
@@ -111,7 +114,7 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
             if (isInline) {
               return (
                 <code
-                  className="bg-black bg-opacity-40 px-1.5 py-0.5 rounded text-sm font-mono text-[#6CA3A2]"
+                  className="bg-[#1a1a1a] shadow-neu-inset px-2 py-0.5 rounded-md text-sm font-mono text-[#6CA3A2] border border-white/5"
                   {...props}
                 >
                   {children}
@@ -133,14 +136,14 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
             const codeContent = extractTextFromChildren(children);
 
             return (
-              <div className="relative group my-3">
+              <div className="relative group my-6">
                 {/* Copy Button - Positioned absolutely in top-right */}
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
                   <CopyButton content={codeContent} />
                 </div>
 
                 {/* Code Block */}
-                <pre className="bg-[#1a1a1a] border border-gray-800 rounded-lg overflow-x-auto p-4 shadow-inner">
+                <pre className="bg-[#1a1a1a] border border-white/5 rounded-2x overflow-x-auto p-6 shadow-neu-inset">
                   {children}
                 </pre>
               </div>
@@ -149,41 +152,42 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
 
           // Blockquotes
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-[#6CA3A2] pl-4 my-3 italic text-gray-300">
+            <blockquote className="border-l-4 border-[#6CA3A2] pl-6 my-6 py-2 italic text-[#999999] bg-[#1a1a1a] rounded-r-2xl shadow-neu-inset border-opacity-50">
               {children}
             </blockquote>
           ),
 
           // Horizontal rule
           hr: () => (
-            <hr className="border-gray-700 my-4" />
+            <hr className="border-white/5 my-8" />
           ),
 
           // Tables
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3">
-              <table className="min-w-full divide-y divide-gray-700">
+            <div className="overflow-x-auto my-6 rounded-2xl shadow-neu-raised border border-white/5">
+              <table className="min-w-full divide-y divide-white/5">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-[#2a2a2a]">{children}</thead>
+            <thead className="bg-[#1a1a1a]">{children}</thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-gray-800">{children}</tbody>
+            <tbody className="divide-y divide-white/5">{children}</tbody>
           ),
           tr: ({ children }) => (
-            <tr>{children}</tr>
+            <tr className="hover:bg-white/[0.02] transition-colors">{children}</tr>
           ),
           th: ({ children }) => (
-            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-200 uppercase tracking-wider">
+            <th className="px-4 py-3 text-left text-[10px] font-black text-[#6CA3A2] uppercase tracking-widest">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3 py-2 text-sm text-gray-300">{children}</td>
+            <td className="px-4 py-3 text-sm text-[#999999] font-medium">{children}</td>
           ),
+
         }}
       >
         {content}

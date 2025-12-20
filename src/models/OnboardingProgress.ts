@@ -54,7 +54,6 @@ const OnboardingProgressSchema = new Schema<IOnboardingProgress>(
 /**
  * Indexes for performance
  */
-OnboardingProgressSchema.index({ userId: 1 }, { unique: true });
 OnboardingProgressSchema.index({ completed: 1 });
 
 /**

@@ -31,12 +31,13 @@ Implement a complete user authentication and onboarding system to convert landin
 
 ### Goals
 
-- ✅ Enable user registration with email/password
+- ✅ Enable user registration with OAuth (Google, GitHub)
 - ✅ Implement secure authentication using NextAuth.js
-- ✅ Create 4-step onboarding wizard
-- ✅ Build user dashboard for report management
-- ✅ Integrate OAuth providers (Google, GitHub)
-- ✅ Separate user authentication from admin authentication
+- ✅ Auto-create single workspace on signup
+- ✅ Simplified onboarding with platform connections
+- ✅ Build user dashboard and chat interface
+- ✅ Single workspace architecture (unlimited campaigns per workspace)
+- ✅ Tier-based feature gating (workspace selector for Agency/Enterprise only)
 
 ### Success Metrics
 

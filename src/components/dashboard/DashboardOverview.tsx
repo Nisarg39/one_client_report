@@ -109,7 +109,7 @@ export function DashboardOverview({
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Clients Card */}
-        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
+        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-neu-raised border border-white/5">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-[#6CA3A2]/20 rounded-xl">
               <Users className="w-6 h-6 text-[#6CA3A2]" />
@@ -130,7 +130,7 @@ export function DashboardOverview({
         </div>
 
         {/* Conversations Card */}
-        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
+        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-neu-raised border border-white/5">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-blue-500/20 rounded-xl">
               <MessageSquare className="w-6 h-6 text-blue-400" />
@@ -151,7 +151,7 @@ export function DashboardOverview({
         </div>
 
         {/* Platforms Card */}
-        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-[-8px_-8px_20px_rgba(60,60,60,0.4),8px_8px_20px_rgba(0,0,0,0.8)]">
+        <div className="bg-[#1a1a1a] rounded-2xl p-6 shadow-neu-raised border border-white/5">
           <div className="flex items-start justify-between mb-4">
             <div className="p-3 bg-purple-500/20 rounded-xl">
               <Link2 className="w-6 h-6 text-purple-400" />
@@ -184,7 +184,7 @@ export function DashboardOverview({
           {/* Add Client */}
           <button
             onClick={onClientCreate}
-            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)] transition-all duration-200 text-left"
+            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-neu-raised hover:shadow-neu-raised-lg active:shadow-neu-inset transition-all duration-300 text-left border border-white/5"
           >
             <div className="p-2 bg-[#6CA3A2]/20 rounded-lg">
               <Plus className="w-5 h-5 text-[#6CA3A2]" />
@@ -209,7 +209,7 @@ export function DashboardOverview({
           {/* Manage Clients */}
           <button
             onClick={() => onNavigate('clients')}
-            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)] transition-all duration-200 text-left"
+            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-neu-raised hover:shadow-neu-raised-lg active:shadow-neu-inset transition-all duration-300 text-left border border-white/5"
           >
             <div className="p-2 bg-blue-500/20 rounded-lg">
               <Users className="w-5 h-5 text-blue-400" />
@@ -234,7 +234,7 @@ export function DashboardOverview({
           {/* View Profile */}
           <button
             onClick={() => onNavigate('profile')}
-            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)] transition-all duration-200 text-left"
+            className="flex items-center gap-4 p-4 bg-[#1a1a1a] rounded-xl shadow-neu-raised hover:shadow-neu-raised-lg active:shadow-neu-inset transition-all duration-300 text-left border border-white/5"
           >
             <div className="p-2 bg-purple-500/20 rounded-lg">
               <Zap className="w-5 h-5 text-purple-400" />
@@ -390,14 +390,13 @@ export function DashboardOverview({
                   {/* Progress Bar */}
                   <div className="mt-2 w-full bg-[#2a2a2a] rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full transition-all duration-300 ${
-                        (() => {
+                      className={`h-2 rounded-full transition-all duration-300 ${(() => {
                           const usagePercent = (dashboardStats.aiUsage.messagesToday / dashboardStats.aiUsage.dailyLimit) * 100;
                           if (usagePercent >= 90) return 'bg-red-500';
                           if (usagePercent >= 70) return 'bg-yellow-500';
                           return 'bg-green-500';
                         })()
-                      }`}
+                        }`}
                       style={{
                         width: `${Math.min((dashboardStats.aiUsage.messagesToday / dashboardStats.aiUsage.dailyLimit) * 100, 100)}%`
                       }}

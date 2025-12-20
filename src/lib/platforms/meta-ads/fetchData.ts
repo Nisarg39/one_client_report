@@ -28,12 +28,56 @@ export interface MetaAdsData {
     cpc: number;
     cpm: number;
     frequency: number;
+    // New metrics
+    inline_link_clicks: number;
+    video_p25_watched_actions: number;
+    video_p50_watched_actions: number;
+    video_p100_watched_actions: number;
+    purchases: number;
+    leads: number;
+    cost_per_purchase: number;
+    cost_per_lead: number;
+    roas: number;
+    // Enhanced conversion metrics
+    registrations: number;
+    add_to_carts: number;
+    checkouts: number;
+    content_views: number;
+    cost_per_registration: number;
+    cost_per_add_to_cart: number;
   };
   campaigns: Array<{
     id: string;
     name: string;
     status: string;
     objective: string;
+    impressions: number;
+    clicks: number;
+    spend: number;
+  }>;
+  // Breakdowns
+  demographics: Array<{
+    age: string;
+    gender: string;
+    impressions: number;
+    clicks: number;
+    spend: number;
+  }>;
+  geography: Array<{
+    country: string;
+    region: string;
+    impressions: number;
+    clicks: number;
+    spend: number;
+  }>;
+  devices: Array<{
+    device_platform: string;
+    impressions: number;
+    clicks: number;
+    spend: number;
+  }>;
+  publisher_platforms: Array<{
+    publisher_platform: string;
     impressions: number;
     clicks: number;
     spend: number;
@@ -111,8 +155,27 @@ export async function fetchMetaAdsData(
           cpc: 0,
           cpm: 0,
           frequency: 0,
+          inline_link_clicks: 0,
+          video_p25_watched_actions: 0,
+          video_p50_watched_actions: 0,
+          video_p100_watched_actions: 0,
+          purchases: 0,
+          leads: 0,
+          cost_per_purchase: 0,
+          cost_per_lead: 0,
+          roas: 0,
+          registrations: 0,
+          add_to_carts: 0,
+          checkouts: 0,
+          content_views: 0,
+          cost_per_registration: 0,
+          cost_per_add_to_cart: 0,
         },
         campaigns: [],
+        demographics: [],
+        geography: [],
+        devices: [],
+        publisher_platforms: [],
         dateRange: dateRangeString,
       };
     }
@@ -123,6 +186,17 @@ export async function fetchMetaAdsData(
       reach: 0,
       clicks: 0,
       spend: 0,
+      inline_link_clicks: 0,
+      video_p25: 0,
+      video_p50: 0,
+      video_p100: 0,
+      purchases: 0,
+      leads: 0,
+      purchase_value: 0,
+      registrations: 0,
+      add_to_carts: 0,
+      checkouts: 0,
+      content_views: 0,
     };
 
     const allCampaigns: MetaAdsData['campaigns'] = [];
@@ -144,6 +218,12 @@ export async function fetchMetaAdsData(
             'cpc',
             'cpm',
             'frequency',
+            'inline_link_clicks',
+            'video_p25_watched_actions',
+            'video_p50_watched_actions',
+            'video_p100_watched_actions',
+            'actions',
+            'action_values',
           ],
           level: 'account',
         };
@@ -164,6 +244,54 @@ export async function fetchMetaAdsData(
             totalMetrics.reach += parseInt(row.reach || '0', 10);
             totalMetrics.clicks += parseInt(row.clicks || '0', 10);
             totalMetrics.spend += parseFloat(row.spend || '0');
+            totalMetrics.inline_link_clicks += parseInt(row.inline_link_clicks || '0', 10);
+
+            // Handle video views (list of actions)
+            if (row.video_p25_watched_actions) {
+              const p25 = row.video_p25_watched_actions.find((a: any) => a.action_type === 'video_view');
+              totalMetrics.video_p25 += parseInt(p25?.value || '0', 10);
+            }
+            if (row.video_p50_watched_actions) {
+              const p50 = row.video_p50_watched_actions.find((a: any) => a.action_type === 'video_view');
+              totalMetrics.video_p50 += parseInt(p50?.value || '0', 10);
+            }
+            if (row.video_p100_watched_actions) {
+              const p100 = row.video_p100_watched_actions.find((a: any) => a.action_type === 'video_view');
+              totalMetrics.video_p100 += parseInt(p100?.value || '0', 10);
+            }
+
+            // Handle conversions from actions - Enhanced tracking
+            if (row.actions) {
+              row.actions.forEach((action: any) => {
+                const value = parseInt(action.value || '0', 10);
+                switch (action.action_type) {
+                  case 'purchase':
+                    totalMetrics.purchases += value;
+                    break;
+                  case 'lead':
+                    totalMetrics.leads += value;
+                    break;
+                  case 'complete_registration':
+                    totalMetrics.registrations += value;
+                    break;
+                  case 'add_to_cart':
+                    totalMetrics.add_to_carts += value;
+                    break;
+                  case 'initiate_checkout':
+                    totalMetrics.checkouts += value;
+                    break;
+                  case 'view_content':
+                    totalMetrics.content_views += value;
+                    break;
+                }
+              });
+            }
+
+            // Handle purchase value for ROAS
+            if (row.action_values) {
+              const purchaseValue = row.action_values.find((a: any) => a.action_type === 'purchase');
+              totalMetrics.purchase_value += parseFloat(purchaseValue?.value || '0');
+            }
           }
         }
 
@@ -219,6 +347,80 @@ export async function fetchMetaAdsData(
       }
     }
 
+    // Prepare promises for parallel fetching of breakdowns
+    // We fetch these at the account level for the first account to avoid excessive API calls
+    const mainAccount = accounts[0]; // Use primary account for breakdowns
+
+    let demographics: MetaAdsData['demographics'] = [];
+    let geography: MetaAdsData['geography'] = [];
+    let devices: MetaAdsData['devices'] = [];
+    let publisher_platforms: MetaAdsData['publisher_platforms'] = [];
+
+    if (mainAccount) {
+      const baseParams = {
+        adAccountId: mainAccount.id,
+        fields: ['impressions', 'clicks', 'spend'],
+        level: 'account' as const,
+        datePreset: (startDate && endDate) ? undefined : ('last_30d' as const),
+        time_range: (startDate && endDate) ? { since: start, until: end } : undefined,
+      };
+
+      try {
+        const [demoData, geoData, deviceData, platformData] = await Promise.all([
+          client.getInsights({ ...baseParams, breakdowns: ['age', 'gender'] }),
+          client.getInsights({ ...baseParams, breakdowns: ['country', 'region'] }),
+          client.getInsights({ ...baseParams, breakdowns: ['device_platform'] }),
+          client.getInsights({ ...baseParams, breakdowns: ['publisher_platform'] }),
+        ]);
+
+        // Process Demographics
+        if (demoData.data) {
+          demographics = demoData.data.map((row: any) => ({
+            age: row.age || 'Unknown',
+            gender: row.gender || 'Unknown',
+            impressions: parseInt(row.impressions || '0', 10),
+            clicks: parseInt(row.clicks || '0', 10),
+            spend: parseFloat(row.spend || '0'),
+          }));
+        }
+
+        // Process Geography
+        if (geoData.data) {
+          geography = geoData.data.map((row: any) => ({
+            country: row.country || 'Unknown',
+            region: row.region || 'Unknown',
+            impressions: parseInt(row.impressions || '0', 10),
+            clicks: parseInt(row.clicks || '0', 10),
+            spend: parseFloat(row.spend || '0'),
+          }));
+        }
+
+        // Process Devices
+        if (deviceData.data) {
+          devices = deviceData.data.map((row: any) => ({
+            device_platform: row.device_platform || 'Unknown',
+            impressions: parseInt(row.impressions || '0', 10),
+            clicks: parseInt(row.clicks || '0', 10),
+            spend: parseFloat(row.spend || '0'),
+          }));
+        }
+
+        // Process Publisher Platforms
+        if (platformData.data) {
+          publisher_platforms = platformData.data.map((row: any) => ({
+            publisher_platform: row.publisher_platform || 'Unknown',
+            impressions: parseInt(row.impressions || '0', 10),
+            clicks: parseInt(row.clicks || '0', 10),
+            spend: parseFloat(row.spend || '0'),
+          }));
+        }
+
+      } catch (breakdownError) {
+        console.error('[Meta Ads] Error fetching breakdowns:', breakdownError);
+        // Continue without breakdowns if they fail
+      }
+    }
+
     // Calculate derived metrics
     const ctr = totalMetrics.impressions > 0
       ? (totalMetrics.clicks / totalMetrics.impressions) * 100
@@ -244,13 +446,32 @@ export async function fetchMetaAdsData(
         impressions: totalMetrics.impressions,
         reach: totalMetrics.reach,
         clicks: totalMetrics.clicks,
-        spend: Math.round(totalMetrics.spend * 100) / 100, // Round to 2 decimals
+        spend: Math.round(totalMetrics.spend * 100) / 100,
         ctr: Math.round(ctr * 100) / 100,
         cpc: Math.round(cpc * 100) / 100,
         cpm: Math.round(cpm * 100) / 100,
         frequency: Math.round(frequency * 100) / 100,
+        inline_link_clicks: totalMetrics.inline_link_clicks,
+        video_p25_watched_actions: totalMetrics.video_p25,
+        video_p50_watched_actions: totalMetrics.video_p50,
+        video_p100_watched_actions: totalMetrics.video_p100,
+        purchases: totalMetrics.purchases,
+        leads: totalMetrics.leads,
+        cost_per_purchase: totalMetrics.purchases > 0 ? Math.round((totalMetrics.spend / totalMetrics.purchases) * 100) / 100 : 0,
+        cost_per_lead: totalMetrics.leads > 0 ? Math.round((totalMetrics.spend / totalMetrics.leads) * 100) / 100 : 0,
+        roas: totalMetrics.spend > 0 ? Math.round((totalMetrics.purchase_value / totalMetrics.spend) * 100) / 100 : 0,
+        registrations: totalMetrics.registrations,
+        add_to_carts: totalMetrics.add_to_carts,
+        checkouts: totalMetrics.checkouts,
+        content_views: totalMetrics.content_views,
+        cost_per_registration: totalMetrics.registrations > 0 ? Math.round((totalMetrics.spend / totalMetrics.registrations) * 100) / 100 : 0,
+        cost_per_add_to_cart: totalMetrics.add_to_carts > 0 ? Math.round((totalMetrics.spend / totalMetrics.add_to_carts) * 100) / 100 : 0,
       },
       campaigns: allCampaigns,
+      demographics,
+      geography,
+      devices,
+      publisher_platforms,
       dateRange: dateRangeString,
     };
   } catch (error) {

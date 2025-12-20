@@ -77,30 +77,38 @@ export function EmptyState({ onQuickReply, accountType = 'business' }: EmptyStat
     <div className="flex flex-col items-center justify-center h-full px-6 py-12">
       {/* Welcome Message */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="text-center mb-8"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.7 }}
+        className="text-center mb-12 relative"
       >
-        <div className="w-16 h-16 bg-[#6CA3A2] rounded-full flex items-center justify-center mx-auto mb-4 shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)]">
+        {/* Central Glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-[#6CA3A2]/10 blur-[80px] rounded-full pointer-events-none" />
+
+        <div className="w-20 h-20 bg-[#1a1a1a] rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-neu-raised border border-white/5 relative group overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#6CA3A2]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           {isEducationMode ? (
-            <GraduationCap className="w-8 h-8 text-white" />
+            <GraduationCap className="w-10 h-10 text-[#6CA3A2] relative z-10" />
           ) : (
-            <MessageCircle className="w-8 h-8 text-white" />
+            <MessageCircle className="w-10 h-10 text-[#6CA3A2] relative z-10" />
           )}
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-          {isEducationMode ? 'Welcome to OneAssist Learning' : 'Welcome to OneAssist'}
+        <h2 className="text-4xl font-black text-[#f5f5f5] mb-4 uppercase tracking-tighter italic">
+          {isEducationMode ? (
+            <>OneAssist <span className="text-[#6CA3A2]">Learning</span></>
+          ) : (
+            <>OneAssist <span className="text-[#6CA3A2]">Nexus</span></>
+          )}
         </h2>
-        <p className="text-gray-400 max-w-md">
+        <p className="text-[#999999] max-w-lg mx-auto text-lg font-medium leading-relaxed opacity-80">
           {isEducationMode
-            ? 'Your Data Mentor is here to guide you. Ask questions and learn how to analyze marketing data through hands-on practice with simulated case studies.'
-            : 'Your AI-powered marketing analytics assistant. Ask me anything about your Google Analytics, Ads, Meta, or LinkedIn data.'}
+            ? 'Your Data Mentor is active. Initiate interactive simulations to master the architecture of marketing intelligence.'
+            : 'Your neural bridge to marketing data is online. Ask anything about your analytics ecosystems.'}
         </p>
       </motion.div>
 
       {/* Quick Reply Buttons */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
         {quickReplies.map((reply, index) => {
           const Icon = reply.icon;
           return (
@@ -108,18 +116,18 @@ export function EmptyState({ onQuickReply, accountType = 'business' }: EmptyStat
               key={reply.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ duration: 0.5, delay: 0.1 + index * 0.05 }}
               onClick={() => onQuickReply(reply.prompt)}
-              className="flex items-center gap-3 p-4 bg-[#1a1a1a] hover:bg-[#252525] rounded-2xl transition-all text-left group shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)] active:shadow-[inset_6px_6px_12px_rgba(0,0,0,0.7),inset_-6px_-6px_12px_rgba(60,60,60,0.3)]"
+              className="flex items-center gap-4 p-5 bg-[#1a1a1a] rounded-3xl transition-all text-left group shadow-neu-raised border border-white/5 hover:border-[#6CA3A2]/30 active:shadow-neu-inset"
             >
-              <div className="w-10 h-10 bg-[#6CA3A2] rounded-lg flex items-center justify-center group-hover:opacity-90 transition-all shadow-[-2px_-2px_6px_rgba(60,60,60,0.3),2px_2px_6px_rgba(0,0,0,0.6)]">
-                <Icon className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 bg-[#1a1a1a] rounded-2xl flex items-center justify-center group-hover:shadow-neu-inset transition-all shadow-neu-inset border border-white/5 shrink-0">
+                <Icon className="w-6 h-6 text-[#6CA3A2]" />
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                <div className="text-xs font-black uppercase tracking-widest text-[#f5f5f5] mb-1">
                   {reply.label}
                 </div>
-                <div className="text-xs text-gray-500 line-clamp-1">
+                <div className="text-[11px] font-bold text-[#666666] line-clamp-1 group-hover:text-[#999999] transition-colors">
                   {reply.prompt}
                 </div>
               </div>
@@ -132,16 +140,17 @@ export function EmptyState({ onQuickReply, accountType = 'business' }: EmptyStat
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="text-xs text-gray-500 mt-8 text-center max-w-md flex items-start gap-2 justify-center"
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="text-[10px] font-black uppercase tracking-[0.2em] text-[#444444] mt-12 text-center max-w-md flex items-center gap-3 justify-center"
       >
-        <Lightbulb className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+        <Lightbulb className="w-4 h-4 text-[#6CA3A2]" />
         <span>
           {isEducationMode
-            ? 'Tip: Practice with different case study scenarios to master marketing data analysis. Your Data Mentor will guide you through each step.'
-            : 'Tip: Connect your marketing platforms in Settings → Platforms to get real insights about your data.'}
+            ? 'System Tip: Master the frameworks through hands-on practice.'
+            : 'System Tip: Bridge your data channels in Settings → Platforms.'}
         </span>
       </motion.p>
+
     </div>
   );
 }

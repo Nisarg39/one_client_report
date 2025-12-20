@@ -117,10 +117,10 @@ export default function RefundPolicyPage() {
                 <ol className="list-decimal list-inside space-y-2 ml-4">
                   <li>Contact our support team at{" "}
                     <a
-                      href="mailto:hello@onereport.com"
+                      href="mailto:shah.nisarg39@gmail.com"
                       className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                     >
-                      hello@onereport.com
+                      shah.nisarg39@gmail.com
                     </a>
                     {" "}or use our{" "}
                     <Link
@@ -229,10 +229,10 @@ export default function RefundPolicyPage() {
                 <p className="leading-relaxed">
                   If you have any questions about this Refund Policy or need assistance with a refund request, please contact us at{" "}
                   <a
-                    href="mailto:hello@onereport.com"
+                    href="mailto:shah.nisarg39@gmail.com"
                     className="text-[#6CA3A2] hover:text-[#7db3b2] transition-colors"
                   >
-                    hello@onereport.com
+                    shah.nisarg39@gmail.com
                   </a>
                   {" "}or visit our{" "}
                   <Link

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Minus } from "lucide-react";
 import { useState } from "react";
 import { FAQSchema } from "@/components/schema/faq-schema";
 
@@ -11,7 +10,7 @@ interface FAQItem {
 }
 
 export function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const faqs: FAQItem[] = [
     {
@@ -35,164 +34,136 @@ export function FAQSection() {
       answer: "Choose a plan that matches your needs. Our Student plan is FREE forever with 5 clients (perfect for learning). Professional includes 10 clients with real APIs (₹299/mo). Agency includes 25 clients (₹999/mo). Enterprise offers unlimited clients and messages (custom pricing). Upgrade or downgrade anytime.",
     },
     {
-      question: "How long does it take to get insights?",
-      answer: "Instant! Create a client workspace (1 minute), connect your platforms (30 seconds), and start asking questions. Our AI responds in real-time with professionally analysed insights. No waiting for reports to generate - chat with your data like you chat with a colleague.",
-    },
-    {
-      question: "Can I share insights with my clients and team?",
-      answer: "Yes! Export your AI-generated insights as JSON and share them however you like. You can also screenshot chat conversations, copy insights to paste into emails or presentations, or walk clients through the data in real-time during calls.",
-    },
-    {
-      question: "What makes your AI chatbot different?",
-      answer: "Unlike traditional reporting tools that just show charts and numbers, our AI chatbot lets you have a conversation with your data. Ask questions in plain English, get instant insights, drill down into specifics, and explore trends interactively. It's like having a data analyst available 24/7 who knows all your clients' metrics.",
-    },
-    {
-      question: "Is there a free trial?",
-      answer: "Yes! We offer a FREE Student plan forever (5 practice clients, 50 messages/day with mock data - perfect for learning). For business users, Professional and Agency plans include a 7-day free trial with 50 messages/day. After trial, Professional gets 150 messages/day and Agency gets 300 messages/day. No credit card required to start.",
-    },
-    {
-      question: "Can I cancel anytime?",
-      answer: "Absolutely. Cancel anytime from your account settings. No cancellation fees, no questions asked. We also offer a 30-day money-back guarantee if you're not satisfied.",
-    },
-    {
       question: "How is this so much cheaper than other reporting tools?",
-      answer: "We focus on what freelancers and small agencies actually need (4 key platforms, AI-powered chatbot interface, real-time analytics) instead of building 80+ integrations that create feature bloat. We use a hybrid pricing model (client workspaces + daily AI messages), not per-client fees. Traditional reporting platforms charge ₹1,000-1,650 per client (₹10,000-16,500/mo for 10 clients or ₹25,000-41,250/mo for 25 clients), while our plans are just ₹299/month for 10 clients (150 messages/day) or ₹999/month for 25 clients (300 messages/day). We also offer a FREE Student tier. This allows us to offer premium quality at 96-98% lower cost than traditional reporting platforms.",
-    },
-    {
-      question: "Do you store historical data?",
-      answer: "Yes! We store 12 months of historical data so you can create comparison reports and track trends over time. Enterprise plan includes unlimited historical data storage.",
-    },
-    {
-      question: "What if I need unlimited clients and messages?",
-      answer: "Our Enterprise plan is designed for large agencies and teams managing 100+ clients. With unlimited client workspaces, unlimited AI messages, priority platform integrations, 24/7 phone support, custom onboarding, and SLA guarantees (99.9% uptime), we tailor the plan to your specific needs. Contact our sales team for a personalized quote - we're still 60-80% cheaper than traditional reporting platforms at enterprise scale.",
+      answer: "We focus on what freelancers and small agencies actually need (4 key platforms, AI-powered chatbot interface, real-time analytics) instead of building 80+ integrations that create feature bloat. Traditional platforms charge ₹1,000-1,650 per client, while our plans are just ₹299/month for 10 clients or ₹999/month for 25 clients. This allows us to offer premium quality at 96-98% lower cost.",
     },
   ];
 
-  const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <section className="relative bg-[#1a1a1a] pt-16 sm:pt-20 md:pt-24 pb-0">
-      {/* FAQ Schema for SEO */}
+    <section className="relative bg-[#1a1a1a] py-16 sm:py-20 overflow-hidden">
       <FAQSchema faqs={faqs} />
 
-      {/* Gradient transition to next section */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 sm:h-64 bg-gradient-to-b from-[#1a1a1a] via-[#1e1e1e] to-[#242424] pointer-events-none z-0" />
-
-      <div className="max-w-4xl mx-auto px-4 relative z-10">
-
-        {/* Section Header */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-12 sm:mb-16"
+          className="mb-16 text-center lg:text-left"
         >
-          <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#f5f5f5] mb-4"
-            style={{ textShadow: '0 2px 4px rgba(0,0,0,0.6)' }}
-          >
-            Common Questions About Automated Client Reporting
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1a1a1a] shadow-neu-inset border border-white/5 mb-6">
+            <div className="w-2 h-2 rounded-full bg-[#6CA3A2] animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#999999]">Intelligence Nexus V1.0</span>
+          </div>
+          <h2 className="text-4xl md:text-6xl font-black text-[#f5f5f5] mb-6 uppercase tracking-tighter">
+            Common <span className="text-[#6CA3A2] italic">Questions</span> & <br />
+            System <span className="text-[#FF8C42] italic">Protocols</span>
           </h2>
-          <p
-            className="text-base sm:text-lg text-[#c0c0c0]"
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-          >
-            Everything you need to know about OneReport.
+          <p className="text-[#c0c0c0] text-lg max-w-2xl font-medium opacity-70">
+            Everything you need to know about the OneReport infrastructure and AI deployment.
           </p>
         </motion.div>
 
-        {/* FAQ Items */}
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-            >
-              <div
-                className="rounded-2xl bg-[#151515] shadow-[-8px_-8px_16px_rgba(40,40,40,0.3),8px_8px_16px_rgba(0,0,0,0.6)] overflow-hidden"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          {/* Left: Knowledge Registry */}
+          <div className="lg:col-span-5 space-y-3">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#444] mb-6 px-4">Registry_Entries</div>
+            {faqs.map((faq, index) => (
+              <motion.button
+                key={index}
+                onClick={() => setActiveIndex(index)}
+                className={`w-full text-left p-5 rounded-2xl transition-all duration-300 group relative overflow-hidden ${activeIndex === index
+                  ? 'bg-[#1a1a1a] shadow-neu-inset border border-[#6CA3A2]/20'
+                  : 'hover:bg-[#1f1f1f] border border-transparent'
+                  }`}
               >
-                {/* Question Button */}
-                <button
-                  onClick={() => toggleFAQ(index)}
-                  className="w-full px-6 py-5 sm:px-8 sm:py-6 flex items-center justify-between text-left hover:bg-[#1a1a1a] transition-colors duration-200"
-                  aria-expanded={openIndex === index}
-                  aria-controls={`faq-answer-${index}`}
-                >
-                  <span
-                    className="text-base sm:text-lg font-semibold text-[#f5f5f5] pr-4"
-                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                  >
+                <div className="flex items-center gap-4 relative z-10">
+                  <span className={`text-[10px] font-black font-mono transition-colors ${activeIndex === index ? 'text-[#6CA3A2]' : 'text-[#444]'
+                    }`}>
+                    0{index + 1}
+                  </span>
+                  <span className={`text-sm font-black uppercase tracking-tight transition-colors ${activeIndex === index ? 'text-[#f5f5f5]' : 'text-[#666] group-hover:text-[#999]'
+                    }`}>
                     {faq.question}
                   </span>
-                  <div
-                    className="flex-shrink-0 w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center shadow-[-4px_-4px_8px_rgba(50,50,50,0.4),4px_4px_8px_rgba(0,0,0,0.7)]"
-                  >
-                    {openIndex === index ? (
-                      <Minus className="w-4 h-4 text-[#6CA3A2]" aria-hidden="true" />
-                    ) : (
-                      <Plus className="w-4 h-4 text-[#6CA3A2]" aria-hidden="true" />
-                    )}
-                  </div>
-                </button>
+                </div>
+                {activeIndex === index && (
+                  <motion.div
+                    layoutId="active-indicator"
+                    className="absolute inset-0 bg-gradient-to-r from-[#6CA3A2]/5 to-transparent pointer-events-none"
+                  />
+                )}
+              </motion.button>
+            ))}
+          </div>
 
-                {/* Answer */}
-                <AnimatePresence initial={false}>
-                  {openIndex === index && (
-                    <motion.div
-                      id={`faq-answer-${index}`}
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-6 pb-6 sm:px-8 sm:pb-8 pt-0">
-                        <div
-                          className="p-4 sm:p-6 rounded-xl bg-[#1a1a1a] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.5),inset_-4px_-4px_8px_rgba(40,40,40,0.2)]"
-                        >
-                          <p
-                            className="text-sm sm:text-base text-[#c0c0c0] leading-relaxed"
-                            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-                          >
-                            {faq.answer}
-                          </p>
-                        </div>
+          {/* Right: Diagnostic Readout screen */}
+          <div className="lg:col-span-7 sticky top-32">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative p-8 md:p-12 bg-[#1a1a1a] rounded-[2.5rem] shadow-neu-raised border border-white/5 overflow-hidden"
+              >
+                {/* Visual accents */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#6CA3A2]/5 blur-3xl rounded-full" />
+                <div className="absolute top-8 left-8 flex items-center gap-2">
+                  <div className="w-1 h-1 rounded-full bg-[#6CA3A2]" />
+                  <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#444]">Query_Result // Active</span>
+                </div>
+
+                <div className="relative z-10 pt-4">
+                  <h3 className="text-2xl md:text-3xl font-black text-[#f5f5f5] mb-8 uppercase tracking-tighter leading-tight italic">
+                    {faqs[activeIndex].question}
+                  </h3>
+
+                  <div className="space-y-6">
+                    <div className="p-6 rounded-2xl bg-[#151515] shadow-neu-inset border border-white/5 relative group">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-[#6CA3A2]/40 rounded-full" />
+                      <p className="text-base md:text-lg text-[#999999] leading-relaxed font-medium">
+                        {faqs[activeIndex].answer}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 pt-6 border-t border-white/5">
+                      <div className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] shadow-neu-raised border border-white/5 flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-green-500" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#666]">Protocol Verified</span>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      <div className="px-3 py-1.5 rounded-lg bg-[#1a1a1a] shadow-neu-raised border border-white/5 flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#666]">ID: PX-{(activeIndex + 1024).toString(16).toUpperCase()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Support CTA */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6 px-8"
+            >
+              <div className="text-[10px] font-bold text-[#444] uppercase tracking-widest text-center sm:text-left">
+                Still have questions? <br /> Our architects are online.
               </div>
+              <button
+                className="px-6 py-3 rounded-xl bg-[#1a1a1a] shadow-neu-raised border border-white/5 text-[10px] font-black uppercase tracking-[0.2em] text-[#6CA3A2] hover:shadow-neu-inset transition-all"
+              >
+                Open Support Channel
+              </button>
             </motion.div>
-          ))}
+          </div>
         </div>
-
-        {/* Still Have Questions CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="text-center mt-12 sm:mt-16 pb-16 sm:pb-24"
-        >
-          <p className="text-base text-[#c0c0c0] mb-4" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-            Still have questions?
-          </p>
-          <button
-            className="px-8 py-3 rounded-full bg-[#1a1a1a] text-[#6CA3A2] font-semibold shadow-[-8px_-8px_16px_rgba(50,50,50,0.4),8px_8px_16px_rgba(0,0,0,0.7)] hover:shadow-[-6px_-6px_12px_rgba(50,50,50,0.4),6px_6px_12px_rgba(0,0,0,0.7)] transition-all duration-300"
-            aria-label="Contact support"
-            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
-          >
-            Contact Support
-          </button>
-        </motion.div>
-
       </div>
+
+      {/* Transitional Fade to next section */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-[#1a1a1a] pointer-events-none z-20" />
     </section>
   );
 }
