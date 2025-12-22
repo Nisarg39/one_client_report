@@ -48,7 +48,9 @@ function formatDateString(dateStr: string): string {
 export function buildSystemPrompt(
   client?: ClientClient | null,
   platformData?: any,
-  accountType?: 'business' | 'education' | 'instructor'
+  accountType?: 'business' | 'education' | 'instructor',
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
 ): string {
   // Detect if using mock data
   const isMockData = platformData?._source === 'mock';
@@ -56,9 +58,9 @@ export function buildSystemPrompt(
 
   // Choose persona based on account type
   if (accountType === 'education' || accountType === 'instructor') {
-    return buildEducationPrompt(client, platformData, isMockData, scenarioName);
+    return buildEducationPrompt(client, platformData, isMockData, scenarioName, selectedPropertyId, selectedMetaCampaignId);
   } else {
-    return buildBusinessPrompt(client, platformData);
+    return buildBusinessPrompt(client, platformData, selectedPropertyId, selectedMetaCampaignId);
   }
 }
 
@@ -69,7 +71,9 @@ function buildEducationPrompt(
   client?: ClientClient | null,
   platformData?: any,
   isMockData?: boolean,
-  scenarioName?: string
+  scenarioName?: string,
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
 ): string {
   const basePrompt = `You are **OneAssist**, an expert **Data Mentor** built into the OneReport educational platform.
 
@@ -178,7 +182,7 @@ You are working with the **${scenarioName}** scenario. This is simulated data de
   }
 
   // Add platform data context if available
-  const dataContext = buildPlatformDataContext(platformData);
+  const dataContext = buildPlatformDataContext(platformData, selectedPropertyId, selectedMetaCampaignId);
 
   return basePrompt + platformInfo + dataContext + mockDataContext + limitations + examples;
 }
@@ -188,7 +192,9 @@ You are working with the **${scenarioName}** scenario. This is simulated data de
  */
 function buildBusinessPrompt(
   client?: ClientClient | null,
-  platformData?: any
+  platformData?: any,
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
 ): string {
   const basePrompt = `You are **OneAssist**, an expert **Growth Strategist** built into the OneReport dashboard.
 
@@ -291,7 +297,7 @@ When providing insights, follow this structure:
 - "Where should I reallocate my budget?"`;
 
   // Add platform data context if available
-  const dataContext = buildPlatformDataContext(platformData);
+  const dataContext = buildPlatformDataContext(platformData, selectedPropertyId, selectedMetaCampaignId);
 
   return basePrompt + platformInfo + dataContext + limitations + examples;
 }
@@ -301,9 +307,15 @@ When providing insights, follow this structure:
  * Formats platform metrics into a readable context string
  *
  * @param platformData - Client's platform data
+ * @param selectedPropertyId - Currently selected GA property ID
+ * @param selectedMetaCampaignId - Currently selected Meta campaign ID
  * @returns Context string to add to system prompt
  */
-export function buildPlatformDataContext(platformData: any): string {
+export function buildPlatformDataContext(
+  platformData: any,
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
+): string {
   if (!platformData || Object.keys(platformData).length === 0) {
     return '';
   }
@@ -314,13 +326,28 @@ export function buildPlatformDataContext(platformData: any): string {
   if (platformData.googleAnalyticsMulti && platformData.googleAnalyticsMulti.properties) {
     const gaMulti = platformData.googleAnalyticsMulti;
     context += '\n### Google Analytics - All Properties\n';
-    context += `Historical Data Range: ${gaMulti.dateRange || 'Last 30 days'}\n\n`;
+    context += `Historical Data Range: ${gaMulti.dateRange || 'Last 30 days'}\n`;
+
+    const activePropertyId = selectedPropertyId || gaMulti.selectedPropertyId;
+
+    if (activePropertyId) {
+      if (activePropertyId === 'all') {
+        context += `⚠️ **USER FOCUS:** The user has selected **"All Properties"** (Cumulative View). Provide a high-level cross-property analysis and identify which properties are driving the most value.\n`;
+      } else {
+        const selectedProp = gaMulti.properties.find((p: any) => p.propertyId === activePropertyId);
+        if (selectedProp) {
+          context += `⚠️ **USER FOCUS:** The user has specifically selected the property **"${selectedProp.propertyName}"** in their dashboard. Prioritize analysis for this property.\n`;
+        }
+      }
+    }
+    context += '\n';
 
     // Show summary of all properties
     gaMulti.properties.forEach((prop: any) => {
       const hasTraffic = prop.metrics.sessions > 0 || prop.metrics.users > 0 || prop.metrics.pageviews > 0;
 
-      context += `**${prop.propertyName}** (ID: ${prop.propertyId})\n`;
+      const isCumulative = prop.propertyId === 'all';
+      context += `**${prop.propertyName}**${isCumulative ? ' [CUMULATIVE]' : ''} (ID: ${prop.propertyId})\n`;
 
       // Real-time active users (if available)
       if (prop.realtime) {
@@ -505,6 +532,13 @@ export function buildPlatformDataContext(platformData: any): string {
     context += `Date Range: ${meta.dateRange || 'Last 30 days'}\n`;
 
     if (meta.metrics) {
+      if (selectedMetaCampaignId) {
+        const selectedCampaign = meta.campaigns?.find((c: any) => c.id === selectedMetaCampaignId);
+        if (selectedCampaign) {
+          context += `⚠️ **USER FOCUS:** The user has specifically selected the campaign **"${selectedCampaign.name}"** in their dashboard. Prioritize analysis and reporting for this individual campaign.\n`;
+        }
+      }
+
       context += '\n**Account Summary:**\n';
       context += `- Total Impressions: ${meta.metrics.impressions.toLocaleString()}\n`;
       context += `- Total Reach: ${meta.metrics.reach.toLocaleString()}\n`;
@@ -521,7 +555,7 @@ export function buildPlatformDataContext(platformData: any): string {
       if (meta.campaigns && meta.campaigns.length > 0) {
         context += '\n**Top Campaigns:**\n';
         meta.campaigns.slice(0, 5).forEach((campaign: any) => {
-          context += `- ${campaign.name} (${campaign.status}, ${campaign.objective}): ${campaign.impressions.toLocaleString()} impressions, ${campaign.clicks.toLocaleString()} clicks, $${campaign.spend.toFixed(2)} spend\n`;
+          context += `- ${campaign.name} (${campaign.status}, ${campaign.objective}): ${campaign.metrics.impressions.toLocaleString()} impressions, ${campaign.metrics.clicks.toLocaleString()} clicks, $${campaign.metrics.spend.toFixed(2)} spend\n`;
         });
       }
 

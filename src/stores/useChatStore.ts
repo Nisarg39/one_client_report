@@ -68,6 +68,7 @@ interface ChatStore {
     isVisible: boolean;                 // Is metrics panel visible?
     selectedPlatform: PlatformType | null; // Currently selected platform tab
     selectedPropertyId: string | null; // Selected GA property ID
+    selectedMetaCampaignId: string | null; // Selected Meta campaign ID
     width: number;                      // Panel width in pixels (desktop)
     mode: 'split' | 'collapsed' | 'overlay'; // Layout mode
   };
@@ -113,6 +114,7 @@ interface ChatStore {
   setMetricsDashboardVisible: (visible: boolean) => void;
   setMetricsDashboardPlatform: (platform: PlatformType) => void;
   setMetricsDashboardPropertyId: (propertyId: string | null) => void;
+  setMetricsDashboardCampaignId: (campaignId: string | null) => void;
   setMetricsDashboardWidth: (width: number) => void;
   setPlatformData: (data: PlatformDataPayload) => void;
 }
@@ -128,187 +130,199 @@ interface ChatStore {
 export const useChatStore = create<ChatStore>()(
   persist(
     (set) => ({
-  // Initial State
-  isOpen: false,
-  isTyping: false,
-  currentClientId: null,
-  clients: [],
-  messages: [],
-  currentConversationId: null,
-  // Phase 6: Search & Filter Initial State
-  searchQuery: '',
-  conversationFilter: 'active' as ConversationFilter,
-  isSearching: false,
-  // Phase 6.5: Date Range Filter Initial State
-  dateRangeFilter: null, // null = use default (last 30 days in backend)
-  selectedDatePreset: 'last_30d' as DatePreset,
-
-  // Phase 6.7: Metrics Dashboard Initial State
-  metricsDashboard: {
-    isVisible: false,
-    selectedPlatform: null,
-    selectedPropertyId: null,
-    width: 400, // Default panel width (px)
-    mode: 'collapsed' as const,
-  },
-
-  // Phase 6.7: Platform Data Initial State
-  platformData: null,
-  platformDataTimestamp: null,
-
-  // UI Actions
-  openChat: () => set({ isOpen: true }),
-
-  closeChat: () => set({ isOpen: false }),
-
-  toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
-
-  // Client Actions
-  setCurrentClient: (clientId) =>
-    set((state) => ({
-      currentClientId: clientId,
-      messages: [], // Clear messages when switching clients
-      currentConversationId: null,
-      metricsDashboard: {
-        ...state.metricsDashboard,
-        selectedPropertyId: null, // Reset property selection when switching clients
-      },
-    })),
-
-  setClients: (clients) => set({ clients }),
-
-  loadClientConversations: async (clientId) => {
-    // TODO: Implement conversation loading for specific client
-    // This will fetch conversations from server action in Phase 3
-    set({
-      currentClientId: clientId,
+      // Initial State
+      isOpen: false,
+      isTyping: false,
+      currentClientId: null,
+      clients: [],
       messages: [],
       currentConversationId: null,
-    });
-  },
-
-  // Message Actions
-  addMessage: (message) =>
-    set((state) => ({
-      messages: [...state.messages, message],
-    })),
-
-  setMessages: (messages) => set({ messages }),
-
-  clearMessages: () => set({ messages: [], currentConversationId: null }),
-
-  // Typing Indicator
-  setTyping: (isTyping) => set({ isTyping }),
-
-  // Conversation Management
-  setCurrentConversation: (conversationId) =>
-    set({ currentConversationId: conversationId }),
-
-  // Phase 6: Search & Filter Actions
-  setSearchQuery: (query) => set({ searchQuery: query }),
-
-  setConversationFilter: (filter) => set({ conversationFilter: filter }),
-
-  setIsSearching: (isSearching) => set({ isSearching }),
-
-  clearSearch: () =>
-    set({
+      // Phase 6: Search & Filter Initial State
       searchQuery: '',
+      conversationFilter: 'active' as ConversationFilter,
       isSearching: false,
-    }),
-
-  // Phase 6.5: Date Range Filter Actions
-  setDateRangeFilter: (dateRange) => set({ dateRangeFilter: dateRange }),
-
-  setSelectedDatePreset: (preset) => set({ selectedDatePreset: preset }),
-
-  clearDateRangeFilter: () =>
-    set({
-      dateRangeFilter: null,
+      // Phase 6.5: Date Range Filter Initial State
+      dateRangeFilter: null, // null = use default (last 30 days in backend)
       selectedDatePreset: 'last_30d' as DatePreset,
-    }),
 
-  // Phase 6.7: Metrics Dashboard Actions
-  toggleMetricsDashboard: () =>
-    set((state) => ({
+      // Phase 6.7: Metrics Dashboard Initial State
       metricsDashboard: {
-        ...state.metricsDashboard,
-        isVisible: !state.metricsDashboard.isVisible,
-        mode: !state.metricsDashboard.isVisible ? 'split' : 'collapsed',
+        isVisible: false,
+        selectedPlatform: null,
+        selectedPropertyId: null,
+        selectedMetaCampaignId: null,
+        width: 400, // Default panel width (px)
+        mode: 'collapsed' as const,
       },
-    })),
 
-  setMetricsDashboardVisible: (visible) =>
-    set((state) => ({
-      metricsDashboard: {
-        ...state.metricsDashboard,
-        isVisible: visible,
-        mode: visible ? 'split' : 'collapsed',
+      // Phase 6.7: Platform Data Initial State
+      platformData: null,
+      platformDataTimestamp: null,
+
+      // UI Actions
+      openChat: () => set({ isOpen: true }),
+
+      closeChat: () => set({ isOpen: false }),
+
+      toggleChat: () => set((state) => ({ isOpen: !state.isOpen })),
+
+      // Client Actions
+      setCurrentClient: (clientId) =>
+        set((state) => ({
+          currentClientId: clientId,
+          messages: [], // Clear messages when switching clients
+          currentConversationId: null,
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            selectedPropertyId: null, // Reset property selection when switching clients
+            selectedMetaCampaignId: null, // Reset campaign selection when switching clients
+          },
+        })),
+
+      setClients: (clients) => set({ clients }),
+
+      loadClientConversations: async (clientId) => {
+        // TODO: Implement conversation loading for specific client
+        // This will fetch conversations from server action in Phase 3
+        set({
+          currentClientId: clientId,
+          messages: [],
+          currentConversationId: null,
+        });
       },
-    })),
 
-  setMetricsDashboardPlatform: (platform) =>
-    set((state) => ({
-      metricsDashboard: {
-        ...state.metricsDashboard,
-        selectedPlatform: platform,
-        // Reset property selection when switching away from Google Analytics
-        selectedPropertyId: platform === 'googleAnalytics' ? state.metricsDashboard.selectedPropertyId : null,
-      },
-    })),
+      // Message Actions
+      addMessage: (message) =>
+        set((state) => ({
+          messages: [...state.messages, message],
+        })),
 
-  setMetricsDashboardPropertyId: (propertyId) =>
-    set((state) => ({
-      metricsDashboard: {
-        ...state.metricsDashboard,
-        selectedPropertyId: propertyId,
-      },
-    })),
+      setMessages: (messages) => set({ messages }),
 
-  setMetricsDashboardWidth: (width) =>
-    set((state) => ({
-      metricsDashboard: {
-        ...state.metricsDashboard,
-        width: Math.max(300, Math.min(800, width)), // Constrain between 300-800px
-      },
-    })),
+      clearMessages: () => set({ messages: [], currentConversationId: null }),
 
-  setPlatformData: (data) =>
-    set((state) => {
-      // Handle Google Analytics property selection
-      let selectedPropertyId = state.metricsDashboard.selectedPropertyId;
-      const gaData = data.platforms?.googleAnalytics;
+      // Typing Indicator
+      setTyping: (isTyping) => set({ isTyping }),
 
-      if (gaData && gaData.properties && Array.isArray(gaData.properties)) {
-        const propertyIds = gaData.properties.map((p: any) => p.propertyId);
+      // Conversation Management
+      setCurrentConversation: (conversationId) =>
+        set({ currentConversationId: conversationId }),
 
-        // If current selectedPropertyId doesn't exist in new properties, reset it
-        if (selectedPropertyId && !propertyIds.includes(selectedPropertyId)) {
-          selectedPropertyId = null;
-        }
+      // Phase 6: Search & Filter Actions
+      setSearchQuery: (query) => set({ searchQuery: query }),
 
-        // If no property is selected, use the one from settings or first property
-        if (!selectedPropertyId) {
-          if (gaData.selectedPropertyId && propertyIds.includes(gaData.selectedPropertyId)) {
-            selectedPropertyId = gaData.selectedPropertyId;
-          } else if (propertyIds.length > 0) {
-            selectedPropertyId = propertyIds[0];
+      setConversationFilter: (filter) => set({ conversationFilter: filter }),
+
+      setIsSearching: (isSearching) => set({ isSearching }),
+
+      clearSearch: () =>
+        set({
+          searchQuery: '',
+          isSearching: false,
+        }),
+
+      // Phase 6.5: Date Range Filter Actions
+      setDateRangeFilter: (dateRange) => set({ dateRangeFilter: dateRange }),
+
+      setSelectedDatePreset: (preset) => set({ selectedDatePreset: preset }),
+
+      clearDateRangeFilter: () =>
+        set({
+          dateRangeFilter: null,
+          selectedDatePreset: 'last_30d' as DatePreset,
+        }),
+
+      // Phase 6.7: Metrics Dashboard Actions
+      toggleMetricsDashboard: () =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            isVisible: !state.metricsDashboard.isVisible,
+            mode: !state.metricsDashboard.isVisible ? 'split' : 'collapsed',
+          },
+        })),
+
+      setMetricsDashboardVisible: (visible) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            isVisible: visible,
+            mode: visible ? 'split' : 'collapsed',
+          },
+        })),
+
+      setMetricsDashboardPlatform: (platform) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            selectedPlatform: platform,
+            // Reset property selection when switching away from Google Analytics
+            selectedPropertyId: platform === 'googleAnalytics' ? state.metricsDashboard.selectedPropertyId : null,
+            // Reset campaign selection when switching away from Meta Ads
+            selectedMetaCampaignId: platform === 'metaAds' ? state.metricsDashboard.selectedMetaCampaignId : null,
+          },
+        })),
+
+      setMetricsDashboardPropertyId: (propertyId) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            selectedPropertyId: propertyId,
+          },
+        })),
+
+      setMetricsDashboardCampaignId: (campaignId) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            selectedMetaCampaignId: campaignId,
+          },
+        })),
+
+      setMetricsDashboardWidth: (width) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            width: Math.max(300, Math.min(800, width)), // Constrain between 300-800px
+          },
+        })),
+
+      setPlatformData: (data) =>
+        set((state) => {
+          // Handle Google Analytics property selection
+          let selectedPropertyId = state.metricsDashboard.selectedPropertyId;
+          const gaData = data.platforms?.googleAnalytics;
+
+          if (gaData && gaData.properties && Array.isArray(gaData.properties)) {
+            const propertyIds = gaData.properties.map((p: any) => p.propertyId);
+
+            // If current selectedPropertyId doesn't exist in new properties, reset it
+            if (selectedPropertyId && !propertyIds.includes(selectedPropertyId)) {
+              selectedPropertyId = null;
+            }
+
+            // If no property is selected, use the one from settings or first property
+            if (!selectedPropertyId) {
+              if (gaData.selectedPropertyId && propertyIds.includes(gaData.selectedPropertyId)) {
+                selectedPropertyId = gaData.selectedPropertyId;
+              } else if (propertyIds.length > 0) {
+                selectedPropertyId = propertyIds[0];
+              }
+            }
+          } else {
+            // No GA data or empty properties, reset selection
+            selectedPropertyId = null;
           }
-        }
-      } else {
-        // No GA data or empty properties, reset selection
-        selectedPropertyId = null;
-      }
 
-      return {
-        platformData: data,
-        platformDataTimestamp: Date.now(),
-        metricsDashboard: {
-          ...state.metricsDashboard,
-          selectedPropertyId,
-        },
-      };
-    }),
+          return {
+            platformData: data,
+            platformDataTimestamp: Date.now(),
+            metricsDashboard: {
+              ...state.metricsDashboard,
+              selectedPropertyId,
+            },
+          };
+        }),
     }),
     {
       name: 'chat-store',

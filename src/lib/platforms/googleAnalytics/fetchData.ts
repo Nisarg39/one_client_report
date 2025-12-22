@@ -267,7 +267,8 @@ export async function fetchGoogleAnalyticsData(
 export async function fetchAllGoogleAnalyticsProperties(
   connection: IPlatformConnection,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  selectedPropertyId?: string
 ): Promise<GAMultiPropertyData | null> {
   try {
     // Date range: use provided dates or default to last 30 days
@@ -302,8 +303,19 @@ export async function fetchAllGoogleAnalyticsProperties(
     // Create date ranges array for API calls
     const dateRanges = [{ startDate: start, endDate: end }];
 
-    // Fetch data for each property (limit to first 3 for performance)
-    const propertiesToFetch = allProperties.slice(0, 3);
+    // Priority: 1. Passed selectedPropertyId, 2. Metadata propertyId
+    const activePropId = selectedPropertyId || connection.metadata?.propertyId;
+
+    // Fetch data for each property (limit to 20 for performance)
+    // Always include the active property if it's not in the first 20
+    let propertiesToFetch = allProperties.slice(0, 20);
+
+    if (activePropId && activePropId !== 'all' && !propertiesToFetch.find(p => p.propertyId === activePropId)) {
+      const selectedProp = allProperties.find(p => p.propertyId === activePropId);
+      if (selectedProp) {
+        propertiesToFetch.push(selectedProp);
+      }
+    }
 
     // Fetch all properties in parallel for better performance
     const propertiesDataPromises = propertiesToFetch.map(async (prop) => {
@@ -588,10 +600,78 @@ export async function fetchAllGoogleAnalyticsProperties(
     const propertiesResults = await Promise.all(propertiesDataPromises);
     const propertiesData = propertiesResults.filter((p) => p !== null) as GAPropertyData[];
 
+    // PHASE 2: Add virtual "All Properties" entry with cumulative data
+    if (propertiesData.length > 1) {
+      const allMetrics = propertiesData.reduce((acc, prop) => ({
+        sessions: acc.sessions + (prop.metrics.sessions || 0),
+        users: acc.users + (prop.metrics.users || 0),
+        newUsers: acc.newUsers + (prop.metrics.newUsers || 0),
+        returningUsers: acc.returningUsers + (prop.metrics.returningUsers || 0),
+        pageviews: acc.pageviews + (prop.metrics.pageviews || 0),
+        bounceRate: acc.bounceRate + ((prop.metrics.bounceRate || 0) * (prop.metrics.sessions || 1)),
+        avgSessionDuration: acc.avgSessionDuration + ((prop.metrics.avgSessionDuration || 0) * (prop.metrics.sessions || 1)),
+        engagementRate: acc.engagementRate + ((prop.metrics.engagementRate || 0) * (prop.metrics.sessions || 1)),
+        sessionsPerUser: acc.sessionsPerUser + ((prop.metrics.sessionsPerUser || 0) * (prop.metrics.users || 1)),
+        eventCount: acc.eventCount + (prop.metrics.eventCount || 0),
+      }), {
+        sessions: 0, users: 0, newUsers: 0, returningUsers: 0, pageviews: 0,
+        bounceRate: 0, avgSessionDuration: 0, engagementRate: 0, sessionsPerUser: 0, eventCount: 0
+      });
+
+      // Calculate weighted averages
+      if (allMetrics.sessions > 0) {
+        allMetrics.bounceRate = allMetrics.bounceRate / allMetrics.sessions;
+        allMetrics.avgSessionDuration = allMetrics.avgSessionDuration / allMetrics.sessions;
+        allMetrics.engagementRate = allMetrics.engagementRate / allMetrics.sessions;
+      }
+      if (allMetrics.users > 0) {
+        allMetrics.sessionsPerUser = allMetrics.sessionsPerUser / allMetrics.users;
+      }
+
+      // Aggregation for dimensional data
+      const aggregateList = (list: any[], labelKeys: string[], metricKeys: string[]) => {
+        const map = new Map<string, any>();
+        list.forEach(item => {
+          const label = labelKeys.map(k => item[k]).filter(Boolean).join('_');
+          if (!label) return;
+          const existing = map.get(label);
+          if (existing) {
+            metricKeys.forEach(m => {
+              existing[m] = (existing[m] || 0) + (item[m] || 0);
+            });
+          } else {
+            map.set(label, { ...item });
+          }
+        });
+        return Array.from(map.values())
+          .sort((a, b) => (b[metricKeys[0]] || 0) - (a[metricKeys[0]] || 0))
+          .slice(0, 10);
+      };
+
+      const allProperty: GAPropertyData = {
+        propertyId: 'all',
+        propertyName: 'All Properties',
+        metrics: allMetrics,
+        dimensions: {
+          topSources: aggregateList(propertiesData.flatMap(p => p.dimensions.topSources || []), ['source'], ['sessions', 'users']),
+          countries: aggregateList(propertiesData.flatMap(p => p.dimensions.countries || []), ['country'], ['users']),
+          devices: aggregateList(propertiesData.flatMap(p => p.dimensions.devices || []), ['device'], ['sessions']),
+          topPages: aggregateList(propertiesData.flatMap(p => p.dimensions.topPages || []), ['page'], ['views', 'sessions']),
+          daily: [], // Daily is complex for aggregate
+        },
+        topCampaigns: aggregateList(propertiesData.flatMap(p => p.topCampaigns || []), ['campaign'], ['sessions', 'users']),
+        topEvents: aggregateList(propertiesData.flatMap(p => p.topEvents || []), ['eventName'], ['eventCount']),
+        topCities: aggregateList(propertiesData.flatMap(p => p.topCities || []), ['city', 'country'], ['sessions']),
+        browserBreakdown: aggregateList(propertiesData.flatMap(p => p.browserBreakdown || []), ['browser'], ['sessions']),
+      };
+
+      propertiesData.unshift(allProperty);
+    }
+
     const result = {
       properties: propertiesData,
       dateRange: `${start} to ${end}`,
-      selectedPropertyId: connection.metadata?.propertyId,
+      selectedPropertyId: selectedPropertyId || (propertiesData.length > 1 ? 'all' : activePropId),
     };
 
     // Cache the result for 5 minutes

@@ -99,8 +99,8 @@ You have access to:
 `;
 
     // Add platform-specific data context
-    const platformContext = buildPlatformDataContext(context.platformData);
-    
+    const platformContext = buildPlatformDataContext(context.platformData, context.selectedPropertyId, context.selectedMetaCampaignId);
+
     return basePrompt + '\n\n' + platformContext;
   },
 };

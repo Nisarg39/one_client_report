@@ -48,7 +48,9 @@ export async function sendMessageStream(
   conversationId: string | null,
   messages: Message[],
   clientId: string | null,
-  dateRange?: { startDate?: string; endDate?: string }
+  dateRange?: { startDate?: string; endDate?: string },
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Verify authentication
@@ -176,7 +178,9 @@ export async function sendMessageStream(
               clientDoc,
               userDoc,
               userConnections,
-              dateRange
+              dateRange,
+              selectedPropertyId || undefined,
+              selectedMetaCampaignId || undefined
             );
 
             platformData = platformDataResponse.data;
@@ -231,6 +235,8 @@ export async function sendMessageStream(
           conversationHistory: messages,
           query: lastUserMessage.content,
           dateRange,
+          selectedPropertyId,
+          selectedMetaCampaignId,
           accountType: userDoc.accountType,
           userRestrictions: {
             allowedAgents: userDoc.restrictions?.allowedAgents || [],
@@ -250,11 +256,11 @@ export async function sendMessageStream(
       } catch (agentError) {
         console.error('Error in agent routing, falling back to default prompt:', agentError);
         // Fallback to default system prompt if agent routing fails
-        systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
+        systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
       }
     } else {
       // No user message, use default prompt
-      systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
+      systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
     }
 
     // Get AI provider
@@ -445,7 +451,9 @@ export async function sendMessage(
   conversationId: string | null,
   messages: Message[],
   clientId: string | null,
-  dateRange?: { startDate?: string; endDate?: string }
+  dateRange?: { startDate?: string; endDate?: string },
+  selectedPropertyId?: string | null,
+  selectedMetaCampaignId?: string | null
 ): Promise<{
   content: string;
   conversationId?: string | null;
@@ -561,7 +569,9 @@ export async function sendMessage(
               clientDoc,
               userDoc,
               userConnections,
-              dateRange
+              dateRange,
+              selectedPropertyId || undefined,
+              selectedMetaCampaignId || undefined
             );
 
             platformData = platformDataResponse.data;
@@ -584,7 +594,7 @@ export async function sendMessage(
     }
 
     // Build system prompt with accountType
-    const systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType);
+    const systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
 
     // Get AI provider
     const aiProvider = await getAIProvider();

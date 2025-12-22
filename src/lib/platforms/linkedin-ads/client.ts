@@ -70,8 +70,7 @@ export class LinkedInAdsClient {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(
-        `LinkedIn API error (${response.status}): ${
-          error.message || response.statusText
+        `LinkedIn API error (${response.status}): ${error.message || response.statusText
         }`
       );
     }
@@ -136,7 +135,7 @@ export class LinkedInAdsClient {
     // If it fails, we continue without campaigns (metrics still work)
     // This method is used to populate the campaigns array in LinkedInAdsData
     // but errors are caught and handled gracefully in fetchData.ts
-    
+
     // For now, return empty array to avoid API errors
     // Campaigns can be fetched separately if needed in the future
     return [];
@@ -170,8 +169,7 @@ export class LinkedInAdsClient {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(
-        `LinkedIn API error (${response.status}): ${
-          error.message || 'Failed to fetch campaign groups'
+        `LinkedIn API error (${response.status}): ${error.message || 'Failed to fetch campaign groups'
         }`
       );
     }
@@ -210,8 +208,7 @@ export class LinkedInAdsClient {
     if (!response.ok) {
       const error = await response.json();
       throw new Error(
-        `Failed to create test account (${response.status}): ${
-          error.message || response.statusText
+        `Failed to create test account (${response.status}): ${error.message || response.statusText
         }`
       );
     }

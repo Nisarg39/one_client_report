@@ -32,7 +32,9 @@ export function useStreamingChat() {
       messages: Message[],
       clientId: string | null,
       options: UseStreamingChatOptions = {},
-      dateRange?: { startDate?: string; endDate?: string }
+      dateRange?: { startDate?: string; endDate?: string },
+      selectedPropertyId?: string | null,
+      selectedMetaCampaignId?: string | null
     ) => {
       const { onToken, onComplete, onError, onPlatformStatus, onPlatformData, onAgentSelected } = options;
 
@@ -42,7 +44,7 @@ export function useStreamingChat() {
 
       try {
         // Get streaming response from Server Action
-        const stream = await sendMessageStream(conversationId, messages, clientId, dateRange);
+        const stream = await sendMessageStream(conversationId, messages, clientId, dateRange, selectedPropertyId, selectedMetaCampaignId);
 
         // Read the stream
         const reader = stream.getReader();

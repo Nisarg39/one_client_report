@@ -449,14 +449,36 @@ export function generateMockMetaAdsData(config: MetaMockConfig): MetaAdsData {
     totalClicks += clicks;
     totalSpend += spend;
 
+    const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+    const cpc = clicks > 0 ? spend / clicks : 0;
+    const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
+    const frequency = camp.reach > 0 ? impressions / camp.reach : 1;
+
     return {
       id: randomId(),
       name: camp.name,
       status: 'ACTIVE',
       objective: camp.objective,
-      impressions,
-      clicks,
-      spend,
+      metrics: {
+        impressions,
+        reach: camp.reach,
+        clicks,
+        spend,
+        ctr,
+        cpc,
+        cpm,
+        frequency,
+        inline_link_clicks: Math.round(clicks * 0.8),
+        purchases: camp.conversions || 0,
+        leads: 0,
+        cost_per_purchase: (camp.conversions || 0) > 0 ? spend / (camp.conversions || 1) : 0,
+        cost_per_lead: 0,
+        roas: (camp.conversionValue || 0) > 0 && spend > 0 ? (camp.conversionValue || 0) / spend : 0,
+        registrations: 0,
+        add_to_carts: 0,
+        checkouts: 0,
+        content_views: 0,
+      },
     };
   });
 

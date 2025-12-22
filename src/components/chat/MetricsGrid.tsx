@@ -106,6 +106,7 @@ interface MetricsGridProps {
   platformData: any;
   isLoading?: boolean;
   selectedPropertyId?: string | null;
+  selectedCampaignId?: string | null;
 }
 
 export function MetricsGrid({
@@ -113,6 +114,7 @@ export function MetricsGrid({
   platformData,
   isLoading = false,
   selectedPropertyId = null,
+  selectedCampaignId = null,
 }: MetricsGridProps) {
   // Show loading skeletons
   if (isLoading) {
@@ -148,7 +150,12 @@ export function MetricsGrid({
     case 'googleAds':
       return <GoogleAdsMetrics data={platformData} />;
     case 'metaAds':
-      return <MetaAdsMetrics data={platformData} />;
+      return (
+        <MetaAdsMetrics
+          data={platformData}
+          selectedCampaignId={selectedCampaignId}
+        />
+      );
     case 'linkedInAds':
       return <LinkedInAdsMetrics data={platformData} />;
     default:
@@ -629,8 +636,23 @@ function GoogleAdsMetrics({ data }: { data: any }) {
 /**
  * Meta Ads metrics grid
  */
-function MetaAdsMetrics({ data }: { data: any }) {
-  if (!data || !data.metrics) {
+function MetaAdsMetrics({
+  data,
+  selectedCampaignId
+}: {
+  data: any;
+  selectedCampaignId: string | null;
+}) {
+  const campaigns = data.campaigns || [];
+
+  // If a campaign is selected, use that campaign's metrics, otherwise use top-level metrics
+  const selectedCampaign = selectedCampaignId
+    ? campaigns.find((c: any) => c.id === selectedCampaignId)
+    : null;
+
+  const metrics = selectedCampaign ? selectedCampaign.metrics : data.metrics;
+
+  if (!metrics) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
         <div className="w-16 h-16 rounded-full bg-[#252525] flex items-center justify-center mb-4 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]">
@@ -652,7 +674,6 @@ function MetaAdsMetrics({ data }: { data: any }) {
     );
   }
 
-  const metrics = data.metrics;
 
   return (
     <div className="space-y-4">

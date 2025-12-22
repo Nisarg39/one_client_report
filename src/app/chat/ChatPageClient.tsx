@@ -323,7 +323,9 @@ export function ChatPageClient() {
           addMessage(errorMessage);
         },
       },
-      dateRangeFilter ? { startDate: dateRangeFilter.startDate, endDate: dateRangeFilter.endDate } : undefined
+      dateRangeFilter ? { startDate: dateRangeFilter.startDate, endDate: dateRangeFilter.endDate } : undefined,
+      metricsDashboard.selectedPropertyId,
+      metricsDashboard.selectedMetaCampaignId
     );
   };
 

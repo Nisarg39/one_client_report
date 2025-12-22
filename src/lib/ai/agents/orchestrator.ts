@@ -47,7 +47,9 @@ function routeEducationQuery(
     systemPrompt: (ctx: AgentContext) => buildSystemPrompt(
       ctx.client,
       ctx.platformData,
-      ctx.accountType
+      ctx.accountType,
+      ctx.selectedPropertyId,
+      ctx.selectedMetaCampaignId
     )
   };
 
@@ -138,7 +140,9 @@ function getDefaultBusinessAgent(): Agent {
     systemPrompt: (ctx: AgentContext) => buildSystemPrompt(
       ctx.client,
       ctx.platformData,
-      ctx.accountType
+      ctx.accountType,
+      ctx.selectedPropertyId,
+      ctx.selectedMetaCampaignId
     )
   };
 }
@@ -165,11 +169,11 @@ export function getAgentMetadata(agentId: string): {
   emoji: string;
 } | null {
   const agent = getAgent(agentId);
-  
+
   if (!agent) {
     return null;
   }
-  
+
   return {
     id: agent.id,
     name: agent.name,

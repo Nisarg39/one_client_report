@@ -9,10 +9,11 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2 } from 'lucide-react';
-import { useChatStore } from '@/stores/useChatStore';
+import { useChatStore, type PlatformType } from '@/stores/useChatStore';
 import { PlatformTabs } from './PlatformTabs';
 import { MetricsGrid } from './MetricsGrid';
 import { PropertySelector } from './PropertySelector';
+import { CampaignSelector } from './CampaignSelector';
 
 interface MetricsDashboardPanelProps {
   isVisible: boolean;
@@ -27,7 +28,10 @@ export function MetricsDashboardPanel({
     metricsDashboard,
     platformData,
     platformDataTimestamp,
+    setMetricsDashboardVisible,
+    setMetricsDashboardPlatform,
     setMetricsDashboardPropertyId,
+    setMetricsDashboardCampaignId,
   } = useChatStore();
 
   // Check if data is stale (>5 minutes old)
@@ -38,7 +42,7 @@ export function MetricsDashboardPanel({
   // Show tabs for ALL connected platforms, even if data is null
   const connectedPlatforms = platformData
     ? Object.entries(platformData.platforms)
-      .map(([key]) => key as any)
+      .map(([key]) => key as PlatformType)
     : [];
 
   // Extract Google Analytics properties for property selector
@@ -49,6 +53,15 @@ export function MetricsDashboardPanel({
       propertyName: p.propertyName,
     })) || [];
   const isGoogleAnalyticsSelected = metricsDashboard.selectedPlatform === 'googleAnalytics';
+
+  // Get Meta Ads campaigns
+  const metaAdsCampaigns = platformData?.platforms?.metaAds?.campaigns || [];
+  const isMetaAdsSelected = metricsDashboard.selectedPlatform === 'metaAds';
+  const hasMetaCampaigns = metaAdsCampaigns.length > 0;
+
+  const selectedPlatform = metricsDashboard.selectedPlatform;
+  const selectedPropertyId = metricsDashboard.selectedPropertyId;
+  const selectedMetaCampaignId = metricsDashboard.selectedMetaCampaignId;
 
   return (
     <AnimatePresence>
@@ -153,14 +166,28 @@ export function MetricsDashboardPanel({
                   />
                 )}
 
+                {/* Campaign Selector - Only for Meta Ads with multiple campaigns */}
+                {isMetaAdsSelected && hasMetaCampaigns && (
+                  <CampaignSelector
+                    campaigns={metaAdsCampaigns}
+                    selectedCampaignId={metricsDashboard.selectedMetaCampaignId}
+                    onSelect={(campaignId) => setMetricsDashboardCampaignId(campaignId)}
+                  />
+                )}
+
                 {/* Metrics content - Phase 2 implementation */}
                 {metricsDashboard.selectedPlatform ? (
                   <MetricsGrid
-                    platformType={metricsDashboard.selectedPlatform}
-                    platformData={platformData.platforms[metricsDashboard.selectedPlatform]}
+                    platformType={selectedPlatform!}
+                    platformData={platformData.platforms[selectedPlatform!]}
                     selectedPropertyId={
                       isGoogleAnalyticsSelected
-                        ? metricsDashboard.selectedPropertyId
+                        ? selectedPropertyId
+                        : null
+                    }
+                    selectedCampaignId={
+                      isMetaAdsSelected
+                        ? selectedMetaCampaignId
                         : null
                     }
                   />

@@ -51,9 +51,26 @@ export interface MetaAdsData {
     name: string;
     status: string;
     objective: string;
-    impressions: number;
-    clicks: number;
-    spend: number;
+    metrics: {
+      impressions: number;
+      reach: number;
+      clicks: number;
+      spend: number;
+      ctr: number;
+      cpc: number;
+      cpm: number;
+      frequency: number;
+      inline_link_clicks: number;
+      purchases: number;
+      leads: number;
+      cost_per_purchase: number;
+      cost_per_lead: number;
+      roas: number;
+      registrations: number;
+      add_to_carts: number;
+      checkouts: number;
+      content_views: number;
+    };
   }>;
   // Breakdowns
   demographics: Array<{
@@ -113,7 +130,8 @@ function getAccountStatusString(status: number): string {
 export async function fetchMetaAdsData(
   connection: IPlatformConnection,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  selectedMetaCampaignId?: string
 ): Promise<MetaAdsData | null> {
   try {
     // Calculate date range string at the start for use in early returns
@@ -201,8 +219,8 @@ export async function fetchMetaAdsData(
 
     const allCampaigns: MetaAdsData['campaigns'] = [];
 
-    // Fetch data for each account (limit to first 3 to avoid rate limits)
-    const accountsToFetch = accounts.slice(0, 3);
+    // Fetch data for each account (limit to first 10 to avoid rate limits)
+    const accountsToFetch = accounts.slice(0, 10);
 
     for (const account of accountsToFetch) {
       try {
@@ -303,7 +321,21 @@ export async function fetchMetaAdsData(
           if (campaigns.length > 0) {
             const campaignInsightsParams: any = {
               adAccountId: account.id,
-              fields: ['campaign_id', 'campaign_name', 'impressions', 'clicks', 'spend'],
+              fields: [
+                'campaign_id',
+                'campaign_name',
+                'impressions',
+                'reach',
+                'clicks',
+                'spend',
+                'ctr',
+                'cpc',
+                'cpm',
+                'frequency',
+                'inline_link_clicks',
+                'actions',
+                'action_values',
+              ],
               level: 'campaign',
             };
 
@@ -324,18 +356,78 @@ export async function fetchMetaAdsData(
               }
             }
 
+            // Priority: 1. Passed selectedMetaCampaignId, 2. Metadata metaCampaignId (if any)
+            const activeCampId = selectedMetaCampaignId || connection.metadata?.metaCampaignId;
+
             // Add campaign data with metrics
-            for (const campaign of campaigns.slice(0, 5)) { // Limit to 5 campaigns
+            let campaignsToProcess = campaigns.slice(0, 25);
+
+            // Ensure selected campaign is included
+            if (activeCampId && !campaignsToProcess.find(c => c.id === activeCampId)) {
+              const selectedCamp = campaigns.find(c => c.id === activeCampId);
+              if (selectedCamp) {
+                campaignsToProcess.push(selectedCamp);
+              }
+            }
+
+            for (const campaign of campaignsToProcess) {
               const metrics = campaignMetricsMap.get(campaign.id) || {};
+
+              // Extract campaign actions
+              let campPurchases = 0;
+              let campLeads = 0;
+              let campRegs = 0;
+              let campATC = 0;
+              let campCheckouts = 0;
+              let campContentViews = 0;
+              let campPurchaseValue = 0;
+
+              if (metrics.actions) {
+                metrics.actions.forEach((a: any) => {
+                  const val = parseInt(a.value || '0', 10);
+                  switch (a.action_type) {
+                    case 'purchase': campPurchases += val; break;
+                    case 'lead': campLeads += val; break;
+                    case 'complete_registration': campRegs += val; break;
+                    case 'add_to_cart': campATC += val; break;
+                    case 'initiate_checkout': campCheckouts += val; break;
+                    case 'view_content': campContentViews += val; break;
+                  }
+                });
+              }
+
+              if (metrics.action_values) {
+                const pVal = metrics.action_values.find((a: any) => a.action_type === 'purchase');
+                campPurchaseValue = parseFloat(pVal?.value || '0');
+              }
+
+              const campSpend = parseFloat(metrics.spend || '0');
 
               allCampaigns.push({
                 id: campaign.id,
                 name: campaign.name,
                 status: campaign.effective_status || campaign.status,
                 objective: campaign.objective || 'N/A',
-                impressions: parseInt(metrics.impressions || '0', 10),
-                clicks: parseInt(metrics.clicks || '0', 10),
-                spend: parseFloat(metrics.spend || '0'),
+                metrics: {
+                  impressions: parseInt(metrics.impressions || '0', 10),
+                  reach: parseInt(metrics.reach || '0', 10),
+                  clicks: parseInt(metrics.clicks || '0', 10),
+                  spend: campSpend,
+                  ctr: parseFloat(metrics.ctr || '0'),
+                  cpc: parseFloat(metrics.cpc || '0'),
+                  cpm: parseFloat(metrics.cpm || '0'),
+                  frequency: parseFloat(metrics.frequency || '0'),
+                  inline_link_clicks: parseInt(metrics.inline_link_clicks || '0', 10),
+                  purchases: campPurchases,
+                  leads: campLeads,
+                  cost_per_purchase: campPurchases > 0 ? campSpend / campPurchases : 0,
+                  cost_per_lead: campLeads > 0 ? campSpend / campLeads : 0,
+                  roas: campSpend > 0 ? campPurchaseValue / campSpend : 0,
+                  registrations: campRegs,
+                  add_to_carts: campATC,
+                  checkouts: campCheckouts,
+                  content_views: campContentViews,
+                },
               });
             }
           }

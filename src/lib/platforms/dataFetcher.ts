@@ -149,7 +149,9 @@ async function fetchMockPlatformData(
  */
 async function fetchRealPlatformData(
   connections: IPlatformConnection[],
-  dateRange?: { startDate?: string; endDate?: string }
+  dateRange?: { startDate?: string; endDate?: string },
+  selectedPropertyId?: string,
+  selectedMetaCampaignId?: string
 ): Promise<PlatformData> {
   const platformData: PlatformData = {};
 
@@ -163,7 +165,8 @@ async function fetchRealPlatformData(
       const gaData = await fetchAllGoogleAnalyticsProperties(
         gaConnection,
         dateRange?.startDate,
-        dateRange?.endDate
+        dateRange?.endDate,
+        selectedPropertyId
       );
       if (gaData) {
         platformData.googleAnalyticsMulti = gaData;
@@ -203,7 +206,8 @@ async function fetchRealPlatformData(
       const metaData = await fetchMetaAdsData(
         metaConnection,
         dateRange?.startDate,
-        dateRange?.endDate
+        dateRange?.endDate,
+        selectedMetaCampaignId
       );
       if (metaData) {
         platformData.metaAds = metaData;
@@ -254,7 +258,9 @@ export async function fetchPlatformData(
   client: any,
   user: IUser,
   connections: IPlatformConnection[] = [],
-  dateRange?: { startDate?: string; endDate?: string }
+  dateRange?: { startDate?: string; endDate?: string },
+  selectedPropertyId?: string,
+  selectedMetaCampaignId?: string
 ): Promise<PlatformDataResponse> {
   // Determine if we should use mock data
   const useMockData =
@@ -267,7 +273,7 @@ export async function fetchPlatformData(
   }
 
   // Use real API data
-  const realData = await fetchRealPlatformData(connections, dateRange);
+  const realData = await fetchRealPlatformData(connections, dateRange, selectedPropertyId, selectedMetaCampaignId);
 
   return {
     data: realData,

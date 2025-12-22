@@ -19,6 +19,8 @@ export interface AgentContext {
     endDate?: string;
   };
   accountType?: 'business' | 'education' | 'instructor';
+  selectedPropertyId?: string | null;
+  selectedMetaCampaignId?: string | null;
   userRestrictions?: {
     allowedAgents?: string[];
     aiModel?: string;
