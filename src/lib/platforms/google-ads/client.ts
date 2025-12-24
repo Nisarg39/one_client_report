@@ -1,133 +1,102 @@
-/**
- * Google Ads API Client
- *
- * Handles communication with Google Ads API v14
- */
-
+import { GoogleAdsApi, enums } from 'google-ads-api';
 import {
   GoogleAdsQueryRequest,
   GoogleAdsQueryResponse,
-  GoogleAdsCustomer,
+  GoogleAdsCustomerRow,
   GoogleAdsCampaign,
-  GOOGLE_ADS_CONFIG,
 } from './types';
 
 /**
- * Google Ads API Client
+ * Google Ads API Client using the official google-ads-api library
  */
 export class GoogleAdsClient {
-  private accessToken: string;
-  private developerToken: string;
-  private apiVersion: string;
+  private api: GoogleAdsApi;
+  private refreshToken: string;
+  private loginCustomerId: string;
 
-  constructor(accessToken: string, developerToken?: string) {
-    this.accessToken = accessToken;
-    this.developerToken = developerToken || process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '';
-    this.apiVersion = GOOGLE_ADS_CONFIG.apiVersion;
+  constructor(refreshToken: string) {
+    this.refreshToken = refreshToken;
+    this.loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID || '';
 
-    if (!this.developerToken) {
-      console.warn(
-        '⚠️  Google Ads Developer Token not configured. Set GOOGLE_ADS_DEVELOPER_TOKEN environment variable.'
-      );
+    this.api = new GoogleAdsApi({
+      client_id: process.env.GOOGLE_ADS_CLIENT_ID || '',
+      client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET || '',
+      developer_token: process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '',
+    });
+  }
+
+  /**
+   * Get a Customer instance
+   */
+  private getCustomerInstance(customerId: string, loginCustomerId?: string | null) {
+    const cid = customerId.replace(/-/g, '');
+
+    // Use provided lcid, or fallback to constructor one, or undefined if null
+    let lcid: string | undefined;
+    if (loginCustomerId === null) {
+      lcid = undefined;
+    } else {
+      const rawLcid = loginCustomerId || this.loginCustomerId;
+      lcid = rawLcid ? rawLcid.replace(/-/g, '') : undefined;
     }
+
+    return this.api.Customer({
+      customer_id: cid,
+      refresh_token: this.refreshToken,
+      login_customer_id: lcid,
+    });
   }
 
   /**
    * Execute a Google Ads Query Language (GAQL) query
-   *
-   * @param request - Query request with customer ID and GAQL query
-   * @returns Query response with results
    */
-  async query(request: GoogleAdsQueryRequest): Promise<GoogleAdsQueryResponse> {
-    if (!this.developerToken) {
-      throw new Error(
-        'Google Ads Developer Token not configured. Please set GOOGLE_ADS_DEVELOPER_TOKEN.'
-      );
-    }
+  async query(request: GoogleAdsQueryRequest, loginCustomerId?: string | null): Promise<GoogleAdsQueryResponse> {
+    const customer = this.getCustomerInstance(request.customerId, loginCustomerId);
 
-    const url = `https://googleads.googleapis.com/${this.apiVersion}/customers/${request.customerId}/googleAds:searchStream`;
+    try {
+      const results = await customer.query(request.query);
+      return {
+        results: results as any[],
+        fieldMask: '',
+      };
+    } catch (error: any) {
+      // Library errors often have detailed information in error.errors or error.message
+      let detailedError = '';
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${this.accessToken}`,
-        'developer-token': this.developerToken,
-      },
-      body: JSON.stringify({
-        query: request.query,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(
-        `Google Ads API error (${response.status}): ${error}`
-      );
-    }
-
-    // Google Ads API returns newline-delimited JSON
-    const text = await response.text();
-    const lines = text.trim().split('\n');
-    const results: any[] = [];
-
-    for (const line of lines) {
-      if (line.trim()) {
-        const parsed = JSON.parse(line);
-        if (parsed.results) {
-          results.push(...parsed.results);
+      if (error && typeof error === 'object') {
+        if (error.errors && Array.isArray(error.errors)) {
+          detailedError = JSON.stringify(error);
+        } else if (error.message) {
+          detailedError = error.message;
+        } else {
+          detailedError = JSON.stringify(error);
         }
+      } else {
+        detailedError = String(error);
       }
-    }
 
-    return {
-      results,
-      fieldMask: '',
-    };
+      console.error(`[Google Ads SDK] Query failed for ${request.customerId}:`, detailedError);
+      throw new Error(`Google Ads Query Error: ${detailedError}`);
+    }
   }
 
   /**
    * List accessible customer accounts
-   *
-   * @returns List of customer accounts
    */
   async listAccessibleCustomers(): Promise<string[]> {
-    if (!this.developerToken) {
-      throw new Error(
-        'Google Ads Developer Token not configured. Please set GOOGLE_ADS_DEVELOPER_TOKEN.'
-      );
+    try {
+      // The library's listAccessibleCustomers uses the developer token and refresh token
+      const customers = await this.api.listAccessibleCustomers(this.refreshToken);
+      return customers.resource_names || [];
+    } catch (error: any) {
+      throw new Error(`Google Ads List Customers Error: ${error.message}`);
     }
-
-    const url = `https://googleads.googleapis.com/${this.apiVersion}/customers:listAccessibleCustomers`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.accessToken}`,
-        'developer-token': this.developerToken,
-      },
-      body: JSON.stringify({}),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(
-        `Google Ads API error (${response.status}): ${error}`
-      );
-    }
-
-    const data = await response.json();
-    return data.resourceNames || [];
   }
 
   /**
    * Get customer details
-   *
-   * @param customerId - Customer ID (without hyphens)
-   * @returns Customer details
    */
-  async getCustomer(customerId: string): Promise<GoogleAdsCustomer> {
+  async getCustomer(customerId: string, loginCustomerId?: string | null): Promise<GoogleAdsCustomerRow> {
     const query = `
       SELECT
         customer.id,
@@ -136,13 +105,13 @@ export class GoogleAdsClient {
         customer.time_zone,
         customer.manager
       FROM customer
-      WHERE customer.id = ${customerId}
+      WHERE customer.id = ${customerId.replace(/-/g, '')}
     `;
 
     const response = await this.query({
       customerId,
       query,
-    });
+    }, loginCustomerId);
 
     if (response.results.length === 0) {
       throw new Error(`Customer ${customerId} not found`);
@@ -150,29 +119,25 @@ export class GoogleAdsClient {
 
     const result = response.results[0];
     return {
-      resourceName: result.customer.resourceName,
+      resourceName: result.customer.resource_name,
       id: result.customer.id,
-      descriptiveName: result.customer.descriptiveName,
-      currencyCode: result.customer.currencyCode,
-      timeZone: result.customer.timeZone,
+      descriptiveName: result.customer.descriptive_name,
+      currencyCode: result.customer.currency_code,
+      timeZone: result.customer.time_zone,
       manager: result.customer.manager,
     };
   }
 
   /**
    * Get campaigns for a customer
-   *
-   * @param customerId - Customer ID
-   * @returns List of campaigns
    */
-  async getCampaigns(customerId: string): Promise<GoogleAdsCampaign[]> {
+  async getCampaigns(customerId: string, loginCustomerId?: string | null): Promise<GoogleAdsCampaign[]> {
     const query = `
       SELECT
         campaign.id,
         campaign.name,
         campaign.status,
-        campaign.advertising_channel_type,
-        campaign.bidding_strategy_type
+        campaign.advertising_channel_type
       FROM campaign
       WHERE campaign.status != 'REMOVED'
       ORDER BY campaign.name
@@ -181,34 +146,28 @@ export class GoogleAdsClient {
     const response = await this.query({
       customerId,
       query,
-    });
+    }, loginCustomerId);
 
     return response.results
       .filter((result) => result.campaign)
       .map((result) => ({
-        resourceName: result.campaign!.resourceName || '',
-        id: result.campaign!.id,
-        name: result.campaign!.name,
-        status: result.campaign!.status,
-        advertisingChannelType: result.campaign!.advertisingChannelType || '',
-        biddingStrategyType: result.campaign!.biddingStrategyType,
+        resourceName: result.campaign.resource_name || '',
+        id: result.campaign.id,
+        name: result.campaign.name,
+        status: result.campaign.status,
+        advertisingChannelType: result.campaign.advertising_channel_type || '',
       }));
   }
 
   /**
    * Get metrics for a date range
-   *
-   * @param customerId - Customer ID
-   * @param metrics - Metrics to fetch
-   * @param startDate - Start date (YYYY-MM-DD)
-   * @param endDate - End date (YYYY-MM-DD)
-   * @returns Query response with metrics
    */
   async getMetrics(
     customerId: string,
     metrics: string[],
     startDate: string,
-    endDate: string
+    endDate: string,
+    loginCustomerId?: string | null
   ): Promise<GoogleAdsQueryResponse> {
     const metricFields = metrics.join(', ');
 
@@ -226,13 +185,11 @@ export class GoogleAdsClient {
     return this.query({
       customerId,
       query,
-    });
+    }, loginCustomerId);
   }
 
   /**
    * Test API connection
-   *
-   * @returns True if connection successful
    */
   async testConnection(): Promise<boolean> {
     try {

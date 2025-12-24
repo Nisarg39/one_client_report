@@ -24,6 +24,7 @@ export interface MetaAdsData {
     reach: number;
     clicks: number;
     spend: number;
+    currency: string;
     ctr: number;
     cpc: number;
     cpm: number;
@@ -100,6 +101,7 @@ export interface MetaAdsData {
     spend: number;
   }>;
   dateRange: string;
+  apiResponse?: any; // The whole API response for debugging
 }
 
 /**
@@ -169,6 +171,7 @@ export async function fetchMetaAdsData(
           reach: 0,
           clicks: 0,
           spend: 0,
+          currency: 'USD',
           ctr: 0,
           cpc: 0,
           cpm: 0,
@@ -218,6 +221,7 @@ export async function fetchMetaAdsData(
     };
 
     const allCampaigns: MetaAdsData['campaigns'] = [];
+    let fullApiResponse: any = { accountInsights: [], campaignInsights: [] };
 
     // Fetch data for each account (limit to first 10 to avoid rate limits)
     const accountsToFetch = accounts.slice(0, 10);
@@ -254,6 +258,7 @@ export async function fetchMetaAdsData(
         }
 
         const insightsResponse = await client.getInsights(insightsParams);
+        fullApiResponse.accountInsights.push({ accountId: account.id, data: insightsResponse.data || [] });
 
         // Sum up metrics from response
         if (insightsResponse.data && insightsResponse.data.length > 0) {
@@ -347,6 +352,7 @@ export async function fetchMetaAdsData(
             }
 
             const campaignInsights = await client.getInsights(campaignInsightsParams);
+            fullApiResponse.campaignInsights.push({ accountId: account.id, data: campaignInsights.data || [] });
 
             // Map campaign IDs to insights
             const campaignMetricsMap = new Map<string, any>();
@@ -359,16 +365,8 @@ export async function fetchMetaAdsData(
             // Priority: 1. Passed selectedMetaCampaignId, 2. Metadata metaCampaignId (if any)
             const activeCampId = selectedMetaCampaignId || connection.metadata?.metaCampaignId;
 
-            // Add campaign data with metrics
-            let campaignsToProcess = campaigns.slice(0, 25);
-
-            // Ensure selected campaign is included
-            if (activeCampId && !campaignsToProcess.find(c => c.id === activeCampId)) {
-              const selectedCamp = campaigns.find(c => c.id === activeCampId);
-              if (selectedCamp) {
-                campaignsToProcess.push(selectedCamp);
-              }
-            }
+            // Add campaign data with metrics for all campaigns that have insights
+            const campaignsToProcess = campaigns;
 
             for (const campaign of campaignsToProcess) {
               const metrics = campaignMetricsMap.get(campaign.id) || {};
@@ -527,7 +525,7 @@ export async function fetchMetaAdsData(
       ? totalMetrics.impressions / totalMetrics.reach
       : 0;
 
-    return {
+    const response: MetaAdsData = {
       accounts: accounts.map((acc) => ({
         id: acc.account_id || acc.id,
         name: acc.name,
@@ -539,6 +537,7 @@ export async function fetchMetaAdsData(
         reach: totalMetrics.reach,
         clicks: totalMetrics.clicks,
         spend: Math.round(totalMetrics.spend * 100) / 100,
+        currency: accounts[0]?.currency || 'USD',
         ctr: Math.round(ctr * 100) / 100,
         cpc: Math.round(cpc * 100) / 100,
         cpm: Math.round(cpm * 100) / 100,
@@ -565,7 +564,47 @@ export async function fetchMetaAdsData(
       devices,
       publisher_platforms,
       dateRange: dateRangeString,
+      apiResponse: fullApiResponse,
     };
+
+    // Priority for filtering: 1. Explicit parameter (even if empty string), 2. Metadata from connection
+    const activeCampId = selectedMetaCampaignId !== undefined ? selectedMetaCampaignId : connection.metadata?.metaCampaignId;
+
+    console.log(`[Meta Ads] Filtering debug - param: ${selectedMetaCampaignId}, metadata: ${connection.metadata?.metaCampaignId}, active: ${activeCampId}`);
+
+    // If a campaign is selected, override the aggregate metrics with campaign-specific metrics
+    if (activeCampId) {
+      const selectedCampaign = allCampaigns.find(c => String(c.id) === String(activeCampId));
+      if (selectedCampaign) {
+        console.log(`[Meta Ads] Filtering summary metrics for campaign: ${selectedCampaign.name} (${activeCampId})`);
+        const campMetrics = selectedCampaign.metrics;
+        return {
+          ...response,
+          metrics: {
+            ...campMetrics,
+            currency: response.metrics.currency, // Preserve account currency
+            video_p25_watched_actions: 0, // Not available at campaign level yet
+            video_p50_watched_actions: 0,
+            video_p100_watched_actions: 0,
+            // Ensure field names match the required summary interface
+            registrations: campMetrics.registrations || 0,
+            add_to_carts: campMetrics.add_to_carts || 0,
+            checkouts: campMetrics.checkouts || 0,
+            content_views: campMetrics.content_views || 0,
+            cost_per_registration: campMetrics.spend > 0 && campMetrics.registrations > 0
+              ? campMetrics.spend / campMetrics.registrations
+              : 0,
+            cost_per_add_to_cart: campMetrics.spend > 0 && campMetrics.add_to_carts > 0
+              ? campMetrics.spend / campMetrics.add_to_carts
+              : 0,
+          }
+        };
+      } else {
+        console.warn(`[Meta Ads] Selected campaign ${activeCampId} not found in first 25 campaigns`);
+      }
+    }
+
+    return response;
   } catch (error) {
     console.error('[Meta Ads] Error fetching data:', error);
 

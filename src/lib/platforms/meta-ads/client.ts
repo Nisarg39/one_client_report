@@ -114,6 +114,7 @@ export class MetaAdsClient {
     const params = new URLSearchParams({
       access_token: this.accessToken,
       fields: 'id,name,status,objective,effective_status',
+      limit: '1000',
     });
 
     const url = `https://graph.facebook.com/${this.apiVersion}/${accountId}/campaigns?${params}`;

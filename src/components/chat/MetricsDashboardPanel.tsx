@@ -32,6 +32,7 @@ export function MetricsDashboardPanel({
     setMetricsDashboardPlatform,
     setMetricsDashboardPropertyId,
     setMetricsDashboardCampaignId,
+    setMetricsDashboardLinkedInCampaignGroupId,
   } = useChatStore();
 
   // Check if data is stale (>5 minutes old)
@@ -54,14 +55,30 @@ export function MetricsDashboardPanel({
     })) || [];
   const isGoogleAnalyticsSelected = metricsDashboard.selectedPlatform === 'googleAnalytics';
 
+  // Get Google Ads campaigns
+  const googleAdsCampaigns = platformData?.platforms?.googleAds?.campaigns || [];
+  const isGoogleAdsSelected = metricsDashboard.selectedPlatform === 'googleAds';
+  const hasGoogleCampaigns = googleAdsCampaigns.length > 0;
+
   // Get Meta Ads campaigns
   const metaAdsCampaigns = platformData?.platforms?.metaAds?.campaigns || [];
   const isMetaAdsSelected = metricsDashboard.selectedPlatform === 'metaAds';
   const hasMetaCampaigns = metaAdsCampaigns.length > 0;
 
+  // Get LinkedIn Ads campaigns and groups
+  const allLinkedInItems = platformData?.platforms?.linkedInAds?.campaigns || [];
+  const linkedInAdsCampaignGroups = allLinkedInItems.filter((c: any) => c.type === 'CAMPAIGN_GROUP');
+  const linkedInAdsCampaigns = allLinkedInItems.filter((c: any) => c.type === 'CAMPAIGN');
+  const isLinkedInAdsSelected = metricsDashboard.selectedPlatform === 'linkedInAds';
+  const hasLinkedInGroups = linkedInAdsCampaignGroups.length > 0;
+  const hasLinkedInCampaigns = linkedInAdsCampaigns.length > 0;
+  const hasLinkedInData = hasLinkedInGroups || hasLinkedInCampaigns;
+
   const selectedPlatform = metricsDashboard.selectedPlatform;
   const selectedPropertyId = metricsDashboard.selectedPropertyId;
   const selectedMetaCampaignId = metricsDashboard.selectedMetaCampaignId;
+  const selectedGoogleAdsCampaignId = metricsDashboard.selectedGoogleAdsCampaignId;
+  const selectedLinkedInCampaignId = metricsDashboard.selectedLinkedInCampaignId;
 
   return (
     <AnimatePresence>
@@ -166,14 +183,45 @@ export function MetricsDashboardPanel({
                   />
                 )}
 
-                {/* Campaign Selector - Only for Meta Ads with multiple campaigns */}
+                {/* Campaign Selector - For Meta Ads, Google Ads, or LinkedIn Ads with multiple campaigns */}
                 {isMetaAdsSelected && hasMetaCampaigns && (
                   <CampaignSelector
                     campaigns={metaAdsCampaigns}
                     selectedCampaignId={metricsDashboard.selectedMetaCampaignId}
                     onSelect={(campaignId) => setMetricsDashboardCampaignId(campaignId)}
+                    color="#0866FF"
                   />
                 )}
+
+                {isGoogleAdsSelected && hasGoogleCampaigns && (
+                  <CampaignSelector
+                    campaigns={googleAdsCampaigns.map((c: any) => ({ id: c.id, name: c.name }))}
+                    selectedCampaignId={metricsDashboard.selectedGoogleAdsCampaignId}
+                    onSelect={(campaignId) => setMetricsDashboardCampaignId(campaignId)}
+                    color="#4285F4"
+                  />
+                )}
+
+                {isLinkedInAdsSelected && hasLinkedInGroups && (
+                  <CampaignSelector
+                    campaigns={linkedInAdsCampaignGroups.map((c: any) => ({ id: c.id, name: c.name }))}
+                    selectedCampaignId={metricsDashboard.selectedLinkedInCampaignGroupId}
+                    onSelect={(groupId) => setMetricsDashboardLinkedInCampaignGroupId(groupId)}
+                    color="#0A66C2"
+                    label="Campaign Group Filter"
+                  />
+                )}
+
+                {isLinkedInAdsSelected && hasLinkedInCampaigns && (
+                  <CampaignSelector
+                    campaigns={linkedInAdsCampaigns.map((c: any) => ({ id: c.id, name: c.name }))}
+                    selectedCampaignId={metricsDashboard.selectedLinkedInCampaignId}
+                    onSelect={(campaignId) => setMetricsDashboardCampaignId(campaignId)}
+                    color="#0A66C2"
+                  />
+                )}
+
+
 
                 {/* Metrics content - Phase 2 implementation */}
                 {metricsDashboard.selectedPlatform ? (
@@ -187,7 +235,16 @@ export function MetricsDashboardPanel({
                     }
                     selectedCampaignId={
                       isMetaAdsSelected
-                        ? selectedMetaCampaignId
+                        ? metricsDashboard.selectedMetaCampaignId
+                        : isGoogleAdsSelected
+                          ? metricsDashboard.selectedGoogleAdsCampaignId
+                          : isLinkedInAdsSelected
+                            ? metricsDashboard.selectedLinkedInCampaignId
+                            : null
+                    }
+                    selectedCampaignGroupId={
+                      isLinkedInAdsSelected
+                        ? metricsDashboard.selectedLinkedInCampaignGroupId
                         : null
                     }
                   />

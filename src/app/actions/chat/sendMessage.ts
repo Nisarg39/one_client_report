@@ -50,7 +50,10 @@ export async function sendMessageStream(
   clientId: string | null,
   dateRange?: { startDate?: string; endDate?: string },
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): Promise<ReadableStream<Uint8Array>> {
   try {
     // Verify authentication
@@ -171,7 +174,6 @@ export async function sendMessageStream(
               }
             }
           }
-
           // Fetch platform data using unified fetcher (routes between real and mock)
           try {
             const platformDataResponse = await fetchPlatformData(
@@ -180,7 +182,10 @@ export async function sendMessageStream(
               userConnections,
               dateRange,
               selectedPropertyId || undefined,
-              selectedMetaCampaignId || undefined
+              selectedMetaCampaignId || undefined,
+              selectedGoogleAdsCampaignId || undefined,
+              selectedLinkedInCampaignGroupId || undefined,
+              selectedLinkedInCampaignId || undefined
             );
 
             platformData = platformDataResponse.data;
@@ -256,11 +261,29 @@ export async function sendMessageStream(
       } catch (agentError) {
         console.error('Error in agent routing, falling back to default prompt:', agentError);
         // Fallback to default system prompt if agent routing fails
-        systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
+        systemPrompt = buildSystemPrompt(
+          client as any,
+          platformData,
+          userDoc.accountType,
+          selectedPropertyId,
+          selectedMetaCampaignId,
+          selectedGoogleAdsCampaignId,
+          selectedLinkedInCampaignGroupId,
+          selectedLinkedInCampaignId
+        );
       }
     } else {
       // No user message, use default prompt
-      systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
+      systemPrompt = buildSystemPrompt(
+        client as any,
+        platformData,
+        userDoc.accountType,
+        selectedPropertyId,
+        selectedMetaCampaignId,
+        selectedGoogleAdsCampaignId,
+        selectedLinkedInCampaignGroupId,
+        selectedLinkedInCampaignId
+      );
     }
 
     // Get AI provider
@@ -453,7 +476,10 @@ export async function sendMessage(
   clientId: string | null,
   dateRange?: { startDate?: string; endDate?: string },
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): Promise<{
   content: string;
   conversationId?: string | null;
@@ -571,7 +597,10 @@ export async function sendMessage(
               userConnections,
               dateRange,
               selectedPropertyId || undefined,
-              selectedMetaCampaignId || undefined
+              selectedMetaCampaignId || undefined,
+              selectedGoogleAdsCampaignId || undefined,
+              selectedLinkedInCampaignGroupId || undefined,
+              selectedLinkedInCampaignId || undefined
             );
 
             platformData = platformDataResponse.data;
@@ -594,7 +623,16 @@ export async function sendMessage(
     }
 
     // Build system prompt with accountType
-    const systemPrompt = buildSystemPrompt(client as any, platformData, userDoc.accountType, selectedPropertyId, selectedMetaCampaignId);
+    const systemPrompt = buildSystemPrompt(
+      client as any,
+      platformData,
+      userDoc.accountType,
+      selectedPropertyId,
+      selectedMetaCampaignId,
+      selectedGoogleAdsCampaignId,
+      selectedLinkedInCampaignGroupId,
+      selectedLinkedInCampaignId
+    );
 
     // Get AI provider
     const aiProvider = await getAIProvider();

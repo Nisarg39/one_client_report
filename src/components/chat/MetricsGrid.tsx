@@ -107,6 +107,7 @@ interface MetricsGridProps {
   isLoading?: boolean;
   selectedPropertyId?: string | null;
   selectedCampaignId?: string | null;
+  selectedCampaignGroupId?: string | null;
 }
 
 export function MetricsGrid({
@@ -115,6 +116,7 @@ export function MetricsGrid({
   isLoading = false,
   selectedPropertyId = null,
   selectedCampaignId = null,
+  selectedCampaignGroupId = null,
 }: MetricsGridProps) {
   // Show loading skeletons
   if (isLoading) {
@@ -148,7 +150,12 @@ export function MetricsGrid({
         />
       );
     case 'googleAds':
-      return <GoogleAdsMetrics data={platformData} />;
+      return (
+        <GoogleAdsMetrics
+          data={platformData}
+          selectedCampaignId={selectedCampaignId}
+        />
+      );
     case 'metaAds':
       return (
         <MetaAdsMetrics
@@ -157,7 +164,13 @@ export function MetricsGrid({
         />
       );
     case 'linkedInAds':
-      return <LinkedInAdsMetrics data={platformData} />;
+      return (
+        <LinkedInAdsMetrics
+          data={platformData}
+          selectedCampaignId={selectedCampaignId}
+          selectedCampaignGroupId={selectedCampaignGroupId}
+        />
+      );
     default:
       return null;
   }
@@ -272,6 +285,37 @@ function GoogleAnalyticsMetrics({
           icon={<Activity className="w-4 h-4" />}
         />
       </div>
+
+      {/* Google Ads Performance (Integrated in GA) */}
+      {metrics.adsSpend !== undefined && metrics.adsSpend > 0 && (
+        <div className="space-y-3 pt-2">
+          <h3
+            className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1 flex items-center gap-2"
+          >
+            Google Ads Performance <span className="text-[8px] bg-[#6CA3A2]/10 text-[#6CA3A2] px-1.5 py-0.5 rounded italic lowercase font-bold tracking-normal border border-[#6CA3A2]/20">via ga4</span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <MetricCard
+              label="Ad Spend"
+              value={metrics.adsSpend}
+              format="currency"
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Ad Impressions"
+              value={metrics.adsImpressions || 0}
+              format="number"
+              icon={<Eye className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Ad Clicks"
+              value={metrics.adsClicks || 0}
+              format="number"
+              icon={<MousePointerClick className="w-4 h-4" />}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Traffic Sources */}
       {dimensions.topSources && dimensions.topSources.length > 0 && (
@@ -559,8 +603,65 @@ function GoogleAnalyticsMetrics({
 /**
  * Google Ads metrics grid
  */
-function GoogleAdsMetrics({ data }: { data: any }) {
-  if (!data || !data.metrics) {
+function GoogleAdsMetrics({
+  data,
+  selectedCampaignId,
+}: {
+  data: any;
+  selectedCampaignId?: string | null;
+}) {
+  const customers = data?.customers || [];
+  const campaigns = data?.campaigns || [];
+  let metrics = data?.metrics || {};
+
+  // If a specific campaign is selected, use that campaign's metrics instead of account-wide
+  if (selectedCampaignId) {
+    const selectedCampaign = campaigns.find((c: any) => c.id === selectedCampaignId);
+    if (selectedCampaign) {
+      // Metrics are flat in Google Ads campaign response
+      metrics = {
+        spend: selectedCampaign.spend || 0,
+        impressions: selectedCampaign.impressions || 0,
+        clicks: selectedCampaign.clicks || 0,
+        ctr: selectedCampaign.ctr || 0,
+        cpc: selectedCampaign.cpc || 0,
+        conversions: selectedCampaign.conversions || 0,
+        conversionRate: selectedCampaign.conversionRate || 0,
+        // Optional metrics (default to 0 if not present in campaign data)
+        interactions: selectedCampaign.interactions || 0,
+        interactionRate: selectedCampaign.interactionRate || 0,
+        conversionsValue: selectedCampaign.conversionsValue || 0,
+        costPerConversion: selectedCampaign.costPerConversion || 0,
+        viewThroughConversions: selectedCampaign.viewThroughConversions || 0,
+        searchImpressionShare: selectedCampaign.searchImpressionShare || 0,
+        searchAbsTopImpressionShare: selectedCampaign.searchAbsTopImpressionShare || 0,
+        searchBudgetLostImpressionShare: selectedCampaign.searchBudgetLostImpressionShare || 0,
+        searchRankLostImpressionShare: selectedCampaign.searchRankLostImpressionShare || 0,
+        currency: data.metrics?.currency || 'USD',
+      };
+    }
+  }
+
+  // 1. Check for explicit API error first
+  if (data?.apiError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-6 text-center border border-red-900/30 rounded-xl bg-red-950/10">
+        <div className="w-16 h-16 rounded-full bg-red-950/20 flex items-center justify-center mb-4 border border-red-500/20">
+          <span className="text-2xl">⚠️</span>
+        </div>
+        <h3 className="text-base font-medium text-red-400 mb-2">Google Ads API Error</h3>
+        <p className="text-sm text-[#a0a0a0] max-w-sm font-mono text-[11px] leading-relaxed">
+          {data.apiError}
+        </p>
+        <p className="mt-4 text-xs text-[#666]">
+          This usually indicates a permission mismatch between the logged-in email and the manager ID.
+        </p>
+      </div>
+    );
+  }
+
+  // 2. Check if metrics are missing entirely
+  if (!metrics || Object.keys(metrics).length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
         <div className="w-16 h-16 rounded-full bg-[#252525] flex items-center justify-center mb-4 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]">
@@ -576,59 +677,80 @@ function GoogleAdsMetrics({ data }: { data: any }) {
           className="text-sm text-[#808080] max-w-xs"
           style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
         >
-          Unable to fetch metrics. This may be due to expired authentication or API access issues. Try refreshing your connection.
+          Ensure your account is connected and has active campaigns.
         </p>
       </div>
     );
   }
 
-  const metrics = data.metrics;
-
   return (
     <div className="space-y-4">
-      <h3
-        className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
-      >
-        Campaign Metrics
-      </h3>
+      {/* Account Info / Warnings */}
+      {customers.length > 1 && (
+        <div className="bg-[#6CA3A2]/5 border border-[#6CA3A2]/20 rounded-lg p-2.5 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-[#6CA3A2]/10 flex items-center justify-center shrink-0">
+            <Globe className="w-3.5 h-3.5 text-[#6CA3A2]" />
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-[#6CA3A2] uppercase tracking-wider italic">Cross-Account View</p>
+            <p className="text-[9px] text-[#888] leading-tight">Aggregating data from {customers.length} client accounts.</p>
+          </div>
+        </div>
+      )}
+
+      {/* 1. Core Performance */}
+      <h3 className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1">Performance Summary</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <MetricCard
-          label="Ad Spend"
-          value={metrics.spend || 0}
-          format="currency"
-          icon={<TrendingUp className="w-4 h-4" />}
-        />
-        <MetricCard
-          label="Impressions"
-          value={metrics.impressions || 0}
-          format="number"
-          icon={<Eye className="w-4 h-4" />}
-        />
-        <MetricCard
-          label="Clicks"
-          value={metrics.clicks || 0}
-          format="number"
-          icon={<MousePointerClick className="w-4 h-4" />}
-        />
-        <MetricCard
-          label="CTR"
-          value={metrics.ctr || 0}
-          format="percentage"
-          icon={<Activity className="w-4 h-4" />}
-        />
-        <MetricCard
-          label="CPC"
-          value={metrics.cpc || 0}
-          format="currency"
-          icon={<TrendingUp className="w-4 h-4" />}
-        />
-        <MetricCard
-          label="Conversions"
-          value={metrics.conversions || 0}
-          format="number"
-          icon={<Users className="w-4 h-4" />}
-        />
+        <MetricCard label="Ad Spend" value={metrics.spend || 0} format="currency" formatOptions={{ currency: metrics.currency || 'USD' }} icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="Impressions" value={metrics.impressions || 0} format="number" icon={<Eye className="w-4 h-4" />} />
+        <MetricCard label="Clicks" value={metrics.clicks || 0} format="number" icon={<MousePointerClick className="w-4 h-4" />} />
+        <MetricCard label="CTR" value={metrics.ctr || 0} format="percentage" icon={<Activity className="w-4 h-4" />} />
+        <MetricCard label="Avg. CPC" value={metrics.cpc || 0} format="currency" formatOptions={{ currency: metrics.currency || 'USD' }} icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="Interactions" value={metrics.interactions || 0} format="number" icon={<MousePointerClick className="w-4 h-4" />} />
       </div>
+
+      {/* 2. Conversions */}
+      <h3 className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1 pt-2">Conversion Insights</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <MetricCard label="Conversions" value={metrics.conversions || 0} format="number" icon={<Target className="w-4 h-4" />} />
+        <MetricCard label="Conv. Value" value={metrics.conversionsValue || 0} format="currency" formatOptions={{ currency: metrics.currency || 'USD' }} icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="Conv. Rate" value={metrics.conversionRate || 0} format="percentage" icon={<Activity className="w-4 h-4" />} />
+        <MetricCard label="Cost per Conv." value={metrics.costPerConversion || 0} format="currency" formatOptions={{ currency: metrics.currency || 'USD' }} icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="View-Through" value={metrics.viewThroughConversions || 0} format="number" icon={<Eye className="w-4 h-4" />} />
+      </div>
+
+      {/* 3. Competitive Data */}
+      <h3 className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1 pt-2">Competitive Positioning</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <MetricCard label="Search Impr. Share" value={metrics.searchImpressionShare || 0} format="percentage" icon={<Globe className="w-4 h-4" />} />
+        <MetricCard label="Abs. Top IS" value={metrics.searchAbsTopImpressionShare || 0} format="percentage" icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="Lost IS (Budget)" value={metrics.searchBudgetLostImpressionShare || 0} format="percentage" icon={<TrendingUp className="w-4 h-4" />} />
+        <MetricCard label="Lost IS (Rank)" value={metrics.searchRankLostImpressionShare || 0} format="percentage" icon={<Target className="w-4 h-4" />} />
+      </div>
+
+      {/* Campaigns Section */}
+      {campaigns.length > 0 && (
+        <DimensionalDataSection
+          title="Top Campaigns"
+          icon={<Target className="w-4 h-4" />}
+          defaultExpanded={true}
+        >
+          <DataTable
+            rows={campaigns.map((campaign: any) => ({
+              icon: <Target className="w-4 h-4" />,
+              label: campaign.name || 'Unknown',
+              value: formatNumber(campaign.impressions || 0),
+              progressBar: {
+                value: campaign.impressions || 0,
+                max: Math.max(...campaigns.map((c: any) => c.impressions)) || 1,
+                color: '#6CA3A2',
+              },
+              secondaryValue: `$${Number(campaign.spend).toFixed(2)}`,
+            }))}
+            emptyMessage="No campaign data available"
+          />
+        </DimensionalDataSection>
+      )}
     </div>
   );
 }
@@ -643,16 +765,15 @@ function MetaAdsMetrics({
   data: any;
   selectedCampaignId: string | null;
 }) {
-  const campaigns = data.campaigns || [];
-
-  // If a campaign is selected, use that campaign's metrics, otherwise use top-level metrics
-  const selectedCampaign = selectedCampaignId
-    ? campaigns.find((c: any) => c.id === selectedCampaignId)
+  // Determine metrics to display (favor selected campaign metrics)
+  const activeCampaign = selectedCampaignId
+    ? data.campaigns?.find((c: any) => String(c.id) === String(selectedCampaignId))
     : null;
 
-  const metrics = selectedCampaign ? selectedCampaign.metrics : data.metrics;
+  const displayMetrics = activeCampaign ? activeCampaign.metrics : data.metrics;
+  const currency = displayMetrics?.currency || data.metrics?.currency || 'USD';
 
-  if (!metrics) {
+  if (!displayMetrics) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
         <div className="w-16 h-16 rounded-full bg-[#252525] flex items-center justify-center mb-4 shadow-[inset_4px_4px_8px_rgba(0,0,0,0.6),inset_-4px_-4px_8px_rgba(60,60,60,0.3)]">
@@ -685,81 +806,84 @@ function MetaAdsMetrics({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <MetricCard
           label="Ad Spend"
-          value={metrics.spend || 0}
+          value={displayMetrics.spend || 0}
           format="currency"
+          formatOptions={{ currency }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricCard
           label="Impressions"
-          value={metrics.impressions || 0}
+          value={displayMetrics.impressions || 0}
           format="number"
           icon={<Eye className="w-4 h-4" />}
         />
         <MetricCard
           label="Clicks"
-          value={metrics.clicks || 0}
+          value={displayMetrics.clicks || 0}
           format="number"
           icon={<MousePointerClick className="w-4 h-4" />}
         />
         <MetricCard
           label="CTR"
-          value={metrics.ctr || 0}
+          value={displayMetrics.ctr || 0}
           format="percentage"
           icon={<Activity className="w-4 h-4" />}
         />
         <MetricCard
           label="Reach"
-          value={metrics.reach || 0}
+          value={displayMetrics.reach || 0}
           format="number"
           icon={<Users className="w-4 h-4" />}
         />
         <MetricCard
           label="ROAS"
-          value={metrics.roas || 0}
+          value={displayMetrics.roas || 0}
           format="decimal"
           formatOptions={{ decimals: 2 }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricCard
           label="Purchases"
-          value={metrics.purchases || 0}
+          value={displayMetrics.purchases || 0}
           format="number"
           icon={<Target className="w-4 h-4" />}
         />
         <MetricCard
           label="Cost per Purchase"
-          value={metrics.cost_per_purchase || 0}
+          value={displayMetrics.cost_per_purchase || 0}
           format="currency"
+          formatOptions={{ currency }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricCard
           label="Leads"
-          value={metrics.leads || 0}
+          value={displayMetrics.leads || 0}
           format="number"
           icon={<Users className="w-4 h-4" />}
         />
         <MetricCard
           label="Cost per Lead"
-          value={metrics.cost_per_lead || 0}
+          value={displayMetrics.cost_per_lead || 0}
           format="currency"
+          formatOptions={{ currency }}
           icon={<TrendingUp className="w-4 h-4" />}
         />
         <MetricCard
           label="Video Views (100%)"
-          value={metrics.video_p100_watched_actions || 0}
+          value={displayMetrics.video_p100_watched_actions || 0}
           format="number"
           icon={<Eye className="w-4 h-4" />}
         />
         <MetricCard
           label="Inline Link Clicks"
-          value={metrics.inline_link_clicks || 0}
+          value={displayMetrics.inline_link_clicks || 0}
           format="number"
           icon={<Link className="w-4 h-4" />}
         />
       </div>
 
       {/* Enhanced Conversion Funnel Metrics */}
-      {(metrics.registrations > 0 || metrics.add_to_carts > 0 || metrics.checkouts > 0 || metrics.content_views > 0) && (
+      {(displayMetrics.registrations > 0 || displayMetrics.add_to_carts > 0 || displayMetrics.checkouts > 0 || displayMetrics.content_views > 0) && (
         <>
           <h3
             className="text-xs font-medium text-[#999] uppercase tracking-wider px-1 mt-4"
@@ -768,50 +892,52 @@ function MetaAdsMetrics({
             Conversion Funnel
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {metrics.content_views > 0 && (
+            {displayMetrics.content_views > 0 && (
               <MetricCard
                 label="Content Views"
-                value={metrics.content_views || 0}
+                value={displayMetrics.content_views || 0}
                 format="number"
                 icon={<Eye className="w-4 h-4" />}
               />
             )}
-            {metrics.add_to_carts > 0 && (
+            {displayMetrics.add_to_carts > 0 && (
               <>
                 <MetricCard
                   label="Add to Cart"
-                  value={metrics.add_to_carts || 0}
+                  value={displayMetrics.add_to_carts || 0}
                   format="number"
                   icon={<Target className="w-4 h-4" />}
                 />
                 <MetricCard
                   label="Cost per Add to Cart"
-                  value={metrics.cost_per_add_to_cart || 0}
+                  value={displayMetrics.cost_per_add_to_cart || 0}
                   format="currency"
+                  formatOptions={{ currency }}
                   icon={<TrendingUp className="w-4 h-4" />}
                 />
               </>
             )}
-            {metrics.checkouts > 0 && (
+            {displayMetrics.checkouts > 0 && (
               <MetricCard
                 label="Initiated Checkouts"
-                value={metrics.checkouts || 0}
+                value={displayMetrics.checkouts || 0}
                 format="number"
                 icon={<Target className="w-4 h-4" />}
               />
             )}
-            {metrics.registrations > 0 && (
+            {displayMetrics.registrations > 0 && (
               <>
                 <MetricCard
                   label="Registrations"
-                  value={metrics.registrations || 0}
+                  value={displayMetrics.registrations || 0}
                   format="number"
                   icon={<Users className="w-4 h-4" />}
                 />
                 <MetricCard
                   label="Cost per Registration"
-                  value={metrics.cost_per_registration || 0}
+                  value={displayMetrics.cost_per_registration || 0}
                   format="currency"
+                  formatOptions={{ currency }}
                   icon={<TrendingUp className="w-4 h-4" />}
                 />
               </>
@@ -924,7 +1050,15 @@ function MetaAdsMetrics({
 /**
  * LinkedIn Ads metrics grid
  */
-function LinkedInAdsMetrics({ data }: { data: any }) {
+function LinkedInAdsMetrics({
+  data,
+  selectedCampaignId,
+  selectedCampaignGroupId
+}: {
+  data: any;
+  selectedCampaignId?: string | null;
+  selectedCampaignGroupId?: string | null;
+}) {
   if (!data || !data.metrics) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
@@ -947,8 +1081,49 @@ function LinkedInAdsMetrics({ data }: { data: any }) {
     );
   }
 
-  const metrics = data.metrics;
-  const currency = metrics.currency || 'USD';
+  const campaigns = data.campaigns || [];
+
+  // If a specific campaign or group is selected, use those metrics
+  let metrics = data.metrics;
+  const activeSelectionId = selectedCampaignId || selectedCampaignGroupId;
+
+  if (activeSelectionId) {
+    // Robust search: ensure same type (string) for comparison
+    const selectedItem = campaigns.find((c: any) => String(c.id) === String(activeSelectionId));
+
+    if (selectedItem && selectedItem.metrics) {
+      // NOTE: LinkedIn items can be individual campaigns or campaign groups.
+      // We overwrite core stats and reset others to 0 to avoid showing misleading cumulative data.
+      metrics = {
+        ...metrics,
+        impressions: selectedItem.metrics.impressions || 0,
+        clicks: selectedItem.metrics.clicks || 0,
+        spend: selectedItem.metrics.spend || 0,
+        // Calculate CTR/CPC
+        ctr: selectedItem.metrics.impressions > 0
+          ? (selectedItem.metrics.clicks / selectedItem.metrics.impressions) * 100
+          : 0,
+        cpc: selectedItem.metrics.clicks > 0
+          ? selectedItem.metrics.spend / selectedItem.metrics.clicks
+          : 0,
+        // Reset sub-metrics for specific selection view
+        engagement: {
+          ...metrics.engagement,
+          likes: 0, comments: 0, shares: 0, totalEngagements: 0, engagementRate: 0
+        },
+        conversions: {
+          ...metrics.conversions,
+          total: 0, postClick: 0, postView: 0, landingPageClicks: 0
+        },
+        leads: {
+          ...metrics.leads,
+          total: 0, qualified: 0, formOpens: 0
+        }
+      };
+    }
+  }
+
+  const currency = metrics?.currency || 'USD';
 
   return (
     <div className="space-y-4">

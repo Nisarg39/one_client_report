@@ -19,12 +19,16 @@ interface CampaignSelectorProps {
     campaigns: Campaign[];
     selectedCampaignId: string | null;
     onSelect: (campaignId: string | null) => void;
+    color?: string;
+    label?: string;
 }
 
 export function CampaignSelector({
     campaigns,
     selectedCampaignId,
     onSelect,
+    color = '#ff3b30', // Default to red
+    label,
 }: CampaignSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -69,19 +73,20 @@ export function CampaignSelector({
                 className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1 mb-2"
                 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}
             >
-                Campaign Filter
+                {label || 'Campaign Filter'}
             </h3>
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isOpen
-                        ? 'bg-[#1a1a1a] text-[#e0e0e0] shadow-[inset_-3px_-3px_8px_rgba(60,60,60,0.4),inset_3px_3px_8px_rgba(0,0,0,0.8)] border-b-2 border-[#ff3b30]'
-                        : 'bg-[#1a1a1a] text-[#e0e0e0] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)]'
+                    ? 'bg-[#1a1a1a] text-[#e0e0e0] shadow-[inset_-3px_-3px_8px_rgba(60,60,60,0.4),inset_3px_3px_8px_rgba(0,0,0,0.8)] border-b-2'
+                    : 'bg-[#1a1a1a] text-[#e0e0e0] shadow-[-6px_-6px_16px_rgba(60,60,60,0.4),6px_6px_16px_rgba(0,0,0,0.8)] hover:shadow-[-4px_-4px_12px_rgba(60,60,60,0.4),4px_4px_12px_rgba(0,0,0,0.8)]'
                     }`}
+                style={isOpen ? { borderBottomColor: color } : {}}
                 aria-label="Select campaign"
                 aria-expanded={isOpen}
             >
                 <div className="flex items-center gap-2 truncate">
-                    <BarChart2 className="w-4 h-4 text-[#ff3b30] flex-shrink-0" />
+                    <BarChart2 className="w-4 h-4 flex-shrink-0" style={{ color }} />
                     <span className="truncate">{selectedCampaignName}</span>
                 </div>
                 <ChevronDown
@@ -95,9 +100,10 @@ export function CampaignSelector({
                     <button
                         onClick={() => handleSelect(null)}
                         className={`w-full text-left px-3 py-2.5 text-sm transition-colors first:rounded-t-xl ${!selectedCampaignId
-                                ? 'bg-[#252525] text-[#ff3b30]'
-                                : 'text-[#c0c0c0] hover:bg-[#252525] hover:text-[#e0e0e0]'
+                            ? 'bg-[#252525]'
+                            : 'text-[#c0c0c0] hover:bg-[#252525] hover:text-[#e0e0e0]'
                             }`}
+                        style={!selectedCampaignId ? { color } : {}}
                     >
                         All Campaigns (Cumulative)
                     </button>
@@ -108,9 +114,10 @@ export function CampaignSelector({
                                 key={campaign.id}
                                 onClick={() => handleSelect(campaign.id)}
                                 className={`w-full text-left px-3 py-2.5 text-sm transition-colors last:rounded-b-xl ${isSelected
-                                        ? 'bg-[#252525] text-[#ff3b30]'
-                                        : 'text-[#c0c0c0] hover:bg-[#252525] hover:text-[#e0e0e0]'
+                                    ? 'bg-[#252525]'
+                                    : 'text-[#c0c0c0] hover:bg-[#252525] hover:text-[#e0e0e0]'
                                     }`}
+                                style={isSelected ? { color } : {}}
                             >
                                 {campaign.name}
                             </button>

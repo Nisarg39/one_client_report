@@ -151,7 +151,10 @@ async function fetchRealPlatformData(
   connections: IPlatformConnection[],
   dateRange?: { startDate?: string; endDate?: string },
   selectedPropertyId?: string,
-  selectedMetaCampaignId?: string
+  selectedMetaCampaignId?: string,
+  selectedGoogleAdsCampaignId?: string,
+  selectedLinkedInCampaignGroupId?: string,
+  selectedLinkedInCampaignId?: string
 ): Promise<PlatformData> {
   const platformData: PlatformData = {};
 
@@ -186,7 +189,8 @@ async function fetchRealPlatformData(
       const googleAdsData = await fetchGoogleAdsData(
         googleAdsConnection,
         dateRange?.startDate,
-        dateRange?.endDate
+        dateRange?.endDate,
+        selectedGoogleAdsCampaignId
       );
       if (googleAdsData) {
         platformData.googleAds = googleAdsData;
@@ -227,7 +231,8 @@ async function fetchRealPlatformData(
       const linkedInData = await fetchLinkedInAdsData(
         linkedInConnection,
         dateRange?.startDate,
-        dateRange?.endDate
+        dateRange?.endDate,
+        selectedLinkedInCampaignId
       );
       if (linkedInData) {
         platformData.linkedInAds = linkedInData;
@@ -260,7 +265,10 @@ export async function fetchPlatformData(
   connections: IPlatformConnection[] = [],
   dateRange?: { startDate?: string; endDate?: string },
   selectedPropertyId?: string,
-  selectedMetaCampaignId?: string
+  selectedMetaCampaignId?: string,
+  selectedGoogleAdsCampaignId?: string,
+  selectedLinkedInCampaignGroupId?: string,
+  selectedLinkedInCampaignId?: string
 ): Promise<PlatformDataResponse> {
   // Determine if we should use mock data
   const useMockData =
@@ -273,7 +281,15 @@ export async function fetchPlatformData(
   }
 
   // Use real API data
-  const realData = await fetchRealPlatformData(connections, dateRange, selectedPropertyId, selectedMetaCampaignId);
+  const realData = await fetchRealPlatformData(
+    connections,
+    dateRange,
+    selectedPropertyId,
+    selectedMetaCampaignId,
+    selectedGoogleAdsCampaignId,
+    selectedLinkedInCampaignGroupId,
+    selectedLinkedInCampaignId
+  );
 
   return {
     data: realData,

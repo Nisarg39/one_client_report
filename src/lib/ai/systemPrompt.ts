@@ -50,7 +50,10 @@ export function buildSystemPrompt(
   platformData?: any,
   accountType?: 'business' | 'education' | 'instructor',
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): string {
   // Detect if using mock data
   const isMockData = platformData?._source === 'mock';
@@ -58,9 +61,27 @@ export function buildSystemPrompt(
 
   // Choose persona based on account type
   if (accountType === 'education' || accountType === 'instructor') {
-    return buildEducationPrompt(client, platformData, isMockData, scenarioName, selectedPropertyId, selectedMetaCampaignId);
+    return buildEducationPrompt(
+      client,
+      platformData,
+      isMockData,
+      scenarioName,
+      selectedPropertyId,
+      selectedMetaCampaignId,
+      selectedGoogleAdsCampaignId,
+      selectedLinkedInCampaignGroupId,
+      selectedLinkedInCampaignId
+    );
   } else {
-    return buildBusinessPrompt(client, platformData, selectedPropertyId, selectedMetaCampaignId);
+    return buildBusinessPrompt(
+      client,
+      platformData,
+      selectedPropertyId,
+      selectedMetaCampaignId,
+      selectedGoogleAdsCampaignId,
+      selectedLinkedInCampaignGroupId,
+      selectedLinkedInCampaignId
+    );
   }
 }
 
@@ -73,7 +94,10 @@ function buildEducationPrompt(
   isMockData?: boolean,
   scenarioName?: string,
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): string {
   const basePrompt = `You are **OneAssist**, an expert **Data Mentor** built into the OneReport educational platform.
 
@@ -182,7 +206,14 @@ You are working with the **${scenarioName}** scenario. This is simulated data de
   }
 
   // Add platform data context if available
-  const dataContext = buildPlatformDataContext(platformData, selectedPropertyId, selectedMetaCampaignId);
+  const dataContext = buildPlatformDataContext(
+    platformData,
+    selectedPropertyId,
+    selectedMetaCampaignId,
+    selectedGoogleAdsCampaignId,
+    selectedLinkedInCampaignGroupId,
+    selectedLinkedInCampaignId
+  );
 
   return basePrompt + platformInfo + dataContext + mockDataContext + limitations + examples;
 }
@@ -194,7 +225,10 @@ function buildBusinessPrompt(
   client?: ClientClient | null,
   platformData?: any,
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): string {
   const basePrompt = `You are **OneAssist**, an expert **Growth Strategist** built into the OneReport dashboard.
 
@@ -297,7 +331,14 @@ When providing insights, follow this structure:
 - "Where should I reallocate my budget?"`;
 
   // Add platform data context if available
-  const dataContext = buildPlatformDataContext(platformData, selectedPropertyId, selectedMetaCampaignId);
+  const dataContext = buildPlatformDataContext(
+    platformData,
+    selectedPropertyId,
+    selectedMetaCampaignId,
+    selectedGoogleAdsCampaignId,
+    selectedLinkedInCampaignGroupId,
+    selectedLinkedInCampaignId
+  );
 
   return basePrompt + platformInfo + dataContext + limitations + examples;
 }
@@ -314,7 +355,10 @@ When providing insights, follow this structure:
 export function buildPlatformDataContext(
   platformData: any,
   selectedPropertyId?: string | null,
-  selectedMetaCampaignId?: string | null
+  selectedMetaCampaignId?: string | null,
+  selectedGoogleAdsCampaignId?: string | null,
+  selectedLinkedInCampaignGroupId?: string | null,
+  selectedLinkedInCampaignId?: string | null
 ): string {
   if (!platformData || Object.keys(platformData).length === 0) {
     return '';
@@ -365,6 +409,11 @@ export function buildPlatformDataContext(
         context += `- Users: ${prop.metrics.users?.toLocaleString() || '0'} (${prop.metrics.newUsers?.toLocaleString() || '0'} new)\n`;
         context += `- Pageviews: ${prop.metrics.pageviews?.toLocaleString() || '0'}\n`;
         context += `- Events: ${prop.metrics.eventCount?.toLocaleString() || '0'}\n`;
+
+        // Integrated Google Ads metrics from GA4
+        if (prop.metrics.adsSpend && prop.metrics.adsSpend > 0) {
+          context += `  - **Linked Google Ads Data:** $${Number(prop.metrics.adsSpend).toLocaleString()} spend, ${Number(prop.metrics.adsImpressions).toLocaleString()} impressions, ${Number(prop.metrics.adsClicks).toLocaleString()} clicks\n`;
+        }
 
         // Engagement metrics
         context += `\n**Engagement:**\n`;
@@ -480,6 +529,14 @@ export function buildPlatformDataContext(
         context += `- Pageviews: ${ga.metrics.pageviews?.toLocaleString() || '0'}\n`;
         context += `- Bounce Rate: ${ga.metrics.bounceRate ? (ga.metrics.bounceRate * 100).toFixed(1) + '%' : '0%'}\n`;
         context += `- Avg Session Duration: ${ga.metrics.avgSessionDuration ? Math.round(ga.metrics.avgSessionDuration) + 's' : '0s'}\n`;
+
+        // Integrated Google Ads metrics from GA4
+        if (ga.metrics.adsSpend && ga.metrics.adsSpend > 0) {
+          context += `\n**Google Ads Performance (Integrated in GA4):**\n`;
+          context += `- Ad Spend: $${Number(ga.metrics.adsSpend).toLocaleString()}\n`;
+          context += `- Ad Impressions: ${Number(ga.metrics.adsImpressions).toLocaleString()}\n`;
+          context += `- Ad Clicks: ${Number(ga.metrics.adsClicks).toLocaleString()}\n`;
+        }
       } else {
         context += `**Note:** This property has 0 sessions, users, and pageviews in the selected date range.\n`;
         context += `The Google Analytics integration is working correctly, but the website has not received any tracked traffic yet.\n`;
@@ -499,27 +556,59 @@ export function buildPlatformDataContext(
     context += '\n### Google Ads Performance\n';
     context += `Date Range: ${gAds.dateRange || 'Last 30 days'}\n`;
 
-    // Handle developer token status
+    if (gAds.metrics && !gAds.apiError) {
+      if (selectedGoogleAdsCampaignId) {
+        const selectedCampaign = gAds.campaigns?.find((c: any) => c.id === selectedGoogleAdsCampaignId);
+        if (selectedCampaign) {
+          context += `⚠️ **USER FOCUS:** The user has specifically selected the campaign **"${selectedCampaign.name}"** in their dashboard. Prioritize analysis and reporting for this individual campaign.\n`;
+        }
+      }
+    }
     if (gAds.developerTokenStatus === 'missing') {
       context += 'Status: Developer token not configured - limited data available\n';
     } else if (gAds.developerTokenStatus === 'pending') {
       context += 'Status: Developer token pending approval - limited data available\n';
-    } else if (gAds.metrics) {
+    }
+
+    // Handle specific API errors
+    if (gAds.apiError) {
+      context += `⚠️ **API ERROR:** The Google Ads API returned an error: "${gAds.apiError}". Inform the user about this specific error as the reason why no metrics are available. Do not report $0 metrics if this error is present.\n`;
+    }
+
+    if (gAds.metrics && !gAds.apiError) {
+      const currency = gAds.metrics.currency || 'USD';
+      // Determine symbol - expand map as needed
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
       context += '\n**Account Summary:**\n';
       context += `- Total Impressions: ${gAds.metrics.impressions.toLocaleString()}\n`;
       context += `- Total Clicks: ${gAds.metrics.clicks.toLocaleString()}\n`;
-      context += `- Total Spend: $${gAds.metrics.cost.toLocaleString()}\n`;
-      context += `- CTR: ${gAds.metrics.ctr.toFixed(2)}%\n`;
-      context += `- Avg CPC: $${gAds.metrics.avgCpc.toFixed(2)}\n`;
+      context += `- Total Spend: ${symbol}${gAds.metrics.spend.toLocaleString()} ${currency}\n`;
+      context += `- CTR: ${Number(gAds.metrics.ctr).toFixed(2)}%\n`;
+      context += `- Avg CPC: ${symbol}${Number(gAds.metrics.cpc).toFixed(2)}\n`;
+      context += `- Interactions: ${gAds.metrics.interactions?.toLocaleString()}\n`;
+      context += `- Interaction Rate: ${Number(gAds.metrics.interactionRate).toFixed(2)}%\n`;
+
       if (gAds.metrics.conversions > 0) {
         context += `- Conversions: ${gAds.metrics.conversions.toLocaleString()}\n`;
+        context += `- Conv. Value: ${symbol}${gAds.metrics.conversionsValue.toLocaleString()}\n`;
+        context += `- Conv. Rate: ${Number(gAds.metrics.conversionRate).toFixed(2)}%\n`;
+        context += `- Cost per Conv: ${symbol}${Number(gAds.metrics.costPerConversion).toFixed(2)}\n`;
+      }
+
+      if (gAds.metrics.searchImpressionShare > 0) {
+        context += `\n**Competitive Data:**\n`;
+        context += `- Search Impr. Share: ${Number(gAds.metrics.searchImpressionShare).toFixed(2)}%\n`;
+        context += `- Abs. Top IS: ${Number(gAds.metrics.searchAbsTopImpressionShare).toFixed(2)}%\n`;
+        context += `- Lost IS (Budget): ${Number(gAds.metrics.searchBudgetLostImpressionShare).toFixed(2)}%\n`;
+        context += `- Lost IS (Rank): ${Number(gAds.metrics.searchRankLostImpressionShare).toFixed(2)}%\n`;
       }
 
       // Campaigns
       if (gAds.campaigns && gAds.campaigns.length > 0) {
         context += '\n**Top Campaigns:**\n';
         gAds.campaigns.slice(0, 5).forEach((campaign: any) => {
-          context += `- ${campaign.name} (${campaign.status}): ${campaign.impressions.toLocaleString()} impressions, ${campaign.clicks.toLocaleString()} clicks, $${campaign.cost.toFixed(2)} spend\n`;
+          context += `- ${campaign.name} (${campaign.status}, ${campaign.type}): ${Number(campaign.impressions).toLocaleString()} impressions, ${Number(campaign.clicks).toLocaleString()} clicks, ${symbol}${Number(campaign.spend).toFixed(2)} spend\n`;
         });
       }
     }
@@ -539,23 +628,29 @@ export function buildPlatformDataContext(
         }
       }
 
-      context += '\n**Account Summary:**\n';
+      const currency = meta.metrics.currency || 'USD';
+      // Determine symbol
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
+      const activeMetaCamp = selectedMetaCampaignId ? meta.campaigns?.find((c: any) => String(c.id) === String(selectedMetaCampaignId)) : null;
+
+      context += `\n**${activeMetaCamp ? `Campaign Summary (${activeMetaCamp.name})` : 'Account Summary'}:**\n`;
       context += `- Total Impressions: ${meta.metrics.impressions.toLocaleString()}\n`;
       context += `- Total Reach: ${meta.metrics.reach.toLocaleString()}\n`;
       context += `- Total Clicks: ${meta.metrics.clicks.toLocaleString()}\n`;
-      context += `- Total Spend: $${meta.metrics.spend.toLocaleString()}\n`;
-      context += `- CTR: ${meta.metrics.ctr.toFixed(2)}%\n`;
-      context += `- CPC: $${meta.metrics.cpc.toFixed(2)}\n`;
-      context += `- CPM: $${meta.metrics.cpm.toFixed(2)}\n`;
+      context += `- Total Spend: ${symbol}${meta.metrics.spend.toLocaleString()} ${currency}\n`;
+      context += `- CTR: ${Number(meta.metrics.ctr).toFixed(2)}%\n`;
+      context += `- CPC: ${symbol}${Number(meta.metrics.cpc).toFixed(2)}\n`;
+      context += `- CPM: ${symbol}${Number(meta.metrics.cpm).toFixed(2)}\n`;
       if (meta.metrics.frequency > 0) {
-        context += `- Frequency: ${meta.metrics.frequency.toFixed(2)}\n`;
+        context += `- Frequency: ${Number(meta.metrics.frequency).toFixed(2)}\n`;
       }
 
       // Campaigns
       if (meta.campaigns && meta.campaigns.length > 0) {
         context += '\n**Top Campaigns:**\n';
         meta.campaigns.slice(0, 5).forEach((campaign: any) => {
-          context += `- ${campaign.name} (${campaign.status}, ${campaign.objective}): ${campaign.metrics.impressions.toLocaleString()} impressions, ${campaign.metrics.clicks.toLocaleString()} clicks, $${campaign.metrics.spend.toFixed(2)} spend\n`;
+          context += `- ${campaign.name} (${campaign.status}, ${campaign.objective}): ${Number(campaign.metrics.impressions).toLocaleString()} impressions, ${Number(campaign.metrics.clicks).toLocaleString()} clicks, ${symbol}${Number(campaign.metrics.spend).toFixed(2)} spend\n`;
         });
       }
 
@@ -566,16 +661,16 @@ export function buildPlatformDataContext(
           context += `- Content Views: ${meta.metrics.content_views.toLocaleString()}\n`;
         }
         if (meta.metrics.add_to_carts > 0) {
-          context += `- Add to Carts: ${meta.metrics.add_to_carts.toLocaleString()} (Cost: $${meta.metrics.cost_per_add_to_cart.toFixed(2)})\n`;
+          context += `- Add to Carts: ${meta.metrics.add_to_carts.toLocaleString()} (Cost: ${symbol}${Number(meta.metrics.cost_per_add_to_cart).toFixed(2)})\n`;
         }
         if (meta.metrics.checkouts > 0) {
           context += `- Initiated Checkouts: ${meta.metrics.checkouts.toLocaleString()}\n`;
         }
         if (meta.metrics.registrations > 0) {
-          context += `- Registrations: ${meta.metrics.registrations.toLocaleString()} (Cost: $${meta.metrics.cost_per_registration.toFixed(2)})\n`;
+          context += `- Registrations: ${meta.metrics.registrations.toLocaleString()} (Cost: ${symbol}${Number(meta.metrics.cost_per_registration).toFixed(2)})\n`;
         }
         if (meta.metrics.purchases > 0) {
-          context += `- Purchases: ${meta.metrics.purchases.toLocaleString()} (Cost: $${meta.metrics.cost_per_purchase.toFixed(2)})\n`;
+          context += `- Purchases: ${meta.metrics.purchases.toLocaleString()} (Cost: ${symbol}${Number(meta.metrics.cost_per_purchase).toFixed(2)})\n`;
         }
       }
     }
@@ -587,9 +682,12 @@ export function buildPlatformDataContext(
         .sort((a: any, b: any) => b.spend - a.spend)
         .slice(0, 5);
 
+      const currency = meta.metrics.currency || 'USD';
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
       topDemographics.forEach((demo: any) => {
         const ctr = demo.impressions > 0 ? ((demo.clicks / demo.impressions) * 100).toFixed(2) : '0.00';
-        context += `- Age ${demo.age}, ${demo.gender}: ${demo.impressions.toLocaleString()} impressions, ${demo.clicks.toLocaleString()} clicks, $${demo.spend.toFixed(2)} spend, ${ctr}% CTR\n`;
+        context += `- Age ${demo.age}, ${demo.gender}: ${demo.impressions.toLocaleString()} impressions, ${demo.clicks.toLocaleString()} clicks, ${symbol}${demo.spend.toFixed(2)} spend, ${ctr}% CTR\n`;
       });
     }
 
@@ -600,24 +698,33 @@ export function buildPlatformDataContext(
         .sort((a: any, b: any) => b.spend - a.spend)
         .slice(0, 5);
 
+      const currency = meta.metrics.currency || 'USD';
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
       topGeos.forEach((geo: any) => {
-        context += `- ${geo.country}${geo.region && geo.region !== 'Unknown' ? ` (${geo.region})` : ''}: ${geo.impressions.toLocaleString()} impressions, $${geo.spend.toFixed(2)} spend\n`;
+        context += `- ${geo.country}${geo.region && geo.region !== 'Unknown' ? ` (${geo.region})` : ''}: ${geo.impressions.toLocaleString()} impressions, ${symbol}${geo.spend.toFixed(2)} spend\n`;
       });
     }
 
     // Device breakdown
     if (meta.devices && meta.devices.length > 0) {
       context += '\n**Device Performance:**\n';
+      const currency = meta.metrics.currency || 'USD';
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
       meta.devices.forEach((device: any) => {
-        context += `- ${device.device_platform}: ${device.impressions.toLocaleString()} impressions, ${device.clicks.toLocaleString()} clicks, $${device.spend.toFixed(2)} spend\n`;
+        context += `- ${device.device_platform}: ${device.impressions.toLocaleString()} impressions, ${device.clicks.toLocaleString()} clicks, ${symbol}${device.spend.toFixed(2)} spend\n`;
       });
     }
 
     // Publisher platform breakdown
     if (meta.publisher_platforms && meta.publisher_platforms.length > 0) {
       context += '\n**Publisher Platform Performance:**\n';
+      const currency = meta.metrics.currency || 'USD';
+      const symbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+
       meta.publisher_platforms.forEach((platform: any) => {
-        context += `- ${platform.publisher_platform}: ${platform.impressions.toLocaleString()} impressions, $${platform.spend.toFixed(2)} spend\n`;
+        context += `- ${platform.publisher_platform}: ${platform.impressions.toLocaleString()} impressions, ${symbol}${platform.spend.toFixed(2)} spend\n`;
       });
     }
   }
@@ -629,17 +736,29 @@ export function buildPlatformDataContext(
     context += `Date Range: ${linkedIn.dateRange || 'Last 30 days'}\n`;
 
     if (linkedIn.metrics) {
+      if (selectedLinkedInCampaignId) {
+        const selectedCampaign = linkedIn.campaigns?.find((c: any) => c.id === selectedLinkedInCampaignId);
+        if (selectedCampaign) {
+          context += `⚠️ **USER FOCUS:** The user has specifically selected the campaign **"${selectedCampaign.name}"** in their dashboard. Prioritize analysis and reporting for this individual campaign.\n`;
+        }
+      } else if (selectedLinkedInCampaignGroupId) {
+        const selectedGroup = linkedIn.campaigns?.find((c: any) => c.id === selectedLinkedInCampaignGroupId);
+        if (selectedGroup) {
+          context += `⚠️ **USER FOCUS:** The user has specifically selected the campaign group **"${selectedGroup.name}"** in their dashboard. Prioritize analysis and reporting for this group of campaigns.\n`;
+        }
+      }
       // Get currency symbol from metrics
       const currency = linkedIn.metrics.currency || 'USD';
-      const currencySymbol = currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
+      const currencySymbol =
+        currency === 'INR' ? '₹' : currency === 'EUR' ? '€' : currency === 'GBP' ? '£' : '$';
 
       // Core Metrics
       context += '\n**Core Performance:**\n';
-      context += `- Total Impressions: ${linkedIn.metrics.impressions.toLocaleString()}\n`;
-      context += `- Total Clicks: ${linkedIn.metrics.clicks.toLocaleString()}\n`;
-      context += `- Total Spend: ${currencySymbol}${linkedIn.metrics.spend.toLocaleString()} ${currency}\n`;
-      context += `- CTR: ${linkedIn.metrics.ctr.toFixed(2)}%\n`;
-      context += `- CPC: ${currencySymbol}${linkedIn.metrics.cpc.toFixed(2)} ${currency}\n`;
+      context += `- Total Impressions: ${Number(linkedIn.metrics.impressions).toLocaleString()}\n`;
+      context += `- Total Clicks: ${Number(linkedIn.metrics.clicks).toLocaleString()}\n`;
+      context += `- Total Spend: ${currencySymbol}${Number(linkedIn.metrics.spend).toLocaleString()} ${currency}\n`;
+      context += `- CTR: ${Number(linkedIn.metrics.ctr).toFixed(2)}%\n`;
+      context += `- CPC: ${currencySymbol}${Number(linkedIn.metrics.cpc).toFixed(2)} ${currency}\n`;
 
       // Engagement Metrics
       if (linkedIn.metrics.engagement) {
@@ -647,10 +766,10 @@ export function buildPlatformDataContext(
         if (eng.totalEngagements > 0) {
           context += '\n**Engagement Insights:**\n';
           context += `- Total Engagements: ${eng.totalEngagements.toLocaleString()}\n`;
-          context += `- Engagement Rate: ${eng.engagementRate.toFixed(2)}%\n`;
+          context += `- Engagement Rate: ${Number(eng.engagementRate).toFixed(2)}%\n`;
           context += `- Breakdown: ${eng.likes} likes, ${eng.comments} comments, ${eng.shares} shares, ${eng.follows} follows\n`;
           if (eng.costPerEngagement > 0) {
-            context += `- Cost Per Engagement: ${currencySymbol}${eng.costPerEngagement.toFixed(2)} ${currency}\n`;
+            context += `- Cost Per Engagement: ${currencySymbol}${Number(eng.costPerEngagement).toFixed(2)} ${currency}\n`;
           }
         }
       }
@@ -668,7 +787,7 @@ export function buildPlatformDataContext(
             context += `- Landing Page Clicks: ${conv.landingPageClicks.toLocaleString()}\n`;
           }
           if (conv.costPerConversion > 0) {
-            context += `- Cost Per Conversion: ${currencySymbol}${conv.costPerConversion.toFixed(2)} ${currency}\n`;
+            context += `- Cost Per Conversion: ${currencySymbol}${Number(conv.costPerConversion).toFixed(2)} ${currency}\n`;
           }
         }
       }
@@ -681,13 +800,13 @@ export function buildPlatformDataContext(
           context += `- Total Leads: ${leads.total.toLocaleString()}\n`;
           if (leads.qualified > 0) {
             context += `- Qualified Leads: ${leads.qualified.toLocaleString()}\n`;
-            context += `- Lead Quality Rate: ${leads.qualityRate.toFixed(1)}%\n`;
+            context += `- Lead Quality Rate: ${Number(leads.qualityRate).toFixed(1)}%\n`;
           }
           if (leads.formOpens > 0) {
             context += `- Form Opens: ${leads.formOpens.toLocaleString()}\n`;
           }
           if (leads.costPerLead > 0) {
-            context += `- Cost Per Lead (CPL): ${currencySymbol}${leads.costPerLead.toFixed(2)} ${currency}\n`;
+            context += `- Cost Per Lead (CPL): ${currencySymbol}${Number(leads.costPerLead).toFixed(2)} ${currency}\n`;
           }
         }
       }
@@ -701,7 +820,7 @@ export function buildPlatformDataContext(
           context += `- Video Views: ${video.views.toLocaleString()}\n`;
           if (video.completions > 0) {
             context += `- Completions: ${video.completions.toLocaleString()}\n`;
-            context += `- Completion Rate: ${video.completionRate.toFixed(1)}%\n`;
+            context += `- Completion Rate: ${Number(video.completionRate).toFixed(1)}%\n`;
           }
         }
       }
@@ -724,7 +843,7 @@ export function buildPlatformDataContext(
       if (linkedIn.campaigns && linkedIn.campaigns.length > 0) {
         context += '\n**Top Campaigns:**\n';
         linkedIn.campaigns.slice(0, 5).forEach((campaign: any) => {
-          context += `- ${campaign.name} (${campaign.status}): ${campaign.impressions.toLocaleString()} impressions, ${campaign.clicks.toLocaleString()} clicks, ${currencySymbol}${campaign.spend.toFixed(2)} ${currency} spend\n`;
+          context += `- ${campaign.name} (${campaign.status}): ${campaign.metrics.impressions.toLocaleString()} impressions, ${campaign.metrics.clicks.toLocaleString()} clicks, ${currencySymbol}${Number(campaign.metrics.spend).toFixed(2)} ${currency} spend\n`;
         });
       }
     }

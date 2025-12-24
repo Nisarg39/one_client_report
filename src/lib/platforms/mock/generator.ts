@@ -395,7 +395,9 @@ export function generateMockGoogleAdsData(config: AdsMockConfig): GoogleAdsData 
       type: 'SEARCH',
       impressions,
       clicks,
-      cost,
+      spend: cost,
+      conversions,
+      conversionRate: impressions > 0 ? (conversions / impressions) * 100 : 0,
     };
   });
 
@@ -414,10 +416,21 @@ export function generateMockGoogleAdsData(config: AdsMockConfig): GoogleAdsData 
     metrics: {
       impressions: totalImpressions,
       clicks: totalClicks,
-      cost: totalCost,
+      spend: totalCost,
+      currency,
       conversions: totalConversions,
+      conversionsValue: totalConversions * 50, // Mock value
+      costPerConversion: totalConversions > 0 ? totalCost / totalConversions : 0,
+      conversionRate: totalImpressions > 0 ? (totalConversions / totalImpressions) * 100 : 0,
+      viewThroughConversions: Math.round(totalConversions * 0.1),
+      interactions: totalClicks,
+      interactionRate: avgCtr,
       ctr: avgCtr,
-      avgCpc: avgCpc,
+      cpc: avgCpc,
+      searchImpressionShare: 85.5,
+      searchAbsTopImpressionShare: 45.2,
+      searchBudgetLostImpressionShare: 5.4,
+      searchRankLostImpressionShare: 9.1,
     },
     campaigns,
     dateRange: config.dateRange,
@@ -501,6 +514,7 @@ export function generateMockMetaAdsData(config: MetaMockConfig): MetaAdsData {
       reach: totalReach,
       clicks: totalClicks,
       spend: totalSpend,
+      currency: config.currency,
       ctr: avgCtr,
       cpc: avgCpc,
       cpm: avgCpm,
@@ -571,10 +585,12 @@ export function generateMockLinkedInAdsData(config: LinkedInMockConfig): LinkedI
       id: randomId(),
       name: camp.name,
       status: 'ACTIVE',
-      type: camp.objective,
-      impressions,
-      clicks,
-      spend,
+      type: 'CAMPAIGN',
+      metrics: {
+        impressions,
+        clicks,
+        spend,
+      },
     };
   });
 

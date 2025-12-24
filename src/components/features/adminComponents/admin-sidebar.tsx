@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { adminLogout } from "@/backend/server_actions/adminActions";
-import { LayoutDashboard, Users, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, LogOut, Menu, X, Bug } from "lucide-react";
 
 interface AdminSidebarProps {
   activeView: string;
@@ -14,7 +14,8 @@ interface SidebarNavItem {
   id: string;
   label: string;
   icon: LucideIcon;
-  submenu?: { id: string; label: string }[];
+  submenu?: { id: string; label: string; href?: string }[];
+  href?: string;
 }
 
 interface SidebarContentProps {
@@ -50,9 +51,18 @@ function SidebarContent({ navigationItems, activeView, onNavigate, onLogout }: S
               {/* Main Nav Item */}
               <button
                 onClick={() => {
+                  if (item.href) {
+                    window.location.href = item.href;
+                    return;
+                  }
                   // If item has submenu, navigate to first submenu item
                   if (item.submenu && item.submenu.length > 0) {
-                    onNavigate(item.submenu[0].id);
+                    const firstSub = item.submenu[0];
+                    if (firstSub.href) {
+                      window.location.href = firstSub.href;
+                    } else {
+                      onNavigate(firstSub.id);
+                    }
                   } else {
                     onNavigate(item.id);
                   }
@@ -60,10 +70,9 @@ function SidebarContent({ navigationItems, activeView, onNavigate, onLogout }: S
                 className={`
                   w-full flex items-center gap-3 px-4 py-3 rounded-2xl
                   font-medium text-sm transition-all duration-300
-                  ${
-                    isActive
-                      ? "bg-[#151515] text-[#6CA3A2] shadow-[inset_8px_8px_16px_rgba(0,0,0,0.8),inset_-8px_-8px_16px_rgba(70,70,70,0.4)] border border-[#2a2a2a]"
-                      : "bg-[#1a1a1a] text-[#c0c0c0] shadow-[-8px_-8px_16px_rgba(90,90,90,0.4),8px_8px_16px_rgba(0,0,0,0.9)] border border-[#252525] hover:shadow-[-10px_-10px_20px_rgba(90,90,90,0.5),10px_10px_20px_rgba(0,0,0,1)] hover:border-[#2a2a2a]"
+                  ${isActive
+                    ? "bg-[#151515] text-[#6CA3A2] shadow-[inset_8px_8px_16px_rgba(0,0,0,0.8),inset_-8px_-8px_16px_rgba(70,70,70,0.4)] border border-[#2a2a2a]"
+                    : "bg-[#1a1a1a] text-[#c0c0c0] shadow-[-8px_-8px_16px_rgba(90,90,90,0.4),8px_8px_16px_rgba(0,0,0,0.9)] border border-[#252525] hover:shadow-[-10px_-10px_20px_rgba(90,90,90,0.5),10px_10px_20px_rgba(0,0,0,1)] hover:border-[#2a2a2a]"
                   }
                 `}
               >
@@ -77,14 +86,19 @@ function SidebarContent({ navigationItems, activeView, onNavigate, onLogout }: S
                   {item.submenu.map((subItem) => (
                     <button
                       key={subItem.id}
-                      onClick={() => onNavigate(subItem.id)}
+                      onClick={() => {
+                        if (subItem.href) {
+                          window.location.href = subItem.href;
+                        } else {
+                          onNavigate(subItem.id);
+                        }
+                      }}
                       className={`
                         w-full text-left px-4 py-2 rounded-xl
                         text-xs transition-all duration-200
-                        ${
-                          activeView === subItem.id
-                            ? "text-[#6CA3A2] bg-[#151515] font-medium"
-                            : "text-[#999999] hover:text-[#6CA3A2] hover:bg-[#151515]"
+                        ${activeView === subItem.id
+                          ? "text-[#6CA3A2] bg-[#151515] font-medium"
+                          : "text-[#999999] hover:text-[#6CA3A2] hover:bg-[#151515]"
                         }
                       `}
                     >
@@ -143,6 +157,33 @@ export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarPro
         {
           id: "contacts",
           label: "Contact Submissions",
+        },
+      ],
+    },
+    {
+      id: "debug-tools",
+      label: "Debug Tools",
+      icon: Bug,
+      submenu: [
+        {
+          id: "debug-linkedin",
+          label: "LinkedIn Debugger",
+          href: "/test/linkedin",
+        },
+        {
+          id: "debug-ga",
+          label: "GA Debugger",
+          href: "/test/google-analytics",
+        },
+        {
+          id: "debug-meta",
+          label: "Meta Ads Debugger",
+          href: "/test/meta-ads",
+        },
+        {
+          id: "debug-google-ads",
+          label: "Google Ads Debugger",
+          href: "/test/google-ads",
         },
       ],
     },

@@ -32,6 +32,10 @@ export interface GAPropertyData {
     engagementRate: number;
     sessionsPerUser: number;
     eventCount: number;
+    // Google Ads metrics integrated in GA
+    adsSpend?: number;
+    adsImpressions?: number;
+    adsClicks?: number;
   };
   // Dimensional breakdowns
   dimensions: {
@@ -99,15 +103,14 @@ export interface GADataForAI {
   };
   dateRange: string;
   propertyName?: string;
+  apiResponse?: any; // The whole API response for debugging
 }
 
-/**
- * Multi-property GA data for AI
- */
 export interface GAMultiPropertyData {
   properties: GAPropertyData[];
   dateRange: string;
   selectedPropertyId?: string;
+  apiResponse?: any; // The whole API response for debugging
 }
 
 /**
@@ -119,6 +122,7 @@ export interface GAMultiPropertyData {
 export async function fetchGoogleAnalyticsData(
   connection: IPlatformConnection
 ): Promise<GADataForAI | null> {
+  let fullApiResponse: any = {};
   try {
     // Get the access token
     const accessToken = connection.getDecryptedAccessToken();
@@ -172,6 +176,7 @@ export async function fetchGoogleAnalyticsData(
         { name: 'averageSessionDuration' },
       ],
     });
+    fullApiResponse.overview = metricsResponse;
 
     // Parse metrics
     const metricsRow = metricsResponse.rows?.[0];
@@ -191,6 +196,7 @@ export async function fetchGoogleAnalyticsData(
       dimensions: [{ name: 'sessionSource' }],
       limit: 5,
     });
+    fullApiResponse.sources = sourcesResponse;
 
     const topSources = (sourcesResponse.rows || []).map((row) => ({
       source: row.dimensionValues?.[0]?.value || 'Unknown',
@@ -205,6 +211,7 @@ export async function fetchGoogleAnalyticsData(
       dimensions: [{ name: 'deviceCategory' }],
       limit: 5,
     });
+    fullApiResponse.devices = devicesResponse;
 
     const totalDeviceSessions = (devicesResponse.rows || []).reduce(
       (sum, row) => sum + parseInt(row.metricValues?.[0]?.value || '0', 10),
@@ -229,6 +236,7 @@ export async function fetchGoogleAnalyticsData(
       dimensions: [{ name: 'pagePath' }],
       limit: 5,
     });
+    fullApiResponse.pages = pagesResponse;
 
     const topPages = (pagesResponse.rows || []).map((row) => ({
       page: row.dimensionValues?.[0]?.value || '/',
@@ -244,6 +252,7 @@ export async function fetchGoogleAnalyticsData(
       },
       dateRange: `${formatDate(startDate)} to ${formatDate(endDate)}`,
       propertyName,
+      apiResponse: fullApiResponse,
     };
   } catch (error) {
     console.error('Error fetching Google Analytics data:', error);
@@ -318,6 +327,7 @@ export async function fetchAllGoogleAnalyticsProperties(
     }
 
     // Fetch all properties in parallel for better performance
+    let fullMultiApiResponse: any[] = [];
     const propertiesDataPromises = propertiesToFetch.map(async (prop) => {
       try {
         // 1. Fetch REAL-TIME active users first
@@ -451,7 +461,33 @@ export async function fetchAllGoogleAnalyticsProperties(
           engagementRate: parseFloat(metricsRow?.metricValues?.[6]?.value || '0'),
           sessionsPerUser: parseFloat(metricsRow?.metricValues?.[7]?.value || '0'),
           eventCount: parseInt(metricsRow?.metricValues?.[8]?.value || '0', 10),
+          adsSpend: 0,
+          adsImpressions: 0,
+          adsClicks: 0,
         };
+
+        // 3. Optional: Fetch Google Ads metrics in a separate protected request
+        // This prevents the entire property fetch from failing if Ads are not linked
+        try {
+          const adsResponse = await client.runReport({
+            propertyId: prop.propertyId,
+            dateRanges,
+            metrics: [
+              { name: 'advertiserAdCost' },
+              { name: 'advertiserAdImpressions' },
+              { name: 'advertiserAdClicks' },
+            ],
+          });
+
+          const adsRow = adsResponse.rows?.[0];
+          if (adsRow) {
+            metrics.adsSpend = parseFloat(adsRow.metricValues?.[0]?.value || '0');
+            metrics.adsImpressions = parseInt(adsRow.metricValues?.[1]?.value || '0', 10);
+            metrics.adsClicks = parseInt(adsRow.metricValues?.[2]?.value || '0', 10);
+          }
+        } catch (adsError) {
+          // Ads not linked or other API issue - keep defaults
+        }
 
         // Initialize dimensions
         const dimensions: GAPropertyData['dimensions'] = {
@@ -613,9 +649,13 @@ export async function fetchAllGoogleAnalyticsProperties(
         engagementRate: acc.engagementRate + ((prop.metrics.engagementRate || 0) * (prop.metrics.sessions || 1)),
         sessionsPerUser: acc.sessionsPerUser + ((prop.metrics.sessionsPerUser || 0) * (prop.metrics.users || 1)),
         eventCount: acc.eventCount + (prop.metrics.eventCount || 0),
+        adsSpend: acc.adsSpend + (prop.metrics.adsSpend || 0),
+        adsImpressions: acc.adsImpressions + (prop.metrics.adsImpressions || 0),
+        adsClicks: acc.adsClicks + (prop.metrics.adsClicks || 0),
       }), {
         sessions: 0, users: 0, newUsers: 0, returningUsers: 0, pageviews: 0,
-        bounceRate: 0, avgSessionDuration: 0, engagementRate: 0, sessionsPerUser: 0, eventCount: 0
+        bounceRate: 0, avgSessionDuration: 0, engagementRate: 0, sessionsPerUser: 0, eventCount: 0,
+        adsSpend: 0, adsImpressions: 0, adsClicks: 0
       });
 
       // Calculate weighted averages
@@ -672,6 +712,7 @@ export async function fetchAllGoogleAnalyticsProperties(
       properties: propertiesData,
       dateRange: `${start} to ${end}`,
       selectedPropertyId: selectedPropertyId || (propertiesData.length > 1 ? 'all' : activePropId),
+      apiResponse: propertiesData,
     };
 
     // Cache the result for 5 minutes

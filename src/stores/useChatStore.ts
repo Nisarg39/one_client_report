@@ -69,6 +69,9 @@ interface ChatStore {
     selectedPlatform: PlatformType | null; // Currently selected platform tab
     selectedPropertyId: string | null; // Selected GA property ID
     selectedMetaCampaignId: string | null; // Selected Meta campaign ID
+    selectedGoogleAdsCampaignId: string | null; // Selected Google Ads campaign ID
+    selectedLinkedInCampaignGroupId: string | null; // Selected LinkedIn campaign group ID
+    selectedLinkedInCampaignId: string | null; // Selected LinkedIn campaign ID
     width: number;                      // Panel width in pixels (desktop)
     mode: 'split' | 'collapsed' | 'overlay'; // Layout mode
   };
@@ -115,6 +118,7 @@ interface ChatStore {
   setMetricsDashboardPlatform: (platform: PlatformType) => void;
   setMetricsDashboardPropertyId: (propertyId: string | null) => void;
   setMetricsDashboardCampaignId: (campaignId: string | null) => void;
+  setMetricsDashboardLinkedInCampaignGroupId: (groupId: string | null) => void;
   setMetricsDashboardWidth: (width: number) => void;
   setPlatformData: (data: PlatformDataPayload) => void;
 }
@@ -151,6 +155,9 @@ export const useChatStore = create<ChatStore>()(
         selectedPlatform: null,
         selectedPropertyId: null,
         selectedMetaCampaignId: null,
+        selectedGoogleAdsCampaignId: null,
+        selectedLinkedInCampaignGroupId: null,
+        selectedLinkedInCampaignId: null,
         width: 400, // Default panel width (px)
         mode: 'collapsed' as const,
       },
@@ -176,6 +183,9 @@ export const useChatStore = create<ChatStore>()(
             ...state.metricsDashboard,
             selectedPropertyId: null, // Reset property selection when switching clients
             selectedMetaCampaignId: null, // Reset campaign selection when switching clients
+            selectedGoogleAdsCampaignId: null,
+            selectedLinkedInCampaignGroupId: null,
+            selectedLinkedInCampaignId: null,
           },
         })),
 
@@ -258,8 +268,11 @@ export const useChatStore = create<ChatStore>()(
             selectedPlatform: platform,
             // Reset property selection when switching away from Google Analytics
             selectedPropertyId: platform === 'googleAnalytics' ? state.metricsDashboard.selectedPropertyId : null,
-            // Reset campaign selection when switching away from Meta Ads
+            // Reset campaign selection when switching away from ad platforms
             selectedMetaCampaignId: platform === 'metaAds' ? state.metricsDashboard.selectedMetaCampaignId : null,
+            selectedGoogleAdsCampaignId: platform === 'googleAds' ? state.metricsDashboard.selectedGoogleAdsCampaignId : null,
+            selectedLinkedInCampaignGroupId: platform === 'linkedInAds' ? state.metricsDashboard.selectedLinkedInCampaignGroupId : null,
+            selectedLinkedInCampaignId: platform === 'linkedInAds' ? state.metricsDashboard.selectedLinkedInCampaignId : null,
           },
         })),
 
@@ -275,7 +288,21 @@ export const useChatStore = create<ChatStore>()(
         set((state) => ({
           metricsDashboard: {
             ...state.metricsDashboard,
-            selectedMetaCampaignId: campaignId,
+            selectedMetaCampaignId: state.metricsDashboard.selectedPlatform === 'metaAds' ? campaignId : state.metricsDashboard.selectedMetaCampaignId,
+            selectedGoogleAdsCampaignId: state.metricsDashboard.selectedPlatform === 'googleAds' ? campaignId : state.metricsDashboard.selectedGoogleAdsCampaignId,
+            selectedLinkedInCampaignId: state.metricsDashboard.selectedPlatform === 'linkedInAds' ? campaignId : state.metricsDashboard.selectedLinkedInCampaignId,
+            // If we select a campaign, clear the campaign group selection
+            selectedLinkedInCampaignGroupId: (state.metricsDashboard.selectedPlatform === 'linkedInAds' && campaignId) ? null : state.metricsDashboard.selectedLinkedInCampaignGroupId,
+          },
+        })),
+
+      setMetricsDashboardLinkedInCampaignGroupId: (groupId) =>
+        set((state) => ({
+          metricsDashboard: {
+            ...state.metricsDashboard,
+            selectedLinkedInCampaignGroupId: groupId,
+            // If we select a campaign group, clear the individual campaign selection
+            selectedLinkedInCampaignId: groupId ? null : state.metricsDashboard.selectedLinkedInCampaignId,
           },
         })),
 

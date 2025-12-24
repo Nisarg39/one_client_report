@@ -325,7 +325,9 @@ export function ChatPageClient() {
       },
       dateRangeFilter ? { startDate: dateRangeFilter.startDate, endDate: dateRangeFilter.endDate } : undefined,
       metricsDashboard.selectedPropertyId,
-      metricsDashboard.selectedMetaCampaignId
+      metricsDashboard.selectedMetaCampaignId,
+      metricsDashboard.selectedGoogleAdsCampaignId,
+      metricsDashboard.selectedLinkedInCampaignId
     );
   };
 

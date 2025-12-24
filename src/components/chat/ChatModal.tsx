@@ -26,6 +26,8 @@ export function ChatModal() {
     setTyping,
     currentClientId,
     currentConversationId,
+    dateRangeFilter,
+    metricsDashboard,
   } = useChatStore();
 
   const { streamMessage } = useStreamingChat();
@@ -81,7 +83,12 @@ export function ChatModal() {
           };
           addMessage(errorMessage);
         },
-      }
+      },
+      dateRangeFilter || undefined,
+      metricsDashboard.selectedPropertyId,
+      metricsDashboard.selectedMetaCampaignId,
+      metricsDashboard.selectedGoogleAdsCampaignId,
+      metricsDashboard.selectedLinkedInCampaignId
     );
   };
 

@@ -19,7 +19,7 @@ export const LINKEDIN_ADS_CONFIG: PlatformConfig = {
     'r_organization_social',
     'rw_ads',
   ],
-  apiVersion: '202411', // Use valid YYYYMM format (November 2024)
+  apiVersion: '202511', // Use valid YYYYMM format (November 2025)
 };
 
 /**
@@ -188,8 +188,10 @@ export interface LinkedInAdsAnalyticsRequest {
     };
   };
   timeGranularity: 'DAILY' | 'MONTHLY' | 'ALL';
-  pivot: 'CAMPAIGN' | 'CREATIVE' | 'ACCOUNT';
+  pivot: 'CAMPAIGN' | 'CREATIVE' | 'ACCOUNT' | 'CAMPAIGN_GROUP';
   fields: string[];
+  campaigns?: string[];
+  campaignGroups?: string[];
 }
 
 /**
@@ -209,7 +211,8 @@ export interface LinkedInAdsAnalyticsResponse {
         day: number;
       };
     };
-    pivotValue?: string; // Campaign/Creative/Account URN
+    pivotValue?: string; // Legacy: Campaign/Creative/Account URN
+    pivotValues?: string[]; // New: Array of pivot URNs
     // Core metrics
     impressions?: number;
     clicks?: number;

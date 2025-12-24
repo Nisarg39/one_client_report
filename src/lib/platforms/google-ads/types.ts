@@ -1,9 +1,3 @@
-/**
- * Google Ads API Type Definitions
- *
- * Type definitions for Google Ads API v14
- */
-
 import { PlatformConfig, MetricDefinition } from '../types';
 
 /**
@@ -17,7 +11,7 @@ export const GOOGLE_ADS_CONFIG: PlatformConfig = {
     'https://www.googleapis.com/auth/adwords',
     'https://www.googleapis.com/auth/userinfo.email',
   ],
-  apiVersion: 'v18', // Updated to latest stable version
+  apiVersion: 'v19',
 };
 
 /**
@@ -27,15 +21,17 @@ export const GOOGLE_ADS_METRIC_MAP: Record<string, string> = {
   // Basic Metrics
   impressions: 'metrics.impressions',
   clicks: 'metrics.clicks',
-  cost: 'metrics.cost_micros',
+  spend: 'metrics.cost_micros',
   conversions: 'metrics.conversions',
   conversion_value: 'metrics.conversions_value',
 
   // Performance Metrics
   ctr: 'metrics.ctr',
-  average_cpc: 'metrics.average_cpc',
+  cpc: 'metrics.average_cpc',
   average_cpm: 'metrics.average_cpm',
   cost_per_conversion: 'metrics.cost_per_conversion',
+  conversion_rate: 'metrics.conversions_from_interactions_rate',
+  view_through_conversions: 'metrics.view_through_conversions',
 
   // Engagement Metrics
   interactions: 'metrics.interactions',
@@ -47,9 +43,12 @@ export const GOOGLE_ADS_METRIC_MAP: Record<string, string> = {
   video_view_rate: 'metrics.video_view_rate',
   average_cpv: 'metrics.average_cpv',
 
-  // Search Metrics
+  // Search/Competitive Metrics
   search_impression_share: 'metrics.search_impression_share',
+  search_top_impression_share: 'metrics.search_top_impression_share',
+  search_abs_top_impression_share: 'metrics.search_absolute_top_impression_share',
   search_rank_lost_impression_share: 'metrics.search_rank_lost_impression_share',
+  search_budget_lost_impression_share: 'metrics.search_budget_lost_impression_share',
   quality_score: 'metrics.quality_score',
 
   // Shopping Metrics
@@ -164,45 +163,15 @@ export interface GoogleAdsQueryRequest {
  * Google Ads Query Response
  */
 export interface GoogleAdsQueryResponse {
-  results: Array<{
-    campaign?: {
-      resourceName?: string;
-      id: string;
-      name: string;
-      status: string;
-      advertisingChannelType?: string;
-      biddingStrategyType?: string;
-      [key: string]: any;
-    };
-    adGroup?: {
-      id: string;
-      name: string;
-    };
-    metrics?: {
-      impressions?: string;
-      clicks?: string;
-      cost_micros?: string;
-      conversions?: number;
-      conversions_value?: number;
-      ctr?: number;
-      average_cpc?: string;
-      [key: string]: any;
-    };
-    segments?: {
-      date?: string;
-      device?: string;
-      [key: string]: any;
-    };
-    [key: string]: any;
-  }>;
+  results: any[];
   fieldMask: string;
   nextPageToken?: string;
 }
 
 /**
- * Google Ads Customer
+ * Google Ads Customer Row
  */
-export interface GoogleAdsCustomer {
+export interface GoogleAdsCustomerRow {
   resourceName: string;
   id: string;
   descriptiveName: string;
@@ -210,6 +179,11 @@ export interface GoogleAdsCustomer {
   timeZone: string;
   manager: boolean;
 }
+
+/**
+ * Google Ads Customer (compatibility alias)
+ */
+export type GoogleAdsCustomer = GoogleAdsCustomerRow;
 
 /**
  * Google Ads Campaign
