@@ -454,6 +454,51 @@ export function buildPlatformDataContext(
           });
         }
 
+        // Ecommerce Data (Enhanced)
+        if (prop.ecommerce && (prop.ecommerce.totalRevenue > 0 || prop.ecommerce.transactions > 0)) {
+          context += `\n**Ecommerce Performance:**\n`;
+          context += `- Total Revenue: $${prop.ecommerce.totalRevenue?.toLocaleString()}\n`;
+          context += `- Purchase Revenue: $${prop.ecommerce.purchaseRevenue?.toLocaleString()}\n`;
+          context += `- Transactions: ${prop.ecommerce.transactions?.toLocaleString()}\n`;
+          context += `- Conversion Rate: ${prop.ecommerce.conversionRate ? (prop.ecommerce.conversionRate * 100).toFixed(2) + '%' : '0%'}\n`;
+          context += `- Cart Activity: ${prop.ecommerce.add_to_carts?.toLocaleString()} adds, ${prop.ecommerce.checkouts?.toLocaleString()} checkouts\n`;
+
+          if (prop.ecommerce.items && prop.ecommerce.items.length > 0) {
+            context += `\n**Top Products Sold:**\n`;
+            prop.ecommerce.items.slice(0, 5).forEach((item: any) => {
+              context += `- ${item.name} (${item.category}): ${item.quantity} sold, $${item.revenue?.toLocaleString()} revenue\n`;
+            });
+          }
+        }
+
+        // Conversion Detailed Data
+        if (prop.conversions && prop.conversions.totalConversions > 0) {
+          context += `\n**Conversion Insights:**\n`;
+          context += `- Total Conversions: ${prop.conversions.totalConversions?.toLocaleString()}\n`;
+          context += `- Session Conv. Rate: ${prop.conversions.sessionConversionRate ? (prop.conversions.sessionConversionRate * 100).toFixed(2) + '%' : '0%'}\n`;
+          context += `- User Conv. Rate: ${prop.conversions.userConversionRate ? (prop.conversions.userConversionRate * 100).toFixed(2) + '%' : '0%'}\n`;
+        }
+
+        // Advanced Technology Breakdown
+        if (prop.techBreakdown) {
+          context += `\n**Technology Breakdown:**\n`;
+          if (prop.techBreakdown.operatingSystem?.length > 0) {
+            context += `- Top OS: ${prop.techBreakdown.operatingSystem.slice(0, 3).map((os: any) => `${os.name} (${os.sessions})`).join(', ')}\n`;
+          }
+          if (prop.techBreakdown.language?.length > 0) {
+            context += `- Top Languages: ${prop.techBreakdown.language.slice(0, 3).map((l: any) => `${l.name} (${l.sessions})`).join(', ')}\n`;
+          }
+        }
+
+        // Retention & LTV
+        if (prop.retention && prop.retention.userLtvTotalRevenue > 0) {
+          context += `\n**Retention & Lifetime Value (LTV):**\n`;
+          context += `- Total LTV Revenue: $${prop.retention.userLtvTotalRevenue?.toLocaleString()}\n`;
+          if (prop.retention.userLtvAverageRevenue) {
+            context += `- Avg LTV per User: $${prop.retention.userLtvAverageRevenue?.toLocaleString()}\n`;
+          }
+        }
+
         // Enhanced Phase 2 Metrics: Campaigns (UTM tracking)
         if (prop.topCampaigns && prop.topCampaigns.length > 0) {
           context += `\n**Top Campaigns (UTM Tracking):**\n`;

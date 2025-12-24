@@ -150,6 +150,17 @@ export default function AdminSidebar({ activeView, onNavigate }: AdminSidebarPro
       icon: LayoutDashboard,
     },
     {
+      id: "user-management",
+      label: "User Management",
+      icon: Users,
+      submenu: [
+        {
+          id: "users",
+          label: "Signed Up Users",
+        },
+      ],
+    },
+    {
       id: "guest-actions",
       label: "Guest Actions",
       icon: Users,

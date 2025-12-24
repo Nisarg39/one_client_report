@@ -9,6 +9,7 @@ interface DashboardStats {
   today: number;
   thisWeek: number;
   unread: number;
+  totalUsers: number;
 }
 
 interface Contact {
@@ -76,28 +77,28 @@ export default function AdminDashboard() {
 
   const statsCards = [
     {
-      label: "Total Contacts",
-      value: stats?.total || 0,
+      label: "Registered Users",
+      value: stats?.totalUsers || 0,
       icon: Users,
       color: "#6CA3A2",
     },
     {
-      label: "Today",
-      value: stats?.today || 0,
-      icon: TrendingUp,
+      label: "Total Contacts",
+      value: stats?.total || 0,
+      icon: Mail,
       color: "#FF8C42",
     },
     {
-      label: "This Week",
+      label: "Unread Messages",
+      value: stats?.unread || 0,
+      icon: AlertCircle,
+      color: "#E67A33",
+    },
+    {
+      label: "Recent (7 Days)",
       value: stats?.thisWeek || 0,
       icon: Clock,
       color: "#5a9493",
-    },
-    {
-      label: "Unread",
-      value: stats?.unread || 0,
-      icon: Mail,
-      color: "#E67A33",
     },
   ];
 
@@ -189,10 +190,9 @@ export default function AdminDashboard() {
                         <span
                           className={`
                             px-3 py-1 rounded-full text-xs font-semibold capitalize
-                            ${
-                              contact.status === "unread"
-                                ? "bg-[#FF8C42] text-black shadow-[-4px_-4px_8px_rgba(255,140,66,0.3),4px_4px_8px_rgba(0,0,0,0.8)]"
-                                : contact.status === "read"
+                            ${contact.status === "unread"
+                              ? "bg-[#FF8C42] text-black shadow-[-4px_-4px_8px_rgba(255,140,66,0.3),4px_4px_8px_rgba(0,0,0,0.8)]"
+                              : contact.status === "read"
                                 ? "bg-[#6CA3A2] text-black shadow-[-4px_-4px_8px_rgba(108,163,162,0.3),4px_4px_8px_rgba(0,0,0,0.8)]"
                                 : "bg-[#5a9493] text-black shadow-[-4px_-4px_8px_rgba(90,148,147,0.3),4px_4px_8px_rgba(0,0,0,0.8)]"
                             }

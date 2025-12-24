@@ -59,6 +59,7 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
     {
       name: "Student",
       price: "FREE",
+      originalPrice: null,
       period: "",
       badge: "Free Forever",
       badgeColor: "from-[#6CA3A2] to-[#5A8D8C]",
@@ -80,8 +81,9 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
     {
       name: "Professional",
       price: "₹299",
+      originalPrice: "₹1,299",
       period: "/month",
-      badge: "RECOMMENDED",
+      badge: "FOUNDER'S DEAL",
       badgeColor: "from-[#FF8C42] to-[#E67A33]",
       description: "Ideal for freelancers and small businesses",
       reports: "Unlimited campaigns • 150 messages/day",
@@ -103,8 +105,9 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
     {
       name: "Agency",
       price: "₹999",
+      originalPrice: "₹4,499",
       period: "/month",
-      badge: "Best Value",
+      badge: "EARLY ADOPTER",
       badgeColor: "from-[#6CA3A2] to-[#5A8D8C]",
       description: "For growing agencies with high volume needs",
       reports: "Unlimited campaigns • 300 messages/day",
@@ -126,6 +129,7 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
     {
       name: "Enterprise",
       price: "Custom",
+      originalPrice: null,
       period: "",
       badge: "White Glove Service",
       badgeColor: "from-[#9333ea] to-[#7e22ce]",
@@ -218,10 +222,15 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
                 {/* Pricing Core */}
                 <div className="mb-10">
                   <div className="flex items-baseline gap-1 mb-2">
+                    {plan.originalPrice && (
+                      <span className="text-sm font-bold text-[#444] line-through decoration-[#FF8C42]/50 mr-2 uppercase tracking-tighter">
+                        {plan.originalPrice}
+                      </span>
+                    )}
                     <span className="text-4xl sm:text-5xl font-black text-[#f5f5f5] tracking-tighter">
                       {plan.price}
                     </span>
-                    <span className="text-sm font-bold text-[#444] uppercase tracking-widest uppercase">
+                    <span className="text-sm font-bold text-[#444] uppercase tracking-widest">
                       {plan.period}
                     </span>
                   </div>
@@ -230,6 +239,11 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
                       {plan.reports}
                     </span>
                   </div>
+                  {(plan.name === 'Professional' || plan.name === 'Agency') && (
+                    <div className="mt-3 text-[8px] font-black text-[#FF8C42] uppercase tracking-[0.2em] italic">
+                      * Limited to first 100 Founding Users
+                    </div>
+                  )}
                 </div>
 
                 {/* Contextual Description */}
@@ -333,11 +347,14 @@ export function PricingTransparency({ trialExpired = false }: PricingTransparenc
                     <div className="text-[9px] font-bold text-[#444] uppercase tracking-[0.1em]">Drain Factor: High (₹41k at Scale)</div>
                   </div>
 
-                  {/* OneReport Stream */}
+                  {/* OneReport Protocol Stream */}
                   <div className="space-y-4">
                     <div className="flex justify-between items-end">
                       <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#6CA3A2]">OneReport Protocol</div>
-                      <div className="text-2xl font-black text-[#f5f5f5] italic">₹299 <span className="text-[10px] uppercase not-italic text-[#444]">/ unit</span></div>
+                      <div className="text-2xl font-black text-[#f5f5f5] italic">
+                        <span className="text-sm line-through decoration-[#6CA3A2]/50 mr-2 not-italic text-[#444]">₹1,299</span>
+                        ₹299 <span className="text-[10px] uppercase not-italic text-[#444]">/ unit</span>
+                      </div>
                     </div>
                     <div className="h-2 w-full bg-[#151515] rounded-full overflow-hidden shadow-neu-inset p-[1px]">
                       <motion.div

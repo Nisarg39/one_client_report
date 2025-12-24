@@ -286,6 +286,97 @@ function GoogleAnalyticsMetrics({
         />
       </div>
 
+      {/* Conversions (Phase 2) */}
+      {selectedProperty.conversions && selectedProperty.conversions.totalConversions > 0 && (
+        <div className="space-y-3 pt-2">
+          <h3
+            className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
+          >
+            Conversion Insights
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Total Conversions"
+              value={selectedProperty.conversions.totalConversions || 0}
+              format="number"
+              icon={<Target className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="Session Conv. Rate"
+              value={selectedProperty.conversions.sessionConversionRate || 0}
+              format="percentage"
+              icon={<Activity className="w-4 h-4" />}
+            />
+            <MetricCard
+              label="User Conv. Rate"
+              value={selectedProperty.conversions.userConversionRate || 0}
+              format="percentage"
+              icon={<Activity className="w-4 h-4" />}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Ecommerce (Phase 2) */}
+      {selectedProperty.ecommerce && (selectedProperty.ecommerce.totalRevenue > 0 || selectedProperty.ecommerce.transactions > 0) && (
+        <DimensionalDataSection
+          title="Ecommerce Performance"
+          icon={<TrendingUp className="w-4 h-4" />}
+          defaultExpanded={true}
+        >
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <MetricCard
+                label="Total Revenue"
+                value={selectedProperty.ecommerce.totalRevenue || 0}
+                format="currency"
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+              <MetricCard
+                label="Transactions"
+                value={selectedProperty.ecommerce.transactions || 0}
+                format="number"
+                icon={<Target className="w-4 h-4" />}
+              />
+              <MetricCard
+                label="Add to Carts"
+                value={selectedProperty.ecommerce.add_to_carts || 0}
+                format="number"
+                icon={<Target className="w-4 h-4" />}
+              />
+              <MetricCard
+                label="Checkouts"
+                value={selectedProperty.ecommerce.checkouts || 0}
+                format="number"
+                icon={<Target className="w-4 h-4" />}
+              />
+            </div>
+
+            {selectedProperty.ecommerce.items && selectedProperty.ecommerce.items.length > 0 && (
+              <div className="pt-2">
+                <h4 className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic">
+                  Top Performing Products
+                </h4>
+                <DataTable
+                  rows={selectedProperty.ecommerce.items.map((item: any) => ({
+                    icon: <Target className="w-4 h-4" />,
+                    label: item.name || 'Unknown',
+                    value: `$${(item.revenue || 0).toLocaleString()}`,
+                    progressBar: {
+                      value: item.revenue || 0,
+                      max: Math.max(...selectedProperty.ecommerce.items.map((i: any) => i.revenue || 1)),
+                      color: '#6CA3A2',
+                    },
+                    secondaryValue: `${item.quantity || 0} sold`,
+                  }))}
+                  compact
+                />
+              </div>
+            )}
+          </div>
+        </DimensionalDataSection>
+      )}
+
       {/* Google Ads Performance (Integrated in GA) */}
       {metrics.adsSpend !== undefined && metrics.adsSpend > 0 && (
         <div className="space-y-3 pt-2">
@@ -313,6 +404,41 @@ function GoogleAnalyticsMetrics({
               format="number"
               icon={<MousePointerClick className="w-4 h-4" />}
             />
+          </div>
+        </div>
+      )}
+
+      {/* Retention & LTV (Phase 2) */}
+      {selectedProperty.retention && (selectedProperty.retention.userLtvTotalRevenue > 0) && (
+        <div className="space-y-3 pt-2">
+          <h3
+            className="text-[10px] font-black text-[#555] uppercase tracking-[0.3em] italic px-1"
+          >
+            Retention & Lifetime Value
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <MetricCard
+              label="Total LTV Revenue"
+              value={selectedProperty.retention.userLtvTotalRevenue || 0}
+              format="currency"
+              icon={<TrendingUp className="w-4 h-4" />}
+            />
+            {selectedProperty.retention.userLtvAverageRevenue > 0 && (
+              <MetricCard
+                label="Avg. LTV Per User"
+                value={selectedProperty.retention.userLtvAverageRevenue || 0}
+                format="currency"
+                icon={<TrendingUp className="w-4 h-4" />}
+              />
+            )}
+            {selectedProperty.retention.retentionRate > 0 && (
+              <MetricCard
+                label="Retention Rate"
+                value={selectedProperty.retention.retentionRate || 0}
+                format="percentage"
+                icon={<Activity className="w-4 h-4" />}
+              />
+            )}
           </div>
         </div>
       )}
@@ -537,7 +663,9 @@ function GoogleAnalyticsMetrics({
       )}
 
       {/* Technology (Devices & Browsers) */}
-      {(dimensions.devices && dimensions.devices.length > 0) || (selectedProperty.browserBreakdown && selectedProperty.browserBreakdown.length > 0) ? (
+      {(dimensions.devices && dimensions.devices.length > 0) ||
+        (selectedProperty.browserBreakdown && selectedProperty.browserBreakdown.length > 0) ||
+        (selectedProperty.techBreakdown) ? (
         <DimensionalDataSection
           title="Technology"
           icon={<Monitor className="w-4 h-4" />}
@@ -569,6 +697,31 @@ function GoogleAnalyticsMetrics({
               </div>
             )}
 
+            {/* Operating Systems (Phase 2) */}
+            {selectedProperty.techBreakdown?.operatingSystem && selectedProperty.techBreakdown.operatingSystem.length > 0 && (
+              <div>
+                <h4
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
+                >
+                  Operating Systems
+                </h4>
+                <DataTable
+                  rows={selectedProperty.techBreakdown.operatingSystem.map((os: any) => ({
+                    icon: <Monitor className="w-4 h-4" />,
+                    label: os.name || 'Unknown',
+                    value: formatNumber(os.sessions || 0),
+                    progressBar: {
+                      value: os.sessions || 0,
+                      max: totalSessions || 1,
+                      color: '#6CA3A2',
+                    },
+                    secondaryValue: totalSessions ? `${Math.round(((os.sessions || 0) / totalSessions) * 100)}%` : '0%',
+                  }))}
+                  compact
+                />
+              </div>
+            )}
+
             {/* Browser Breakdown - PHASE 1: NEW! */}
             {selectedProperty.browserBreakdown && selectedProperty.browserBreakdown.length > 0 && (
               <div>
@@ -588,6 +741,55 @@ function GoogleAnalyticsMetrics({
                       color: '#6CA3A2',
                     },
                     secondaryValue: totalSessions ? `${Math.round(((browser.sessions || 0) / totalSessions) * 100)}%` : '0%',
+                  }))}
+                  compact
+                />
+              </div>
+            )}
+
+            {/* Languages (Phase 2) */}
+            {selectedProperty.techBreakdown?.language && selectedProperty.techBreakdown.language.length > 0 && (
+              <div>
+                <h4
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
+                >
+                  Language Distribution
+                </h4>
+                <DataTable
+                  rows={selectedProperty.techBreakdown.language.map((lang: any) => ({
+                    icon: <Globe className="w-4 h-4" />,
+                    label: lang.name || 'Unknown',
+                    value: formatNumber(lang.sessions || 0),
+                    progressBar: {
+                      value: lang.sessions || 0,
+                      max: totalSessions || 1,
+                      color: '#6CA3A2',
+                    },
+                    secondaryValue: totalSessions ? `${Math.round(((lang.sessions || 0) / totalSessions) * 100)}%` : '0%',
+                  }))}
+                  compact
+                />
+              </div>
+            )}
+
+            {/* Screen Resolution (Phase 2) */}
+            {selectedProperty.techBreakdown?.screenResolution && selectedProperty.techBreakdown.screenResolution.length > 0 && (
+              <div>
+                <h4
+                  className="text-[8px] font-black text-[#444] uppercase tracking-[0.2em] mb-2.5 px-1 italic"
+                >
+                  Viewport Density
+                </h4>
+                <DataTable
+                  rows={selectedProperty.techBreakdown.screenResolution.map((res: any) => ({
+                    icon: <Monitor className="w-4 h-4" />,
+                    label: res.name || 'Unknown',
+                    value: formatNumber(res.sessions || 0),
+                    progressBar: {
+                      value: res.sessions || 0,
+                      max: totalSessions || 1,
+                      color: '#6CA3A2',
+                    },
                   }))}
                   compact
                 />

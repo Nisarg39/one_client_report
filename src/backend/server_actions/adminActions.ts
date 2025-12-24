@@ -10,6 +10,8 @@ import {
 import { ServerActionResponse } from '../types';
 import connectDB from '../config/database';
 import Contactus from '../models/contactus';
+import User, { IUser } from '../../models/User';
+import mongoose from 'mongoose';
 
 type ContactStatus = 'unread' | 'read' | 'responded';
 
@@ -184,6 +186,7 @@ export async function getDashboardStats(): Promise<ServerActionResponse<{
   today: number;
   thisWeek: number;
   unread: number;
+  totalUsers: number;
 }>> {
   try {
     await connectDB();
@@ -192,11 +195,12 @@ export async function getDashboardStats(): Promise<ServerActionResponse<{
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [total, today, thisWeek, unread] = await Promise.all([
+    const [total, today, thisWeek, unread, totalUsers] = await Promise.all([
       Contactus.countDocuments(),
       Contactus.countDocuments({ createdAt: { $gte: todayStart } }),
       Contactus.countDocuments({ createdAt: { $gte: weekAgo } }),
       Contactus.countDocuments({ status: 'unread' }),
+      User.countDocuments(),
     ]);
 
     return {
@@ -207,6 +211,7 @@ export async function getDashboardStats(): Promise<ServerActionResponse<{
         today,
         thisWeek,
         unread,
+        totalUsers,
       },
     };
   } catch (error) {
@@ -471,6 +476,148 @@ export async function bulkUpdateStatus(
     return {
       success: false,
       message: 'Failed to update contacts',
+    };
+  }
+}
+/**
+ * Get all users with pagination, search, and filters
+ */
+export async function getAllUsers(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  usageTier?: string;
+  status?: string;
+}): Promise<ServerActionResponse<{
+  users: any[];
+  total: number;
+  page: number;
+  totalPages: number;
+}>> {
+  try {
+    await connectDB();
+
+    const page = params?.page || 1;
+    const limit = params?.limit || 10;
+    const search = params?.search || '';
+    const usageTier = params?.usageTier || '';
+    const status = params?.status || '';
+
+    // Build query
+    const query: Record<string, any> = {};
+
+    // Search by name or email
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Filter by usageTier
+    if (usageTier && usageTier !== 'all') {
+      query.usageTier = usageTier;
+    }
+
+    // Filter by status
+    if (status && status !== 'all') {
+      query.status = status;
+    }
+
+    // Get total count
+    const total = await User.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+
+    // Get paginated results
+    const users = await User.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    // Serialize users (convert ObjectIds to strings and Dates to ISO strings)
+    const serializedUsers = JSON.parse(JSON.stringify(users));
+
+    return {
+      success: true,
+      message: 'Users fetched successfully',
+      data: {
+        users: serializedUsers,
+        total,
+        page,
+        totalPages,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch users',
+    };
+  }
+}
+
+/**
+ * Update user status
+ */
+export async function updateUserStatus(
+  userId: string,
+  status: 'active' | 'suspended' | 'inactive'
+): Promise<ServerActionResponse> {
+  try {
+    await connectDB();
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: { status } },
+      { new: true }
+    );
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found',
+      };
+    }
+
+    return {
+      success: true,
+      message: `User status updated to ${status}`,
+    };
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    return {
+      success: false,
+      message: 'Failed to update user status',
+    };
+  }
+}
+
+/**
+ * Delete user
+ */
+export async function deleteUser(userId: string): Promise<ServerActionResponse> {
+  try {
+    await connectDB();
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'User deleted successfully',
+    };
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return {
+      success: false,
+      message: 'Failed to delete user',
     };
   }
 }

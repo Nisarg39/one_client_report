@@ -6,6 +6,7 @@ import AdminSidebar from "./admin-sidebar";
 import AdminDashboard from "./admin-dashboard";
 import AdminSignInHome from "./admin-sign-in/admin-sign-in-home";
 import ContactList from "./admin-contacts/contact-list";
+import UserList from "./admin-users/user-list";
 
 export default function AdminHome() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -45,6 +46,8 @@ export default function AdminHome() {
         return <AdminDashboard />;
       case "contacts":
         return <ContactList />;
+      case "users":
+        return <UserList />;
       default:
         return <AdminDashboard />;
     }

@@ -149,9 +149,15 @@ export default function ProductsPage() {
               <p className="text-[#a0a0a0] text-sm md:text-lg leading-relaxed max-w-md">
                 Transition to real-world impact. Connect live channels, synthesize professional reports, and accelerate your client results.
               </p>
-              <div className="mt-8 flex items-baseline gap-2">
-                <span className="text-4xl font-black text-[#f5f5f5]">₹299</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#FF8C42]">/ Month</span>
+              <div className="mt-8 flex flex-col items-center lg:items-start gap-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-bold text-[#444] line-through decoration-[#FF8C42]/50 uppercase tracking-tighter">₹1,299</span>
+                  <span className="text-4xl font-black text-[#f5f5f5]">₹299</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#FF8C42]">/ Month</span>
+                </div>
+                <div className="text-[9px] font-black text-[#FF8C42] uppercase tracking-[0.2em] italic">
+                  * Founder's Price: First 100 Users
+                </div>
               </div>
             </motion.div>
 
@@ -220,9 +226,15 @@ export default function ProductsPage() {
               <p className="text-[#a0a0a0] text-sm md:text-lg leading-relaxed max-w-md lg:ml-auto">
                 Orchestrate your entire team. Command advanced AI models and handle complex multi-client workflows with seamless surgical precision.
               </p>
-              <div className="mt-8 flex items-baseline gap-2">
-                <span className="text-4xl font-black text-[#f5f5f5]">₹999</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-[#6CA3A2]">/ Month</span>
+              <div className="mt-8 flex flex-col items-center lg:items-end gap-1">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-sm font-bold text-[#444] line-through decoration-[#6CA3A2]/50 uppercase tracking-tighter">₹4,499</span>
+                  <span className="text-4xl font-black text-[#f5f5f5]">₹999</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-[#6CA3A2]">/ Month</span>
+                </div>
+                <div className="text-[9px] font-black text-[#6CA3A2] uppercase tracking-[0.2em] italic">
+                  * Early Adopter: First 100 Users
+                </div>
               </div>
             </motion.div>
 

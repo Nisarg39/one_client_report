@@ -204,7 +204,6 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
   const returningUsers = users - newUsers;
   const pageviews = Math.round(sessions * randomFloat(2.8, 3.5));
 
-  // Device breakdown
   const deviceMix = config.deviceMix || {
     mobile: { percentage: 60, bounceRate: 0.55, avgSessionDuration: 120 },
     desktop: { percentage: 35, bounceRate: 0.45, avgSessionDuration: 180 },
@@ -216,21 +215,18 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
   const desktopSessions = Math.round((totalSessions * deviceMix.desktop.percentage) / 100);
   const tabletSessions = totalSessions - mobileSessions - desktopSessions;
 
-  // Calculate weighted bounce rate
   const weightedBounceRate =
     (mobileSessions * deviceMix.mobile.bounceRate +
       desktopSessions * deviceMix.desktop.bounceRate +
       tabletSessions * deviceMix.tablet.bounceRate) /
     totalSessions;
 
-  // Calculate weighted session duration
   const weightedSessionDuration =
     (mobileSessions * deviceMix.mobile.avgSessionDuration +
       desktopSessions * deviceMix.desktop.avgSessionDuration +
       tabletSessions * deviceMix.tablet.avgSessionDuration) /
     totalSessions;
 
-  // Traffic sources
   const trafficSources = config.trafficSources || [
     { source: 'google', medium: 'organic', sessions: Math.round(sessions * 0.45) },
     { source: 'direct', medium: '(none)', sessions: Math.round(sessions * 0.25) },
@@ -239,7 +235,6 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
     { source: 'bing', medium: 'organic', sessions: Math.round(sessions * 0.05) },
   ];
 
-  // Top pages
   const topPages = config.topPages || [
     { page: '/', views: Math.round(pageviews * 0.35) },
     { page: '/products', views: Math.round(pageviews * 0.20) },
@@ -247,6 +242,8 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
     { page: '/contact', views: Math.round(pageviews * 0.08) },
     { page: '/blog', views: Math.round(pageviews * 0.10) },
   ];
+
+  const revenueEstimate = sessions * randomFloat(1.5, 3.2);
 
   const propertyData: GAPropertyData = {
     propertyId,
@@ -270,6 +267,12 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
       engagementRate: addNoise(1 - weightedBounceRate, config.noiseLevel || 0.05),
       sessionsPerUser: sessions / users,
       eventCount: Math.round(sessions * randomFloat(8, 15)),
+      conversions: Math.round(sessions * 0.05),
+      purchaseRevenue: revenueEstimate * 0.95,
+      totalRevenue: revenueEstimate,
+      transactions: Math.round(revenueEstimate / 120),
+      engagedSessions: Math.round(sessions * 0.65),
+      userLtvTotalRevenue: 450.50,
     },
     dimensions: {
       topSources: trafficSources.map((ts) => ({
@@ -296,6 +299,7 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
       ],
       topPages: topPages.map((tp) => ({
         page: tp.page,
+        title: tp.page === '/' ? 'Home Page' : tp.page.replace(/^\/|\-+/g, ' ').trim(),
         views: tp.views,
         avgTime: randomFloat(30, 180),
       })),
@@ -306,7 +310,51 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
         { country: 'Australia', users: Math.round(users * 0.07) },
         { country: 'Germany', users: Math.round(users * 0.03) },
       ],
-      daily: generateDailyTrend(config.sessionsRange, 30),
+      daily: generateDailyTrend(config.sessionsRange, 30).map(d => ({
+        ...d,
+        engagedSessions: Math.round(d.sessions * 0.65),
+        engagementRate: 0.65
+      })),
+    },
+    ecommerce: {
+      totalRevenue: revenueEstimate,
+      purchaseRevenue: revenueEstimate * 0.95,
+      transactions: Math.round(revenueEstimate / 120),
+      conversionRate: 0.02,
+      add_to_carts: Math.round(sessions * 0.05),
+      checkouts: Math.round(sessions * 0.03),
+      items: topPages.map(tp => ({
+        name: tp.page === '/' ? 'Main Product' : `Product ${tp.page}`,
+        id: `MOCK-${Math.floor(Math.random() * 1000)}`,
+        brand: 'OneReport',
+        category: 'Services',
+        quantity: Math.floor(Math.random() * 50) + 1,
+        revenue: Math.random() * 500,
+      }))
+    },
+    conversions: {
+      totalConversions: Math.round(sessions * 0.05),
+      sessionConversionRate: 0.05,
+      userConversionRate: 0.08,
+    },
+    retention: {
+      userLtvTotalRevenue: 450.50,
+    },
+    techBreakdown: {
+      operatingSystem: [
+        { name: 'iOS', sessions: Math.round(sessions * 0.45) },
+        { name: 'Android', sessions: Math.round(sessions * 0.35) },
+        { name: 'Windows', sessions: Math.round(sessions * 0.15) },
+        { name: 'macOS', sessions: Math.round(sessions * 0.05) },
+      ],
+      language: [
+        { name: 'en-us', sessions: Math.round(sessions * 0.8) },
+        { name: 'es-es', sessions: Math.round(sessions * 0.2) },
+      ],
+      screenResolution: [
+        { name: '1920x1080', sessions: Math.round(sessions * 0.6) },
+        { name: '390x844', sessions: Math.round(sessions * 0.4) },
+      ]
     },
     topCampaigns: trafficSources
       .filter((ts) => ts.medium !== '(none)')
@@ -319,10 +367,8 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
       })),
     topEvents: [
       { eventName: 'page_view', eventCount: pageviews },
-      { eventName: 'click', eventCount: Math.round(sessions * randomFloat(3, 6)) },
-      { eventName: 'scroll', eventCount: Math.round(sessions * randomFloat(2, 4)) },
-      { eventName: 'form_submit', eventCount: Math.round(sessions * randomFloat(0.02, 0.05)) },
-      { eventName: 'purchase', eventCount: Math.round(sessions * randomFloat(0.01, 0.03)) },
+      { eventName: 'scroll', eventCount: Math.round(sessions * 1.5) },
+      { eventName: 'click', eventCount: Math.round(sessions * 0.8) },
     ],
     topLandingPages: topPages.slice(0, 5).map((tp) => ({
       page: tp.page,
@@ -333,22 +379,10 @@ export function generateMockGA4Data(config: GAMockConfig): GAMultiPropertyData {
       { city: 'New York', country: 'United States', sessions: Math.round(sessions * 0.15) },
       { city: 'Los Angeles', country: 'United States', sessions: Math.round(sessions * 0.12) },
       { city: 'Toronto', country: 'Canada', sessions: Math.round(sessions * 0.08) },
-      { city: 'London', country: 'United Kingdom', sessions: Math.round(sessions * 0.07) },
-      { city: 'Chicago', country: 'United States', sessions: Math.round(sessions * 0.06) },
-    ],
-    topRegions: [
-      { region: 'California', country: 'United States', sessions: Math.round(sessions * 0.20) },
-      { region: 'New York', country: 'United States', sessions: Math.round(sessions * 0.15) },
-      { region: 'Ontario', country: 'Canada', sessions: Math.round(sessions * 0.10) },
-      { region: 'Texas', country: 'United States', sessions: Math.round(sessions * 0.08) },
-      { region: 'England', country: 'United Kingdom', sessions: Math.round(sessions * 0.07) },
     ],
     browserBreakdown: [
       { browser: 'Chrome', sessions: Math.round(sessions * 0.55) },
       { browser: 'Safari', sessions: Math.round(sessions * 0.25) },
-      { browser: 'Firefox', sessions: Math.round(sessions * 0.10) },
-      { browser: 'Edge', sessions: Math.round(sessions * 0.08) },
-      { browser: 'Other', sessions: Math.round(sessions * 0.02) },
     ],
   };
 

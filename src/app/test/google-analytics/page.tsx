@@ -168,6 +168,143 @@ export default function GoogleAnalyticsTestPage() {
                         </div>
                     </div>
 
+                    {/* Detailed Analysis Sections */}
+                    {(() => {
+                        const selectedProp = data.properties?.find((p: any) => p.propertyId === (selectedPropertyId || data.selectedPropertyId)) || data.properties?.[0];
+                        if (!selectedProp) return null;
+
+                        return (
+                            <div className="space-y-8">
+                                {/* Performance Breakdown Tiles */}
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="bg-[#252525] p-5 rounded-2xl border border-gray-800">
+                                        <h3 className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 text-center">Total Revenue</h3>
+                                        <p className="text-2xl font-black text-green-400 text-center">${selectedProp.metrics?.totalRevenue?.toLocaleString() || '0'}</p>
+                                    </div>
+                                    <div className="bg-[#252525] p-5 rounded-2xl border border-gray-800">
+                                        <h3 className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 text-center">Conversions</h3>
+                                        <p className="text-2xl font-black text-blue-400 text-center">{selectedProp.metrics?.conversions?.toLocaleString() || '0'}</p>
+                                    </div>
+                                    <div className="bg-[#252525] p-5 rounded-2xl border border-gray-800">
+                                        <h3 className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 text-center">Transactions</h3>
+                                        <p className="text-2xl font-black text-purple-400 text-center">{selectedProp.metrics?.transactions?.toLocaleString() || '0'}</p>
+                                    </div>
+                                    <div className="bg-[#252525] p-5 rounded-2xl border border-gray-800">
+                                        <h3 className="text-gray-500 text-[10px] uppercase font-bold tracking-widest mb-1 text-center">Avg LTV</h3>
+                                        <p className="text-2xl font-black text-yellow-400 text-center">${selectedProp.metrics?.userLtvTotalRevenue?.toLocaleString() || '0'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Ecommerce Items */}
+                                    <div className="bg-[#252525] p-6 rounded-2xl border border-gray-800">
+                                        <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-green-500 rounded-full"></span>
+                                            Top Selling Items
+                                        </h3>
+                                        {selectedProp.ecommerce?.items?.length ? (
+                                            <div className="space-y-3">
+                                                {selectedProp.ecommerce.items.map((item: any, i: number) => (
+                                                    <div key={i} className="flex justify-between items-center p-3 bg-[#1a1a1a] rounded-lg border border-gray-800 hover:border-gray-700 transition-colors">
+                                                        <div className="max-w-[70%]">
+                                                            <div className="text-sm font-bold truncate">{item.name}</div>
+                                                            <div className="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">{item.category}</div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-sm font-black text-green-400">${item.revenue?.toLocaleString()}</div>
+                                                            <div className="text-[10px] text-gray-500">Qty: {item.quantity}</div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-10 text-gray-600 italic">No ecommerce data detected</div>
+                                        )}
+                                    </div>
+
+                                    {/* Technology & Performance */}
+                                    <div className="bg-[#252525] p-6 rounded-2xl border border-gray-800">
+                                        <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-purple-500 rounded-full"></span>
+                                            System & Tech Breakdown
+                                        </h3>
+                                        <div className="space-y-6">
+                                            {/* OS */}
+                                            <div>
+                                                <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 px-1">Top Operating Systems</div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedProp.techBreakdown?.operatingSystem?.map((os: any, i: number) => (
+                                                        <div key={i} className="bg-[#1a1a1a] px-3 py-1.5 rounded-lg border border-gray-800 text-xs flex items-center gap-2">
+                                                            <span className="font-bold">{os.name}</span>
+                                                            <span className="w-1 h-3 bg-gray-700"></span>
+                                                            <span className="text-blue-400 font-mono">{os.sessions}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {/* Resolution */}
+                                            <div>
+                                                <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-2 px-1">Screen Resolutions</div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {selectedProp.techBreakdown?.screenResolution?.slice(0, 5).map((res: any, i: number) => (
+                                                        <div key={i} className="bg-[#1a1a1a] px-3 py-1.5 rounded-lg border border-gray-800 text-xs flex items-center gap-2">
+                                                            <span className="font-bold">{res.name}</span>
+                                                            <span className="w-1 h-3 bg-gray-700"></span>
+                                                            <span className="text-blue-400 font-mono">{res.sessions}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Conversion Breakdown */}
+                                <div className="bg-[#252525] p-6 rounded-2xl border border-gray-800">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-base font-bold flex items-center gap-2">
+                                            <span className="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                                            Key Conversion Indicators
+                                        </h3>
+                                        <div className="flex gap-4">
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-gray-500 uppercase font-black tracking-tighter">Session CR</div>
+                                                <div className="text-lg font-black text-blue-400">{(selectedProp.conversions?.sessionConversionRate * 100 || 0).toFixed(2)}%</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-gray-500 uppercase font-black tracking-tighter">User CR</div>
+                                                <div className="text-lg font-black text-blue-400">{(selectedProp.conversions?.userConversionRate * 100 || 0).toFixed(2)}%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="bg-[#1a1a1a] p-4 rounded-xl border border-gray-800">
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Engaged Sessions</div>
+                                            <div className="text-xl font-mono text-gray-200">{selectedProp.metrics?.engagedSessions?.toLocaleString() || 0}</div>
+                                        </div>
+                                        <div className="bg-[#1a1a1a] p-4 rounded-xl border border-gray-800">
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Engagement Rate</div>
+                                            <div className="text-xl font-mono text-gray-200">{(selectedProp.metrics?.engagementRate * 100 || 0).toFixed(1)}%</div>
+                                        </div>
+                                        <div className="bg-[#1a1a1a] p-4 rounded-xl border border-gray-800">
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Add to Carts</div>
+                                            <div className="text-xl font-mono text-green-300">{selectedProp.ecommerce?.add_to_carts?.toLocaleString() || 0}</div>
+                                        </div>
+                                        <div className="bg-[#1a1a1a] p-4 rounded-xl border border-gray-800">
+                                            <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Cart-to-View</div>
+                                            <div className="text-xl font-mono text-green-300">
+                                                {selectedProp.metrics?.pageviews > 0
+                                                    ? ((selectedProp.ecommerce?.add_to_carts / selectedProp.metrics?.pageviews) * 100 || 0).toFixed(1)
+                                                    : '0'}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
                     {/* Debug JSON Sections */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-10 border-t border-gray-800">
                         <div>

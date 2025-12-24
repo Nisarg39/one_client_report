@@ -11,7 +11,7 @@ import { GA4RunReportRequest, GA4Response, GA4Property } from './types';
  */
 export class GoogleAnalyticsClient {
   private accessToken: string;
-  private apiVersion: string = 'v1beta'; // NOTE: v1 doesn't exist yet, API is still in beta
+  private apiVersion: string = 'v1beta'; // GA4 Data API is currently in v1beta
 
   constructor(accessToken: string) {
     this.accessToken = accessToken;
@@ -77,6 +77,7 @@ export class GoogleAnalyticsClient {
       })),
     };
 
+    console.log(`GA API Batch Request for property ${propertyId}:`, JSON.stringify(body, null, 2));
     const response = await fetch(url, {
       method: 'POST',
       headers: {
