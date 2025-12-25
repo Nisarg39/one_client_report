@@ -338,12 +338,21 @@ export async function fetchGoogleAdsData(
         );
 
         // Store raw response
+        if (customer) {
+          fullApiResponse.push({ customer_raw: customer });
+        }
+
         if (metricsResponse.results && metricsResponse.results.length > 0) {
           fullApiResponse = [...fullApiResponse, ...metricsResponse.results];
         }
 
         // Get campaign list for this customer
         const campaigns = await client.getCampaigns(customerId, usedLcid);
+
+        // Store raw response
+        if (campaigns && campaigns.length > 0) {
+          fullApiResponse.push({ campaigns_raw: campaigns });
+        }
 
         // Aggregate metrics and collect campaigns
         const campaignMetrics = new Map<string, any>();
@@ -415,10 +424,9 @@ export async function fetchGoogleAdsData(
           }
         }
 
-        // Add campaigns to list (limit to top 5 by impressions)
+        // Add campaigns to list (sorted by impressions)
         const campaignList = Array.from(campaignMetrics.values())
           .sort((a, b) => b.impressions - a.impressions)
-          .slice(0, 5)
           .map((c) => ({
             id: c.id,
             name: c.name,
@@ -511,7 +519,7 @@ export async function fetchGoogleAdsData(
         searchBudgetLostImpressionShare: totalMetrics.accountsWithImpressionShare > 0 ? Math.round((totalMetrics.searchBudgetLostImpressionShareSum / totalMetrics.accountsWithImpressionShare) * 10000) / 100 : 0,
         searchRankLostImpressionShare: totalMetrics.accountsWithImpressionShare > 0 ? Math.round((totalMetrics.searchRankLostImpressionShareSum / totalMetrics.accountsWithImpressionShare) * 10000) / 100 : 0,
       },
-      campaigns: allCampaigns.slice(0, 10), // Limit total campaigns to 10
+      campaigns: allCampaigns,
       dateRange: dateRangeString,
       developerTokenStatus: 'active',
       apiResponse: fullApiResponse,
