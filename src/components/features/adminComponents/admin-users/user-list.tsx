@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getAllUsers, deleteUser, updateUserStatus } from "@/backend/server_actions/adminActions";
-import { Search, User as UserIcon, Shield, CreditCard, Trash2, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { getAllUsers, deleteUser, updateUserStatus, getUserAnalytics } from "@/backend/server_actions/adminActions";
+import { Search, User as UserIcon, Shield, CreditCard, Trash2, CheckCircle, XCircle, AlertTriangle, BarChart2, MessageSquare, List } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface User {
@@ -30,6 +30,12 @@ export default function UserList() {
     const [searchQuery, setSearchQuery] = useState("");
     const [tierFilter, setTierFilter] = useState("all");
     const [statusFilter, setStatusFilter] = useState("all");
+
+    // Analytics state
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [analytics, setAnalytics] = useState<{ totalConversations: number; totalMessages: number } | null>(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(false);
+    const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -71,6 +77,26 @@ export default function UserList() {
         } else {
             alert(result.message);
         }
+    };
+
+    const handleFetchAnalytics = async (user: User) => {
+        setSelectedUser(user);
+        setAnalyticsLoading(true);
+        setShowAnalyticsModal(true);
+
+        const result = await getUserAnalytics(user._id);
+        if (result.success && result.data) {
+            setAnalytics(result.data);
+        } else {
+            console.error(result.message);
+        }
+        setAnalyticsLoading(false);
+    };
+
+    const closeAnalyticsModal = () => {
+        setShowAnalyticsModal(false);
+        setAnalytics(null);
+        setSelectedUser(null);
     };
 
     const getTierColor = (tier: string) => {
@@ -273,6 +299,13 @@ export default function UserList() {
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center justify-end gap-2 translate-x-2 group-hover:translate-x-0 transition-transform duration-300">
+                                                        <button
+                                                            onClick={() => handleFetchAnalytics(user)}
+                                                            title="User Analytics"
+                                                            className="p-3 rounded-xl bg-[#1a1a1a] border border-white/5 text-[#6CA3A2] shadow-neu-raised hover:shadow-neu-inset transition-all"
+                                                        >
+                                                            <BarChart2 className="w-4 h-4" />
+                                                        </button>
                                                         {user.status === 'active' ? (
                                                             <button
                                                                 onClick={() => handleUpdateStatus(user._id, 'suspended')}
@@ -352,6 +385,90 @@ export default function UserList() {
                     </div>
                 )}
             </div>
-        </div>
+
+            {/* User Analytics Modal */}
+            <AnimatePresence>
+                {showAnalyticsModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-[#151515] border border-white/10 rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-[#1a1a1a] shadow-neu-raised flex items-center justify-center overflow-hidden border border-white/5">
+                                            {selectedUser?.image ? (
+                                                <img src={selectedUser.image} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <UserIcon className="w-6 h-6 text-[#444]" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-black text-white uppercase tracking-tight">{selectedUser?.name}</h2>
+                                            <p className="text-[#6CA3A2] text-xs font-medium">{selectedUser?.email}</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={closeAnalyticsModal}
+                                        className="p-2 rounded-xl bg-[#1a1a1a] border border-white/5 text-[#444] hover:text-white transition-colors shadow-neu-raised"
+                                    >
+                                        <XCircle className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                {analyticsLoading ? (
+                                    <div className="py-20 flex flex-col items-center justify-center">
+                                        <div className="w-12 h-12 border-4 border-[#6CA3A2] border-t-transparent rounded-full animate-spin mb-4"></div>
+                                        <p className="text-[#444] font-black uppercase tracking-widest text-xs">Retrieving neural metrics...</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4 mb-8">
+                                        <div className="p-6 rounded-3xl bg-[#1a1a1a] border border-white/5 shadow-neu-inset">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="p-2 rounded-lg bg-[#6CA3A2]/10 text-[#6CA3A2]">
+                                                    <List className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-[#555] uppercase tracking-widest">Conversations</span>
+                                            </div>
+                                            <div className="text-3xl font-black text-white">{analytics?.totalConversations || 0}</div>
+                                            <div className="text-[9px] font-bold text-[#444] uppercase tracking-tighter mt-1">Total count</div>
+                                        </div>
+
+                                        <div className="p-6 rounded-3xl bg-[#1a1a1a] border border-white/5 shadow-neu-inset">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="p-2 rounded-lg bg-[#FF8C42]/10 text-[#FF8C42]">
+                                                    <MessageSquare className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[10px] font-black text-[#555] uppercase tracking-widest">Messages</span>
+                                            </div>
+                                            <div className="text-3xl font-black text-white">{analytics?.totalMessages || 0}</div>
+                                            <div className="text-[9px] font-bold text-[#444] uppercase tracking-tighter mt-1">Total user inputs</div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="p-4 rounded-2xl bg-[#1a1a1a] border border-white/5 border-dashed">
+                                    <p className="text-[10px] text-[#444] text-center font-medium uppercase tracking-widest">
+                                        Metrics are calculated based on all active and archived interactions.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-[#1a1a1a]/50 border-t border-white/5 flex justify-end">
+                                <button
+                                    onClick={closeAnalyticsModal}
+                                    className="px-8 py-3 rounded-xl bg-[#1a1a1a] text-xs font-black uppercase tracking-widest text-[#6CA3A2] border border-[#6CA3A2]/20 shadow-neu-raised hover:shadow-neu-inset transition-all"
+                                >
+                                    Dismiss
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div >
     );
 }

@@ -11,6 +11,7 @@ import { ServerActionResponse } from '../types';
 import connectDB from '../config/database';
 import Contactus from '../models/contactus';
 import User, { IUser } from '../../models/User';
+import Conversation from '../../models/Conversation';
 import mongoose from 'mongoose';
 
 type ContactStatus = 'unread' | 'read' | 'responded';
@@ -618,6 +619,54 @@ export async function deleteUser(userId: string): Promise<ServerActionResponse> 
     return {
       success: false,
       message: 'Failed to delete user',
+    };
+  }
+}
+
+/**
+ * Get user analytics (total conversations and total user messages)
+ */
+export async function getUserAnalytics(userId: string): Promise<ServerActionResponse<{
+  totalConversations: number;
+  totalMessages: number;
+}>> {
+  try {
+    await connectDB();
+
+    // 1. Count total conversations
+    const totalConversations = await Conversation.countDocuments({
+      userId: new mongoose.Types.ObjectId(userId),
+      status: { $ne: 'deleted' }
+    });
+
+    // 2. Count total messages by user across all conversations using aggregation
+    const stats = await Conversation.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          status: { $ne: 'deleted' }
+        }
+      },
+      { $unwind: '$messages' },
+      { $match: { 'messages.role': 'user' } },
+      { $count: 'totalUserMessages' }
+    ]);
+
+    const totalMessages = stats.length > 0 ? stats[0].totalUserMessages : 0;
+
+    return {
+      success: true,
+      message: 'User analytics fetched successfully',
+      data: {
+        totalConversations,
+        totalMessages,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching user analytics:', error);
+    return {
+      success: false,
+      message: 'Failed to fetch user analytics',
     };
   }
 }
